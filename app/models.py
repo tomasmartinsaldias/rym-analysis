@@ -26,22 +26,13 @@ class Album(db.Model):
     rating_count = db.Column(db.Integer, nullable=False)
     review_count = db.Column(db.Integer, nullable=False)
 
-    # Métricas de Spotify (Mainstream & Audio Features)
-    spotify_id = db.Column(db.String(100), unique=True)
-    spotify_popularity = db.Column(db.Integer)
-    artist_followers = db.Column(db.BigInteger) # BigInteger por artistas masivos
+    # MusicBrainz
+    mbid = db.Column(db.String(36), unique=True) # UUID
     label = db.Column(db.String(150))
-    total_tracks = db.Column(db.Integer)
     
-    # Audio Features (0.0 a 1.0)
-    avg_energy = db.Column(db.Float)
-    avg_valence = db.Column(db.Float)
-    avg_acousticness = db.Column(db.Float)
-    avg_tempo = db.Column(db.Float)
-    pct_explicit = db.Column(db.Float)
-    
-    # Spotify Genres se puede guardar como String simple si no queremos otra tabla
-    spotify_genres = db.Column(db.String(500))
+    # Last.fm
+    lastfm_listeners = db.Column(db.Integer)
+    lastfm_playcount = db.Column(db.Integer)
 
     # Relaciones Muchos a Muchos (Poder analítico real)
     genres = db.relationship('Genre', secondary=album_genres, backref=db.backref('albums', lazy='dynamic'))

@@ -14,10 +14,10 @@ def process_csv_to_db(file_or_path):
             fecha_obj = None # Manejo de errores por si la fecha está mal
 
         # 2. Lógica de "Merge": Buscar si el álbum ya existe (cargado por API)
-        # title y artist vienen del CSV. Se usa ilike para ignorar mayúsculas/minúsculas
+        # release_name y artist_name vienen del CSV. Se usa ilike para ignorar mayúsculas/minúsculas
         album = Album.query.filter(
-            func.lower(Album.title) == func.lower(str(row['title'])),
-            func.lower(Album.artist) == func.lower(str(row['artist']))
+            func.lower(Album.title) == func.lower(str(row['release_name'])),
+            func.lower(Album.artist) == func.lower(str(row['artist_name']))
         ).first()
 
         if album:
@@ -31,8 +31,8 @@ def process_csv_to_db(file_or_path):
             # Si no existe, lo creamos de cero
             album = Album(
                 position=row['position'],
-                title=row['title'],
-                artist=row['artist'],
+                title=row['release_name'],
+                artist=row['artist_name'],
                 release_date=fecha_obj,
                 avg_rating=row['avg_rating'],
                 rating_count=row['rating_count'],
