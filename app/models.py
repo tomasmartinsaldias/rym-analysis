@@ -27,7 +27,7 @@ class Album(db.Model):
     review_count = db.Column(db.Integer, nullable=False)
 
     # MusicBrainz
-    mbid = db.Column(db.String(36), unique=True) # UUID
+    mbid = db.Column(db.String(36), index=True) # UUID de MusicBrainz (no unique: MB puede devolver el mismo release para distintos registros)
     label = db.Column(db.String(150))
     
     # Last.fm
