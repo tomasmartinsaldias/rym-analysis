@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Análisis Exploratorio</h2>
+    <p class="text-muted">Esta vista consume los datos directamente desde nuestra API en <code>api.py</code>.</p>
+
+    <!-- Sección de Análisis Básico -->
+    <div class="row mb-4" id="basic-analysis-container">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Cargando métricas...</h5>
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sección de Tendencias (Gráfico) -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title text-center">Tendencia de Calificación por Año</h5>
+                    <div id="trends-chart" style="height: 400px;">
+                        <div class="text-center mt-5">
+                            <div class="spinner-border text-success" role="status">
+                                <span class="visually-hidden">Cargando gráfico...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Usaremos Plotly localmente en JS para pintar el gráfico con los datos de la API -->
+<script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    
+    // 1. Consumir /api/analysis/basic
+    fetch('/api/analysis/basic')
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('basic-analysis-container');
+            container.innerHTML = `
+                <div class="col-md-4">
+                    <div class="p-3 border bg-light rounded text-center">
+                        <h6 class="text-muted">Promedio Global</h6>
+                        <h3>⭐ ${data.avg_rating_global}</h3>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-3 border bg-light rounded text-center">
+                        <h6 class="text-muted">Total de Reviews</h6>
+                        <h3>📝 ${data.total_reviews_analyzed.toLocaleString()}</h3>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-3 border bg-light rounded text-center">
+                        <h6 class="text-muted">Álbum Mejor Puntuado</h6>
+                        <h5>🏆 ${data.top_rated_album.title}</h5>
+                        <small>${data.top_rated_album.artist} (${data.top_rated_album.rating})</small>
+                    </div>
+                </div>
+            `;
+        })
+        .catch(error => console.error("Error cargando análisis básico:", error));
+
+    // 2. Consumir /api/analysis/trends
+    fetch('/api/analysis/trends')
+        .then(response => response.json())
+        .then(data => {
+            const trends = data.trends;
+            
+            // Preparar datos para Plotly
+            const years = trends.map(t => t.year);
+            const ratings = trends.map(t => t.avg_rating);
+            
+            const trace = {
+                x: years,
+                y: ratings,
+                type: 'scatter',
+                mode: 'lines+markers',
+                marker: { color: '#1f77b4' },
+                line: { shape: 'spline' }
+            };
+            
+            const layout = {
+                margin: { t: 20, b: 40, l: 40, r: 20 },
+                xaxis: { title: 'Año' },
+                yaxis: { title: 'Rating Promedio' },
+                hovermode: 'closest'
+            };
+            
+            Plotly.newPlot('trends-chart', [trace], layout);
+        })
+        .catch(error => console.error("Error cargando tendencias:", error));
+});
+</script>
+{% endblock %}

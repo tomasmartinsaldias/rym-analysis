@@ -12,3 +12,6 @@ requests==2.33.1
 
 # Environment and Utilities
 python-dotenv==1.2.2
+
+# Visualizations
+plotly==5.24.0

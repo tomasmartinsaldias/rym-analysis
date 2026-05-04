@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="text-center">
+
+    <h1>RYM Analysis</h1>
+    
+    <p>Análisis de los 5,000 álbumes mejor puntuados de Rate Your Music, enriquecidos con datos de Last.fm y MusicBrainz.</p>
+
+</div>
+
+<div class="row mt-4">
+
+  <div class="col-md-4">
+    <a href="/data" class="btn btn-primary w-100">📊 Ver Datos</a>
+  </div>
+
+  <div class="col-md-4">
+    <a href="/analysis" class="btn btn-success w-100">📈 Análisis</a>
+  </div>
+
+  <div class="col-md-4">
+    <a href="/recommend" class="btn btn-warning w-100">🎯 Recomendador</a>
+  </div>
+
+</div>
+
+{% endblock %}
