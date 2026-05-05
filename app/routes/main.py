@@ -8,7 +8,19 @@ main_bp = Blueprint('main', __name__)
 
 @main_bp.route('/')
 def index():
-    return render_template('landing.html')
+    top_albums = [
+        {"position": 1, "title": "OK Computer", "artist": "Radiohead", "mbid": "541a0976-ca45-3c0f-89e5-26bc376f58d1"},
+        {"position": 2, "title": "Kid A", "artist": "Radiohead", "mbid": "d3bbdcaa-5a13-4285-80e4-09fac885b1ec"},
+        {"position": 3, "title": "The Dark Side of the Moon", "artist": "Pink Floyd", "mbid": "12ac832a-ffdb-49f2-90c0-9d4c8f828edd"},
+        {"position": 4, "title": "Loveless", "artist": "My Bloody Valentine", "mbid": "b1ce7f03-4835-489e-9a0a-13124c6c0a9e"},
+        {"position": 5, "title": "My Beautiful Dark Twisted Fantasy", "artist": "Kanye West", "mbid": "2fcfcaaa-6594-4291-b79f-2d354139e108"},
+        {"position": 6, "title": "In Rainbows", "artist": "Radiohead", "mbid": "3b408cb5-7d51-4188-b07c-fabcf308cda3"},
+        {"position": 7, "title": "Wish You Were Here", "artist": "Pink Floyd", "mbid": "476f385f-50e3-3beb-9465-a0f22da58a8e"},
+        {"position": 8, "title": "In the Aeroplane Over the Sea", "artist": "Neutral Milk Hotel", "mbid": "4b01b4c7-bca1-4cd5-b5f7-a4c14f50730b"},
+        {"position": 9, "title": "The Bends", "artist": "Radiohead", "mbid": "c50176ce-676c-4f30-a168-b333cfe1ed82"},
+        {"position": 10, "title": "To Pimp a Butterfly", "artist": "Kendrick Lamar", "mbid": "a9337d06-b079-467a-b023-10b246ccff38"}
+    ]
+    return render_template('landing.html', top_albums=top_albums)
 
 @main_bp.route('/data')
 def data():

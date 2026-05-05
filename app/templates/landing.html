@@ -10,20 +10,35 @@
 
 </div>
 
-<div class="row mt-4">
-
-  <div class="col-md-4">
-    <a href="/data" class="btn btn-primary w-100">📊 Ver Datos</a>
+<!-- Carrusel de los 10 primeros álbumes -->
+<div id="topAlbumsCarousel" class="carousel slide my-4 mx-auto" data-bs-ride="carousel" data-bs-interval="5000" style="max-width: 800px;">
+  <div class="carousel-inner text-center rounded shadow bg-light">
+    {% for album_pair in top_albums | batch(2) %}
+      <div class="carousel-item {% if loop.first %}active{% endif %}">
+        <div class="row g-0">
+          {% for album in album_pair %}
+          <div class="col-6 position-relative">
+            <img src="https://coverartarchive.org/release/{{ album.mbid }}/front-250" class="d-block w-100" alt="Portada de {{ album.title }}" style="height: 400px; object-fit: cover;">
+            <div class="carousel-caption d-none d-md-block" style="background-color: rgba(0, 0, 0, 0.7); border-radius: 8px; bottom: 15px; left: 10%; right: 10%; padding: 10px;">
+                <h5 class="mb-1 text-white">{{ album.position }}. {{ album.title }}</h5>
+                <p class="mb-0 text-white-50">{{ album.artist }}</p>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endfor %}
   </div>
-
-  <div class="col-md-4">
-    <a href="/analysis" class="btn btn-success w-100">📈 Análisis</a>
-  </div>
-
-  <div class="col-md-4">
-    <a href="/recommend" class="btn btn-warning w-100">🎯 Recomendador</a>
-  </div>
-
+  
+  <button class="carousel-control-prev" type="button" data-bs-target="#topAlbumsCarousel" data-bs-slide="prev" style="width: 15%; opacity: 1;">
+    <span class="carousel-control-prev-icon" aria-hidden="true" style="background-color: rgba(0,0,0,0.5); border-radius: 50%; padding: 1.2rem;"></span>
+    <span class="visually-hidden">Anterior</span>
+  </button>
+  <button class="carousel-control-next" type="button" data-bs-target="#topAlbumsCarousel" data-bs-slide="next" style="width: 15%; opacity: 1;">
+    <span class="carousel-control-next-icon" aria-hidden="true" style="background-color: rgba(0,0,0,0.5); border-radius: 50%; padding: 1.2rem;"></span>
+    <span class="visually-hidden">Siguiente</span>
+  </button>
 </div>
+
 
 {% endblock %}
