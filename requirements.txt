@@ -21,3 +21,6 @@ joblib
 
 # Environment and Utilities
 python-dotenv==1.2.2
+
+# Servidor de producción
+gunicorn
