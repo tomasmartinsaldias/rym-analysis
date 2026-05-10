@@ -1,28 +1,228 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RYM Analysis Dashboard</title>
-</head>
-<body>
-    <h1>Bienvenido a RYM Analysis</h1>
-    
-    <!-- Mostrar mensajes flash -->
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <ul class=flashes>
-        {% for message in messages %}
-          <li>{{ message }}</li>
-        {% endfor %}
-        </ul>
-      {% endif %}
-    {% endwith %}
+{% extends "base.html" %}
+{% set plotly_required = true %}
 
-    <h2>Sube tu archivo CSV para poblar/fusionar datos</h2>
-    <form action="{{ url_for('main.upload_csv') }}" method="POST" enctype="multipart/form-data">
-        <input type="file" name="file" accept=".csv" required>
-        <button type="submit">Cargar Archivo</button>
-    </form>
-</body>
-</html>
+{% block title %}Explorar{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}?v=1.9">
+{% endblock %}
+
+
+{% block content %}
+<div id="snap-root">
+
+  {# ═══════════════════════════════════════════════════════
+  SECCIÓN 1 — UMAP
+  ════════════════════════════════════════════════════════ #}
+  <div class="snap-section">
+    <div id="umap-wrap">
+
+      {# ── Scatter plot (fondo, ocupa todo) ─────────────── #}
+      <div id="scatter-plot" role="img" aria-label="Mapa UMAP de álbumes">
+        {% if scatter_html %}
+        {{ scatter_html | safe }}
+        {% else %}
+        <div class="umap-error">
+          <span class="umap-error-text">
+            Recomendador no disponible
+          </span>
+        </div>
+        {% endif %}
+      </div>
+
+      {# ── Overlay top-left: título + buscador ──────────── #}
+      <div id="umap-overlay">
+
+        <div class="eyebrow">5,000 álbumes · RYM × Last.fm</div>
+        <div class="headline">
+          El universo<br>de <em>rate your music</em>
+        </div>
+        <div class="sub">Cada punto es un álbum. Cada cluster, una vibe.</div>
+
+        {# ── Buscador ────────────────────────────────────── #}
+        <form method="GET" action="{{ url_for('main.index') }}" class="umap-search" role="search">
+          <div class="umap-search__wrap">
+            <svg class="umap-search__icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"
+              aria-hidden="true">
+              <circle cx="6.5" cy="6.5" r="4.5" />
+              <line x1="10" y1="10" x2="14" y2="14" />
+            </svg>
+            <input class="umap-search__input" type="search" name="q" value="{{ q | default('') }}"
+              placeholder="Buscar álbum o artista…" autocomplete="off" list="albums-list" aria-label="Buscar álbum">
+            {# datalist: autocomplete nativo del browser, sin JS #}
+            <datalist id="albums-list">
+              {% for album in all_albums %}
+              <option
+                value="{{ album.title }} — {{ album.artist }} {% if album.release_date %}({{ album.release_date.year }}){% endif %}">
+              </option>
+              {% endfor %}
+            </datalist>
+            <button class="umap-search__btn" type="submit" aria-label="Buscar">→</button>
+          </div>
+
+          {# Card de resultado (solo si hay búsqueda) #}
+          {% if found %}
+          <div class="search-result">
+            <div class="search-result__inner">
+              <div class="search-result__main">
+                <div class="search-result__title">{{ found.title }}</div>
+                <div class="search-result__artist">{{ found.artist }}
+                  {% if found.year %}<span class="search-result__year">· {{ found.year }}</span>{% endif %}
+                </div>
+                <div class="search-result__rating">
+                  {{ '%.2f' | format(found.avg_rating | float) }}
+                  <span class="search-result__denom">/ 5.00</span>
+                </div>
+                {% if found.genres %}
+                <div class="nd-tags mt-8">
+                  {% for g in found.genres[:4] %}
+                  <span class="nd-tag nd-tag--genre">{{ g.name }}</span>
+                  {% endfor %}
+                </div>
+                {% endif %}
+              </div>
+              <a href="{{ url_for('main.album_detail', album_id=found.id) }}"
+                class="nd-btn nd-btn--primary search-result__btn">
+                Ver álbum completo →
+              </a>
+            </div>
+          </div>
+          {% elif q %}
+          {# Búsqueda sin resultado #}
+          <div class="search-result search-result--empty">
+            <span class="search-empty-text">
+              Sin resultados para "{{ q }}"
+            </span>
+          </div>
+          {% endif %}
+
+        </form>
+
+      </div>{# /umap-overlay #}
+
+      {# ── Hint scroll bottom-center ────────────────────── #}
+      <div id="umap-hint" aria-hidden="true">
+        <div>Ver estadísticas</div>
+        <div class="scroll-arrow"></div>
+      </div>
+
+    </div>{# /umap-wrap #}
+  </div>{# /snap-section 1 #}
+
+
+  {# ═══════════════════════════════════════════════════════
+  SECCIÓN 2 — DASHBOARD
+  ════════════════════════════════════════════════════════ #}
+  <div class="snap-section" id="section-dashboard">
+    <div id="dashboard">
+
+      <div class="dash-header">
+        <div class="dash-title">En <em>números</em></div>
+        <div class="dash-subtitle">RYM Top 5,000 · Last.fm · MusicBrainz</div>
+      </div>
+
+      {# Stats globales #}
+      <div class="stats-grid">
+        <div class="stat-cell">
+          <div class="stat-cell__num">{{ stats.album_count | default('4,987') }}</div>
+          <div class="stat-cell__label">Álbumes</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-cell__num amber">{{ '%.2f' | format(stats.avg_rating | float | default(3.91)) }}</div>
+          <div class="stat-cell__label">Rating promedio</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-cell__num">{{ stats.genre_count | default('847') }}</div>
+          <div class="stat-cell__label">Géneros únicos</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-cell__num">{{ stats.cluster_count | default('54') }}</div>
+          <div class="stat-cell__label">Clusters</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-cell__num">{{ stats.avg_listeners | default('142K') }}</div>
+          <div class="stat-cell__label">Oyentes prom.</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-cell__num">{{ stats.total_ratings | default('2.1M') }}</div>
+          <div class="stat-cell__label">Ratings totales</div>
+        </div>
+      </div>
+
+      {# Grid de widgets #}
+      <div class="dash-grid">
+
+        {# TOP ÁLBUMES #}
+        <div class="dash-widget dash-col-4">
+          <div class="widget-label">Top álbumes por rating</div>
+          <div class="top-list">
+            {% for album in top_albums %}
+            <a class="top-item" href="/album/{{ album.id }}">
+              <span class="top-item__rank">{{ loop.index }}</span>
+              <div class="top-item__info">
+                <div class="top-item__title">{{ album.title }}</div>
+                <div class="top-item__artist">{{ album.artist }}</div>
+              </div>
+              <span class="top-item__rating">{{ '%.2f' | format(album.avg_rating | float) }}</span>
+            </a>
+            {% endfor %}
+          </div>
+        </div>
+
+        {# TOP GÉNEROS #}
+        <div class="dash-widget dash-col-4">
+          <div class="widget-label">Géneros más frecuentes</div>
+          <div class="genre-bars" id="genre-bars">
+            {% if top_genres %}
+            {% set max_count = top_genres[0].count %}
+            {% for g in top_genres %}
+            <div class="genre-bar">
+              <div class="genre-bar__header">
+                <span class="genre-bar__name">{{ g.name }}</span>
+                <span class="genre-bar__count">{{ g.count }}</span>
+              </div>
+              <div class="genre-bar__track">
+                {% set width_pct = (g.count / max_count * 100) | round | int %}
+                <div class="genre-bar__fill w-{{ width_pct }}"></div>
+              </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+          </div>
+        </div>
+
+        {# COLUMNA DERECHA: dos charts apilados #}
+        <div class="dash-col-4 dash-charts-stack">
+
+          {# DISTRIBUCIÓN RATINGS #}
+          <div class="dash-widget dash-widget-ratings">
+            <div class="widget-label">Distribución de ratings</div>
+            <div class="chart-container">
+              {% if ratings_chart_html %}
+              {{ ratings_chart_html | safe }}
+              {% endif %}
+            </div>
+          </div>
+
+          {# DISTRIBUCIÓN OYENTES #}
+          <div class="dash-widget dash-widget-listeners">
+            <div class="widget-label">Distribución de oyentes — Last.fm</div>
+            <div class="chart-container">
+              {% if listeners_chart_html %}
+              {{ listeners_chart_html | safe }}
+              {% endif %}
+            </div>
+          </div>
+
+        </div>{# /dash-charts-stack #}
+
+      </div>{# /dash-grid #}
+    </div>{# /dashboard #}
+  </div>{# /snap-section 2 #}
+
+</div>{# /snap-root #}
+
+{% endblock %}{# /content #}
+
+
+{% block extra_scripts %}{% endblock %}

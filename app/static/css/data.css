@@ -1,0 +1,552 @@
+/* =========================================================
+   data.css — Estilos específicos de /data
+   Identidad: "Vinyl in the Void" (hereda tokens de main.css)
+   ========================================================= */
+
+
+/* ---------------------------------------------------------
+   1. LAYOUT PRINCIPAL — 2 columnas
+   --------------------------------------------------------- */
+.data-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  min-height: calc(100vh - var(--nav-height));
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .data-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* ---------------------------------------------------------
+   2. PANEL DE FILTROS
+   --------------------------------------------------------- */
+.data-filters {
+  position: sticky;
+  top: var(--nav-height);
+  height: calc(100vh - var(--nav-height));
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border-subtle);
+  padding: 20px 16px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-medium) transparent;
+}
+
+.data-filters::-webkit-scrollbar {
+  width: 4px;
+}
+
+.data-filters::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.data-filters::-webkit-scrollbar-thumb {
+  background: var(--border-medium);
+  border-radius: 2px;
+}
+
+/* Encabezado del panel */
+.data-filters__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.data-filters__title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.data-filters__title svg {
+  color: var(--amber);
+}
+
+.data-filters__clear {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--border-subtle);
+  transition: color var(--t-fast);
+}
+
+.data-filters__clear:hover {
+  color: var(--amber);
+}
+
+/* Fila label + toggle modo */
+.data-filters__label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 7px;
+}
+
+.data-filters__label-row .data-filters__label {
+  margin-bottom: 0;
+}
+
+/* Toggle AND / OR */
+.data-filters__mode {
+  display: flex;
+  gap: 2px;
+  background: var(--bg-void);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-sm);
+  padding: 2px;
+}
+
+.data-filters__mode-opt {
+  display: flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 3px;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast);
+  user-select: none;
+  white-space: nowrap;
+}
+
+.data-filters__mode-opt:has(input:checked) {
+  background: var(--amber-dim);
+  color: var(--amber);
+}
+
+.data-filters__mode-opt input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Grupos de filtros */
+.data-filters__group {
+  margin-bottom: 18px;
+}
+
+.data-filters__label {
+  display: block;
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 7px;
+}
+
+/* Inputs genéricos */
+.data-filters__input {
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-sm);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 8px 11px;
+  outline: none;
+  transition: border-color var(--t-fast), background var(--t-fast);
+  appearance: none;
+}
+
+.data-filters__input:focus {
+  border-color: var(--amber-border);
+  background: var(--bg-card-hover);
+}
+
+.data-filters__input::placeholder {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Input con ícono de búsqueda */
+.data-filters__input-wrap {
+  position: relative;
+}
+
+.data-filters__input-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.data-filters__input-wrap .data-filters__input {
+  padding-left: 32px;
+}
+
+/* Select */
+.data-filters__select {
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23606060'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 28px;
+}
+
+.data-filters__select option {
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
+/* Row de dos campos (rating min-max, sort+order) */
+.data-filters__range-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.data-filters__input--half {
+  width: auto;
+  flex: 1;
+}
+
+.data-filters__range-sep {
+  color: var(--text-muted);
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+/* Lista scrollable de checkboxes */
+.data-filters__checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-height: 200px;         /* ~8 ítems visibles */
+  overflow-y: auto;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-sm);
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-medium) transparent;
+}
+
+.data-filters__checklist::-webkit-scrollbar {
+  width: 3px;
+}
+
+.data-filters__checklist::-webkit-scrollbar-thumb {
+  background: var(--border-medium);
+}
+
+/* Ítem de checkbox individual */
+.data-filters__check-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 11px;
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-bottom: 1px solid var(--border-subtle);
+  transition: background var(--t-fast), color var(--t-fast);
+  user-select: none;
+  line-height: 1.3;
+}
+
+.data-filters__check-item:last-child {
+  border-bottom: none;
+}
+
+.data-filters__check-item:hover {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-primary);
+}
+
+.data-filters__check-item.is-checked {
+  background: var(--amber-glow);
+  color: var(--amber);
+}
+
+/* Checkbox nativo oculto — usa el estilo del label */
+.data-filters__check-item input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 13px;
+  height: 13px;
+  min-width: 13px;
+  border: 1px solid var(--border-medium);
+  border-radius: 3px;
+  background: transparent;
+  position: relative;
+  transition: background var(--t-fast), border-color var(--t-fast);
+  flex-shrink: 0;
+}
+
+.data-filters__check-item input[type="checkbox"]:checked {
+  background: var(--amber);
+  border-color: var(--amber);
+}
+
+.data-filters__check-item input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 1px;
+  width: 5px;
+  height: 8px;
+  border: 1.5px solid #080a12;
+  border-top: none;
+  border-left: none;
+  transform: rotate(45deg);
+}
+
+/* Botón submit */
+.data-filters__submit {
+  margin-top: 4px;
+}
+
+
+/* ---------------------------------------------------------
+   3. CONTENIDO PRINCIPAL
+   --------------------------------------------------------- */
+.data-main {
+  padding: 24px clamp(16px, 3vw, 36px) 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 0;   /* evita overflow horizontal en grid */
+}
+
+/* Encabezado del contenido */
+.data-main__header {
+  margin-bottom: 20px;
+}
+
+.data-main__title-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.data-main__title {
+  font-family: var(--font-display);
+  font-size: clamp(22px, 3vw, 32px);
+  font-weight: 400;
+  color: var(--text-primary);
+  line-height: 1.1;
+}
+
+.data-main__title em {
+  font-style: italic;
+  color: var(--amber);
+}
+
+.data-main__count {
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* Tags de filtros activos */
+.data-active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 6px;
+}
+
+
+/* ---------------------------------------------------------
+   4. SECCIÓN UMAP
+   --------------------------------------------------------- */
+.data-umap-section {
+  margin-bottom: 24px;
+}
+
+.data-umap-label {
+  margin-bottom: 6px;
+}
+
+.data-umap-wrap {
+  width: 100%;
+  height: 340px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-lg);
+  background: var(--bg-surface);
+  overflow: hidden;
+  position: relative;
+}
+
+/* Forzar que Plotly llene el contenedor */
+.data-umap-wrap > div,
+.data-umap-wrap .js-plotly-plot,
+.data-umap-wrap .plot-container {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+
+/* ---------------------------------------------------------
+   5. TABLA
+   --------------------------------------------------------- */
+.data-table-section {
+  /* hereda nd-table-wrap, nd-table, nd-pagination de main.css */
+}
+
+/* Celdas con ancho controlado */
+.data-table__cell-title {
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.data-table__cell-artist {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.data-table__cell-year {
+  white-space: nowrap;
+  color: var(--text-muted) !important;
+}
+
+.data-table__cell-num {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.data-table__cell-tags {
+  min-width: 100px;
+  max-width: 180px;
+}
+
+/* Badge "Todos:" / "Alguno:" en filtros activos */
+.data-mode-badge {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  align-self: center;
+}
+
+
+.nd-table__empty {
+  color: var(--text-muted);
+}
+
+/* Links de sort en thead */
+.nd-table__sort-link {
+  color: var(--text-muted);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transition: color var(--t-fast);
+}
+
+.nd-table__sort-link:hover {
+  color: var(--text-secondary);
+}
+
+.nd-table__sort-link.sort-asc::after {
+  content: ' ↑';
+  color: var(--amber);
+}
+
+.nd-table__sort-link.sort-desc::after {
+  content: ' ↓';
+  color: var(--amber);
+}
+
+/* Ellipsis de paginación */
+.nd-pagination__ellipsis {
+  padding: 4px 5px;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.nd-pagination__info {
+  font-size: 10.5px;
+  color: var(--text-muted);
+}
+
+
+/* ---------------------------------------------------------
+   6. ESTADO VACÍO
+   --------------------------------------------------------- */
+.data-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 24px;
+  gap: 12px;
+  text-align: center;
+}
+
+.data-empty__icon {
+  font-size: 48px;
+  color: var(--text-muted);
+  opacity: 0.4;
+  font-family: var(--font-display);
+  line-height: 1;
+}
+
+.data-empty__msg {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+
+/* ---------------------------------------------------------
+   7. RESPONSIVE — móvil
+   --------------------------------------------------------- */
+@media (max-width: 900px) {
+  .data-filters {
+    position: static;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .data-filters__checklist {
+    max-height: 150px;
+  }
+
+  .data-umap-wrap {
+    height: 260px;
+  }
+
+  .nd-table tbody td {
+    padding: 9px 10px;
+  }
+
+  .data-table__cell-title {
+    max-width: 160px;
+  }
+
+  .data-table__cell-artist {
+    max-width: 100px;
+  }
+}

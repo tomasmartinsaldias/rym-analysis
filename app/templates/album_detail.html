@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% set plotly_required = true %}
+
+{% block title %}{{ album.title }} — {{ album.artist }}{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/album_detail.css') }}">
+{% endblock %}
+
+
+{% block content %}
+<div class="album-page">
+
+  {# ── Back link ──────────────────────────────────────── #}
+  <a href="{{ url_for('main.index') }}" class="album-back">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+      <line x1="12" y1="8" x2="4" y2="8"/>
+      <polyline points="8,4 4,8 8,12"/>
+    </svg>
+    Volver al mapa
+  </a>
+
+  {# ═══════════════════════════════════════════════════════
+     HERO: Cover + Info
+  ════════════════════════════════════════════════════════ #}
+  <div class="album-hero">
+
+    {# Cover #}
+    <div class="album-hero__cover">
+      <div class="album-hero__cover-fallback">
+        {{ album.title[:2] }}
+      </div>
+    </div>
+
+    {# Info column #}
+    <div>
+      <div class="album-hero__eyebrow">
+        #{{ album.position }} en RYM
+      </div>
+      <h1 class="album-hero__title">{{ album.title }}</h1>
+      <div class="album-hero__artist">{{ album.artist }}</div>
+      {% if album.release_date %}
+      <div class="album-hero__year">{{ album.release_date.strftime('%d/%m/%Y') }}</div>
+      {% endif %}
+
+      {# Rating grande #}
+      <div class="album-rating">
+        <span class="album-rating__num">{{ '%.2f' | format(album.avg_rating | float) }}</span>
+        <span class="album-rating__denom">/ 5.00</span>
+      </div>
+
+      {# Stats inline #}
+      <div class="album-stats">
+        <div>
+          <div class="album-stat__num">{{ '{:,}'.format(album.rating_count) }}</div>
+          <div class="album-stat__label">Ratings</div>
+        </div>
+        <div>
+          <div class="album-stat__num">{{ '{:,}'.format(album.review_count) }}</div>
+          <div class="album-stat__label">Reseñas</div>
+        </div>
+        {% if album.lastfm_listeners %}
+        <div>
+          <div class="album-stat__num">{{ '{:,}'.format(album.lastfm_listeners) }}</div>
+          <div class="album-stat__label">Oyentes</div>
+        </div>
+        {% endif %}
+        {% if album.lastfm_playcount %}
+        <div>
+          <div class="album-stat__num">{{ '{:,}'.format(album.lastfm_playcount) }}</div>
+          <div class="album-stat__label">Plays</div>
+        </div>
+        {% endif %}
+      </div>
+
+      {# Géneros #}
+      {% if album.genres %}
+      <div class="nd-tags">
+        {% for g in album.genres %}
+        <span class="nd-tag nd-tag--genre">{{ g.name }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {# Label #}
+      {% if album.label %}
+      <div class="album-label mt-16">
+        Sello: <strong>{{ album.label }}</strong>
+      </div>
+      {% endif %}
+    </div>
+  </div>{# /album-hero #}
+
+
+  {# ═══════════════════════════════════════════════════════
+     DETAILS GRID: Radar + Descriptors
+  ════════════════════════════════════════════════════════ #}
+  <div class="album-details-grid">
+
+    {# Radar Chart — rendered from Python/Plotly #}
+    {% if radar_chart_html %}
+    <div class="album-card album-section">
+      <div class="album-section__label">Perfil de métricas (percentil)</div>
+      <div class="album-radar">
+        {{ radar_chart_html | safe }}
+      </div>
+    </div>
+    {% endif %}
+
+    {# Descriptors #}
+    {% if album.descriptors %}
+    <div class="album-card album-section">
+      <div class="album-section__label">Descriptores</div>
+      <div class="album-descriptors">
+        {{ album.descriptors | join(', ', attribute='name') }}
+      </div>
+      <div class="nd-tags mt-16">
+        {% for d in album.descriptors %}
+        <span class="nd-tag nd-tag--descriptor">{{ d.name }}</span>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+  </div>{# /album-details-grid #}
+
+
+  {# ── Actions ────────────────────────────────────────── #}
+  <div class="album-actions">
+    <a href="{{ url_for('main.index', album_id=album.id) }}" class="nd-btn nd-btn--primary">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+        <circle cx="8" cy="8" r="6.5"/>
+        <circle cx="8" cy="8" r="1.5" fill="currentColor" stroke="none"/>
+      </svg>
+      Ver en el mapa
+    </a>
+    <a href="{{ url_for('main.recommend_page') }}" class="nd-btn">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+        <polygon points="8,1.5 9.8,6.2 14.8,6.2 10.8,9.2 12.2,14 8,11 3.8,14 5.2,9.2 1.2,6.2 6.2,6.2"/>
+      </svg>
+      Buscar similares
+    </a>
+  </div>
+
+</div>{# /album-page #}
+{% endblock %}

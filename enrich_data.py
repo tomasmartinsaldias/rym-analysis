@@ -76,20 +76,54 @@ def enriquecer_con_lastfm_mb(albums_list):
         mb_ok = False
         for intento in range(3):  # Hasta 3 reintentos
             try:
-                mb_kwargs = {"artist": artist, "release": title, "limit": 1}
+                mb_kwargs = {"artist": artist, "release": title, "limit": 25}
                 if fecha_obj:
                     mb_kwargs["date"] = str(fecha_obj.year)
-                
-                mb_results = musicbrainzngs.search_releases(**mb_kwargs)
-                if mb_results.get("release-list"):
-                    release = mb_results["release-list"][0]
-                    album_db.mbid = release["id"]
                     
-                    # Buscar label si está disponible
-                    if "label-info-list" in release:
-                        label_info = release["label-info-list"][0]
-                        if isinstance(label_info.get("label"), dict):
-                            album_db.label = label_info["label"].get("name", "")
+                mb_results = musicbrainzngs.search_releases(**mb_kwargs)
+                
+                if mb_results.get("release-list"):
+                    releases = mb_results["release-list"]
+                    
+                    rg_ids = []
+                    labels_candidatos = []
+                    
+                    for rel in releases:
+                        # Acumular MBIDs del release-group
+                        if "release-group" in rel:
+                            rg_ids.append(rel["release-group"]["id"])
+                        else:
+                            rg_ids.append(rel["id"])
+                            
+                        # Acumular Labels con heurística
+                        if rel.get("status") == "Official":
+                            pais = rel.get("country", "")
+                            if pais in ["GB", "US", "XW", "XE"]:
+                                lbl_list = rel.get("label-info-list")
+                                if lbl_list and isinstance(lbl_list, list) and len(lbl_list) > 0:
+                                    label_dict = lbl_list[0].get("label")
+                                    if isinstance(label_dict, dict) and "name" in label_dict:
+                                        labels_candidatos.append(label_dict["name"])
+                                        
+                    from collections import Counter
+                    
+                    # 1. Asignar el MBID de release-group más común
+                    if rg_ids:
+                        album_db.mbid = Counter(rg_ids).most_common(1)[0][0]
+                        
+                    # 2. Asignar el Sello más común
+                    if labels_candidatos:
+                        album_db.label = Counter(labels_candidatos).most_common(1)[0][0]
+                    else:
+                        # Fallback: si ninguno pasó la heurística estricta, agarramos el primero que tenga label
+                        for rel in releases:
+                            lbl_list = rel.get("label-info-list")
+                            if lbl_list and isinstance(lbl_list, list) and len(lbl_list) > 0:
+                                label_dict = lbl_list[0].get("label")
+                                if isinstance(label_dict, dict) and "name" in label_dict:
+                                    album_db.label = label_dict["name"]
+                                    break
+                                    
                 mb_ok = True
                 break  # Salimos del retry si todo fue bien
             except Exception as e:

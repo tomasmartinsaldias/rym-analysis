@@ -11,6 +11,10 @@ def create_app(config_class=Config):
 
     db.init_app(app)
 
+    # Cargar datos pre-computados del recomendador (si existen)
+    from app.recommender import load_recommender_data
+    app.recommender_data = load_recommender_data()
+
     from app.routes.main import main_bp
     from app.routes.api import api_bp
     app.register_blueprint(main_bp)

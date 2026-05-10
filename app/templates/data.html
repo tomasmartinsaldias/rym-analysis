@@ -1,0 +1,462 @@
+{% extends "base.html" %}
+
+{% block title %}Explorador de Álbumes{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/data.css') }}">
+{% endblock %}
+
+{# ─────────────────────────────────────────────────────────────────────────
+MACRO: genera href para un link de sort preservando todos los filtros.
+Cuando se cambia de columna, texto va a 'asc', números a 'desc'.
+Cuando se hace click en la columna activa, invierte el orden.
+─────────────────────────────────────────────────────────────────────── #}
+{% macro sort_url(col, text_col=false) %}
+{%- if sort == col -%}
+{%- set next_order = 'asc' if order == 'desc' else 'desc' -%}
+{%- else -%}
+{%- set next_order = 'asc' if text_col else 'desc' -%}
+{%- endif -%}
+{{- url_for('main.data',
+q=q, genre=sel_genres, descriptor=sel_descs,
+genre_mode=genre_mode, desc_mode=desc_mode,
+rating_min=rating_min, rating_max=rating_max,
+cluster=sel_cluster, sort=col, order=next_order, page=1) -}}
+{% endmacro %}
+
+{# MACRO: href de paginación preservando todos los filtros #}
+{% macro page_url(p) %}
+{{- url_for('main.data',
+q=q, genre=sel_genres, descriptor=sel_descs,
+genre_mode=genre_mode, desc_mode=desc_mode,
+rating_min=rating_min, rating_max=rating_max,
+cluster=sel_cluster, sort=sort, order=order, page=p) -}}
+{% endmacro %}
+
+{% block content %}
+
+<div class="data-layout">
+
+  {# ═══════════════════════════════════════════════════════
+  PANEL DE FILTROS (izquierda)
+  ════════════════════════════════════════════════════════ #}
+  <aside class="data-filters" id="data-filters-panel">
+
+    <div class="data-filters__header">
+      <span class="data-filters__title">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"
+          aria-hidden="true">
+          <polygon points="1,1 15,1 9,8 9,15 7,15 7,8" />
+        </svg>
+        Filtros
+      </span>
+      {% if has_filters %}
+      <a href="{{ url_for('main.data') }}" class="data-filters__clear">Limpiar</a>
+      {% endif %}
+    </div>
+
+    <form method="GET" action="{{ url_for('main.data') }}" id="filters-form">
+
+      {# ── Búsqueda de texto ──────────────────────────── #}
+      <div class="data-filters__group">
+        <label class="data-filters__label" for="filter-q">Buscar</label>
+        <div class="data-filters__input-wrap">
+          <svg class="data-filters__input-icon" width="13" height="13" viewBox="0 0 16 16" fill="none"
+            stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <circle cx="6.5" cy="6.5" r="5" />
+            <line x1="10.5" y1="10.5" x2="14.5" y2="14.5" />
+          </svg>
+          <input id="filter-q" class="data-filters__input" type="search" name="q" value="{{ q }}"
+            placeholder="Título o artista…" list="search-suggestions">
+          <datalist id="search-suggestions">
+            {% for suggestion in search_suggestions %}
+            <option value="{{ suggestion }}"></option>
+            {% endfor %}
+          </datalist>
+        </div>
+      </div>
+
+      {# ── Géneros ────────────────────────────────────── #}
+      <div class="data-filters__group">
+        <div class="data-filters__label-row">
+          <label class="data-filters__label">Género</label>
+          <div class="data-filters__mode" role="group" aria-label="Modo de género">
+            <label class="data-filters__mode-opt">
+              <input type="radio" name="genre_mode" value="and" {% if genre_mode=='and' %}checked{% endif %}>
+              AND
+            </label>
+            <label class="data-filters__mode-opt">
+              <input type="radio" name="genre_mode" value="or" {% if genre_mode=='or' %}checked{% endif %}>
+              OR
+            </label>
+          </div>
+        </div>
+        <div class="data-filters__checklist" role="group" aria-label="Géneros">
+          {% for genre in all_genres %}
+          <label class="data-filters__check-item
+                        {% if genre.name in sel_genres %}is-checked{% endif %}">
+            <input type="checkbox" name="genre" value="{{ genre.name }}" {% if genre.name in sel_genres %}checked{%
+              endif %}>
+            {{ genre.name }}
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      {# ── Descriptores ────────────────────────────────── #}
+      <div class="data-filters__group">
+        <div class="data-filters__label-row">
+          <label class="data-filters__label">Descriptor</label>
+          <div class="data-filters__mode" role="group" aria-label="Modo de descriptor">
+            <label class="data-filters__mode-opt">
+              <input type="radio" name="desc_mode" value="and" {% if desc_mode=='and' %}checked{% endif %}>
+              AND
+            </label>
+            <label class="data-filters__mode-opt">
+              <input type="radio" name="desc_mode" value="or" {% if desc_mode=='or' %}checked{% endif %}>
+              OR
+            </label>
+          </div>
+        </div>
+        <div class="data-filters__checklist" role="group" aria-label="Descriptores">
+          {% for desc in all_descriptors %}
+          <label class="data-filters__check-item
+                        {% if desc.name in sel_descs %}is-checked{% endif %}">
+            <input type="checkbox" name="descriptor" value="{{ desc.name }}" {% if desc.name in sel_descs %}checked{%
+              endif %}>
+            {{ desc.name }}
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      {# ── Rating ─────────────────────────────────────── #}
+      <div class="data-filters__group">
+        <label class="data-filters__label">Rating</label>
+        <div class="data-filters__range-row">
+          <input id="filter-rmin" class="data-filters__input data-filters__input--half" type="number" name="rating_min"
+            value="{{ rating_min if rating_min is not none else '' }}" min="0" max="5" step="0.5" placeholder="Mín">
+          <span class="data-filters__range-sep">—</span>
+          <input id="filter-rmax" class="data-filters__input data-filters__input--half" type="number" name="rating_max"
+            value="{{ rating_max if rating_max is not none else '' }}" min="0" max="5" step="0.5" placeholder="Máx">
+        </div>
+      </div>
+
+      {# ── Cluster ─────────────────────────────────────── #}
+      {% if all_clusters %}
+      <div class="data-filters__group">
+        <label class="data-filters__label" for="filter-cluster">Cluster</label>
+        <select id="filter-cluster" class="data-filters__input data-filters__select" name="cluster">
+          <option value="">Todos</option>
+          {% for c in all_clusters %}
+          <option value="{{ c }}" {% if sel_cluster==c %}selected{% endif %}>
+            Cluster {{ c }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endif %}
+
+      {# ── Ordenamiento ────────────────────────────────── #}
+      <div class="data-filters__group">
+        <label class="data-filters__label">Ordenar por</label>
+        <div class="data-filters__range-row">
+          <select id="filter-sort" class="data-filters__input data-filters__select" name="sort" style="flex:2">
+            <option value="rating" {% if sort=='rating' %}selected{% endif %}>Rating</option>
+            <option value="rating_count" {% if sort=='rating_count' %}selected{% endif %}>Ratings #</option>
+            <option value="listeners" {% if sort=='listeners' %}selected{% endif %}>Oyentes</option>
+            <option value="playcount" {% if sort=='playcount' %}selected{% endif %}>Plays</option>
+            <option value="year" {% if sort=='year' %}selected{% endif %}>Año</option>
+            <option value="title" {% if sort=='title' %}selected{% endif %}>Título</option>
+          </select>
+          <select id="filter-order" class="data-filters__input data-filters__select" name="order" style="flex:1">
+            <option value="desc" {% if order=='desc' %}selected{% endif %}>↓</option>
+            <option value="asc" {% if order=='asc' %}selected{% endif %}>↑</option>
+          </select>
+        </div>
+      </div>
+
+      {# ── Aplicar ────────────────────────────────────── #}
+      <button type="submit" class="nd-btn nd-btn--primary nd-btn--full data-filters__submit">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"
+          aria-hidden="true">
+          <polygon points="1,1 15,1 9,8 9,15 7,15 7,8" />
+        </svg>
+        Aplicar filtros
+      </button>
+
+    </form>
+  </aside>
+
+
+  {# ═══════════════════════════════════════════════════════
+  CONTENIDO PRINCIPAL (derecha)
+  ════════════════════════════════════════════════════════ #}
+  <div class="data-main" id="data-main">
+
+    {# Encabezado #}
+    <header class="data-main__header">
+      <div class="data-main__title-row">
+        <h1 class="data-main__title"><em>Explorador</em> de Álbumes</h1>
+        <span class="data-main__count">
+          {{ "{:,}".format(pagination.total).replace(",", ".") }}
+          álbum{{ 'es' if pagination.total != 1 else '' }}
+        </span>
+      </div>
+
+      {% if has_filters %}
+      <div class="data-active-filters">
+        {% if q %}
+        <span class="nd-tag nd-tag--descriptor">"{{ q }}"</span>
+        {% endif %}
+        {% if sel_genres %}
+        <span class="data-mode-badge">{{ 'Todos:' if genre_mode=='and' else 'Alguno:' }}</span>
+        {% for g in sel_genres %}
+        <span class="nd-tag nd-tag--genre">{{ g }}</span>
+        {% endfor %}
+        {% endif %}
+        {% if sel_descs %}
+        <span class="data-mode-badge">{{ 'Todos:' if desc_mode=='and' else 'Alguno:' }}</span>
+        {% for d in sel_descs %}
+        <span class="nd-tag nd-tag--descriptor">{{ d }}</span>
+        {% endfor %}
+        {% endif %}
+        {% if rating_min is not none or rating_max is not none %}
+        <span class="nd-tag nd-tag--cluster">
+          ★ {{ rating_min if rating_min is not none else '0' }}–{{ rating_max if rating_max is not none else '5' }}
+        </span>
+        {% endif %}
+        {% if sel_cluster is not none %}
+        <span class="nd-tag nd-tag--cluster">Cluster {{ sel_cluster }}</span>
+        {% endif %}
+      </div>
+      {% endif %}
+    </header>
+
+    {# UMAP filtrado #}
+    {% if scatter_html %}
+    <section class="data-umap-section" aria-label="UMAP filtrado">
+      <span class="nd-eyebrow">Distribución en el espacio latente</span>
+      <div class="data-umap-wrap">
+        {{ scatter_html | safe }}
+      </div>
+    </section>
+    {% endif %}
+
+    {# Tabla #}
+    <section class="data-table-section" aria-label="Tabla de álbumes">
+
+      {% if albums %}
+      <div class="nd-table-wrap">
+        <table class="nd-table" id="albums-table">
+          <thead>
+            <tr>
+
+              {# ── Álbum (sort alfabético) ── #}
+              <th class="nd-table__th-title">
+                <a href="{{ sort_url('title', text_col=true) }}"
+                  class="nd-table__sort-link {% if sort=='title' %}sort-{{ order }}{% endif %}">
+                  Álbum
+                </a>
+              </th>
+
+              {# ── Artista ── #}
+              <th>Artista</th>
+
+              {# ── Año (sort) ── #}
+              <th>
+                <a href="{{ sort_url('year') }}"
+                  class="nd-table__sort-link {% if sort=='year' %}sort-{{ order }}{% endif %}">
+                  Año
+                </a>
+              </th>
+
+              {# ── Rating ── #}
+              <th>
+                <a href="{{ sort_url('rating') }}"
+                  class="nd-table__sort-link {% if sort=='rating' %}sort-{{ order }}{% endif %}">
+                  Rating
+                </a>
+              </th>
+
+              {# ── Ratings # ── #}
+              <th>
+                <a href="{{ sort_url('rating_count') }}"
+                  class="nd-table__sort-link {% if sort=='rating_count' %}sort-{{ order }}{% endif %}">
+                  Ratings
+                </a>
+              </th>
+
+              {# ── Oyentes ── #}
+              <th>
+                <a href="{{ sort_url('listeners') }}"
+                  class="nd-table__sort-link {% if sort=='listeners' %}sort-{{ order }}{% endif %}">
+                  Oyentes
+                </a>
+              </th>
+
+              {# ── Reproducciones ── #}
+              <th>
+                <a href="{{ sort_url('playcount') }}"
+                  class="nd-table__sort-link {% if sort=='playcount' %}sort-{{ order }}{% endif %}">
+                  Plays
+                </a>
+              </th>
+
+              {# ── Géneros ── #}
+              <th>Géneros</th>
+
+              {# ── Descriptores ── #}
+              <th>Descriptores</th>
+
+            </tr>
+          </thead>
+          <tbody>
+            {% for album in albums %}
+            <tr>
+
+              {# Título #}
+              <td class="data-table__cell-title">
+                <a href="{{ url_for('main.album_detail', album_id=album.id) }}" class="nd-table__link">{{ album.title
+                  }}</a>
+              </td>
+
+              {# Artista #}
+              <td class="data-table__cell-artist">
+                <a href="{{ url_for('main.data', q=album.artist) }}" class="nd-table__link"
+                  style="color: var(--text-secondary);">
+                  {{ album.artist }}
+                </a>
+              </td>
+
+              {# Año #}
+              <td class="data-table__cell-year">
+                {% if album.release_date %}{{ album.release_date.year }}
+                {% else %}<span class="nd-table__empty">—</span>{% endif %}
+              </td>
+
+              {# Rating #}
+              <td>
+                <span class="nd-table__rating">{{ "%.2f"|format(album.avg_rating) }}</span>
+              </td>
+
+              {# Ratings count #}
+              <td class="data-table__cell-num">
+                {{ "{:,}".format(album.rating_count).replace(",", ".") }}
+              </td>
+
+              {# Oyentes Last.fm #}
+              <td class="data-table__cell-num">
+                {% if album.lastfm_listeners %}
+                {{ "{:,}".format(album.lastfm_listeners).replace(",", ".") }}
+                {% else %}<span class="nd-table__empty">—</span>{% endif %}
+              </td>
+
+              {# Reproducciones Last.fm #}
+              <td class="data-table__cell-num">
+                {% if album.lastfm_playcount %}
+                {{ "{:,}".format(album.lastfm_playcount).replace(",", ".") }}
+                {% else %}<span class="nd-table__empty">—</span>{% endif %}
+              </td>
+
+              {# Géneros — primeros 2 como tags + overflow #}
+              <td class="data-table__cell-tags">
+                <div class="nd-tags">
+                  {% for genre in album.genres[:2] %}
+                  <a href="{{ url_for('main.data', genre=genre.name,
+                             genre_mode=genre_mode, desc_mode=desc_mode) }}" class="nd-tag nd-tag--genre">{{ genre.name
+                    }}</a>
+                  {% endfor %}
+                  {% if album.genres|length > 2 %}
+                  <a href="{{ url_for('main.album_detail', album_id=album.id) }}" class="nd-tag nd-tag--descriptor"
+                    style="text-decoration: none;">+{{ album.genres|length - 2 }}</a>
+                  {% endif %}
+                </div>
+              </td>
+
+              {# Descriptores — primeros 2 como tags + overflow #}
+              <td class="data-table__cell-tags">
+                <div class="nd-tags">
+                  {% for desc in album.descriptors[:2] %}
+                  <a href="{{ url_for('main.data', descriptor=desc.name,
+                             genre_mode=genre_mode, desc_mode=desc_mode) }}" class="nd-tag nd-tag--descriptor">{{
+                    desc.name }}</a>
+                  {% endfor %}
+                  {% if album.descriptors|length > 2 %}
+                  <a href="{{ url_for('main.album_detail', album_id=album.id) }}" class="nd-tag nd-tag--descriptor"
+                    style="text-decoration: none;">+{{ album.descriptors|length - 2 }}</a>
+                  {% endif %}
+                </div>
+              </td>
+
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        {# ── PAGINACIÓN ────────────────────────────────── #}
+        {% if pagination.pages > 1 %}
+        <nav class="nd-pagination" aria-label="Paginación">
+          <span class="nd-pagination__info">
+            p. {{ pagination.page }} / {{ pagination.pages }}
+          </span>
+
+          <div class="nd-pagination__pages">
+
+            {% if pagination.has_prev %}
+            <a href="{{ page_url(pagination.prev_num) }}" class="nd-pagination__btn" aria-label="Página anterior">‹</a>
+            {% else %}
+            <span class="nd-pagination__btn" aria-disabled="true">‹</span>
+            {% endif %}
+
+            {# Ventana de 5 páginas #}
+            {% set win_start = [pagination.page - 2, 1]|max %}
+            {% set win_end = [win_start + 4, pagination.pages]|min %}
+            {% set win_start = [win_end - 4, 1]|max %}
+
+            {% if win_start > 1 %}
+            <a href="{{ page_url(1) }}" class="nd-pagination__btn">1</a>
+            {% if win_start > 2 %}
+            <span class="nd-pagination__ellipsis">…</span>
+            {% endif %}
+            {% endif %}
+
+            {% for p in range(win_start, win_end + 1) %}
+            <a href="{{ page_url(p) }}" class="nd-pagination__btn {% if p == pagination.page %}active{% endif %}" {% if
+              p==pagination.page %}aria-current="page" {% endif %}>{{ p }}</a>
+            {% endfor %}
+
+            {% if win_end < pagination.pages %} {% if win_end < pagination.pages - 1 %} <span
+              class="nd-pagination__ellipsis">…</span>
+              {% endif %}
+              <a href="{{ page_url(pagination.pages) }}" class="nd-pagination__btn">{{ pagination.pages }}</a>
+              {% endif %}
+
+              {% if pagination.has_next %}
+              <a href="{{ page_url(pagination.next_num) }}" class="nd-pagination__btn"
+                aria-label="Página siguiente">›</a>
+              {% else %}
+              <span class="nd-pagination__btn" aria-disabled="true">›</span>
+              {% endif %}
+
+          </div>
+        </nav>
+        {% endif %}
+
+      </div>{# /nd-table-wrap #}
+
+      {% else %}
+      <div class="data-empty">
+        <p class="data-empty__icon">⌀</p>
+        <p class="data-empty__msg">No se encontraron álbumes con los filtros aplicados.</p>
+        <a href="{{ url_for('main.data') }}" class="nd-btn nd-btn--primary">Limpiar filtros</a>
+      </div>
+      {% endif %}
+
+    </section>
+
+  </div>{# /data-main #}
+
+</div>{# /data-layout #}
+
+{% endblock %}

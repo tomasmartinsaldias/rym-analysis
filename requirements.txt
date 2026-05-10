@@ -10,5 +10,14 @@ pylast==7.0.2
 musicbrainzngs==0.7.1
 requests==2.33.1
 
+# Gráficos interactivos
+plotly
+
+# Machine Learning (SVD, KMeans, t-SNE, cosine_similarity)
+scikit-learn
+
+# Serialización de modelos pre-computados
+joblib
+
 # Environment and Utilities
 python-dotenv==1.2.2

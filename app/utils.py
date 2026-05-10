@@ -7,17 +7,28 @@ from sqlalchemy import func
 def process_csv_to_db(file_or_path):
     data = pd.read_csv(file_or_path)
     for index, row in data.iterrows():
-        # 1. Transformar la fecha (M/D/Y -> objeto Date)
+        # 1. Transformar la fecha (M/D/Y o YYYY-MM-DD -> objeto Date)
         try:
-            fecha_obj = datetime.strptime(str(row['release_date']), '%m/%d/%Y').date()
+            fecha_str = str(row['release_date']).strip()
+            if fecha_str and fecha_str.lower() != 'nan':
+                try:
+                    fecha_obj = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+                except ValueError:
+                    try:
+                        fecha_obj = datetime.strptime(fecha_str, '%Y').date()
+                    except ValueError:
+                        fecha_obj = datetime.strptime(fecha_str, '%m/%d/%Y').date()
+            else:
+                fecha_obj = None
         except (ValueError, TypeError):
-            fecha_obj = None # Manejo de errores por si la fecha está mal
+            fecha_obj = None
 
         # 2. Lógica de "Merge": Buscar si el álbum ya existe (cargado por API)
         # release_name y artist_name vienen del CSV. Se usa ilike para ignorar mayúsculas/minúsculas
         album = Album.query.filter(
             func.lower(Album.title) == func.lower(str(row['release_name'])),
-            func.lower(Album.artist) == func.lower(str(row['artist_name']))
+            func.lower(Album.artist) == func.lower(str(row['artist_name'])),
+            Album.release_date == fecha_obj
         ).first()
 
         if album:

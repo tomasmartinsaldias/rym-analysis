@@ -1,0 +1,1052 @@
+/* ── Scroll snap setup ──────────────────────────────── */
+html,
+body {
+    overflow: hidden;
+    height: 100%;
+}
+
+/* main es el wrapper de base.html */
+#main-content {
+    padding: 0 !important;
+    margin: 0 !important;
+    height: calc(100vh - var(--nav-height));
+    overflow: hidden;
+}
+
+/* Scroll snap root — ocupa todo el main */
+#snap-root {
+    height: 100%;
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Cada sección ocupa exactamente el viewport */
+.snap-section {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    height: calc(100vh - var(--nav-height));
+    position: relative;
+    overflow: hidden;
+}
+
+/* Sección 1: el umap-wrap ya no necesita height propia */
+#umap-wrap {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: var(--bg-void);
+    overflow: hidden;
+    padding-top: 70px;
+    padding-left: 320px;
+    padding-right: 30px;
+    box-sizing: border-box;
+    /* Asegura que el padding no sume al tamaño total */
+}
+
+/* Forzar que el div generado por Plotly llene #scatter-plot */
+#scatter-plot .js-plotly-plot,
+#scatter-plot .plot-container.plotly,
+#scatter-plot .svg-container {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Overlay top-left — título + buscador */
+#umap-overlay {
+    position: absolute;
+    top: 28px;
+    left: clamp(18px, 3vw, 48px);
+    z-index: 10;
+    width: min(340px, calc(100vw - 36px));
+    pointer-events: none;
+    /* el form reactiva con su propio pointer-events */
+}
+
+.headline {
+    width: min(440px, calc(100vw - 36px));
+}
+
+#umap-overlay .eyebrow {
+    font-size: 9.5px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    margin-bottom: 8px;
+    pointer-events: none;
+}
+
+#umap-overlay .headline {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: clamp(26px, 3.5vw, 44px);
+    font-weight: 400;
+    line-height: 1.08;
+    color: var(--text-primary);
+    text-shadow: 0 2px 24px rgba(8, 10, 18, 0.9);
+    pointer-events: none;
+}
+
+#umap-overlay .headline em {
+    color: var(--amber);
+}
+
+#umap-overlay .sub {
+    font-size: 10.5px;
+    color: var(--text-muted);
+    margin-top: 8px;
+    margin-bottom: 18px;
+    letter-spacing: 0.04em;
+    pointer-events: none;
+}
+
+/* Buscador */
+.umap-search {
+    pointer-events: all;
+}
+
+.umap-search__wrap {
+    display: flex;
+    align-items: center;
+    background: rgba(8, 10, 18, 0.82);
+    border: 1px solid var(--border-amber);
+    border-radius: var(--r-md);
+    backdrop-filter: blur(14px);
+    overflow: hidden;
+    transition: border-color var(--t-fast), box-shadow var(--t-fast);
+}
+
+.umap-search__wrap:focus-within {
+    border-color: var(--amber);
+    box-shadow: 0 0 0 3px rgba(232, 164, 48, 0.1);
+}
+
+.umap-search__icon {
+    width: 14px;
+    height: 14px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    margin-left: 12px;
+}
+
+.umap-search__input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    padding: 11px 10px;
+    min-width: 0;
+}
+
+.umap-search__input::placeholder {
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Reset del ícono X nativo de search en webkit */
+.umap-search__input::-webkit-search-cancel-button {
+    display: none;
+}
+
+.umap-search__btn {
+    background: var(--amber-dim);
+    border: none;
+    border-left: 1px solid var(--amber-border);
+    color: var(--amber);
+    font-family: var(--font-mono);
+    font-size: 16px;
+    padding: 0 14px;
+    height: 100%;
+    cursor: pointer;
+    transition: background var(--t-fast);
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+}
+
+.umap-search__btn:hover {
+    background: rgba(232, 164, 48, 0.25);
+}
+
+/* Card de resultado */
+.search-result {
+    margin-top: 8px;
+    background: rgba(8, 10, 18, 0.88);
+    border: 1px solid var(--border-amber);
+    border-radius: var(--r-md);
+    backdrop-filter: blur(14px);
+    overflow: hidden;
+}
+
+.search-result__inner {
+    padding: 16px;
+}
+
+.search-result--empty {
+    padding: 12px 16px;
+}
+
+.search-result__title {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 400;
+    color: var(--text-primary);
+    line-height: 1.2;
+    margin-bottom: 3px;
+}
+
+.search-result__artist {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+}
+
+.search-result__year {
+    color: var(--text-muted);
+}
+
+.search-result__rating {
+    font-family: var(--font-display);
+    font-size: 32px;
+    color: var(--amber);
+    line-height: 1;
+}
+
+.search-result__denom {
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+/* Hint scroll */
+#umap-hint {
+    position: absolute;
+    bottom: 22px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 9px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 10;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+/* El div del scatter de Plotly */
+#scatter-plot {
+    width: 100%;
+    height: 100%;
+}
+
+#scatter-plot .js-plotly-plot,
+#scatter-plot .plot-container {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* ── Animación de entrada ────────────────────────────── */
+#umap-overlay,
+#umap-hint {
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards;
+}
+
+#umap-overlay {
+    animation-delay: 0.2s;
+}
+
+#umap-hint {
+    animation-delay: 0.7s;
+}
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+/* ══════════════════════════════════════════════════════
+     SECCIÓN 2 — DASHBOARD
+  ═══════════════════════════════════════════════════════ */
+#section-dashboard {
+    overflow-y: auto;
+}
+
+#dashboard {
+    padding: 18px clamp(12px, 3vw, 36px) 18px;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.dash-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 10px;
+}
+
+.dash-title {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--text-primary);
+}
+
+.dash-title em {
+    color: var(--amber);
+}
+
+.dash-subtitle {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+/* Stats globales */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 1px;
+    background: var(--border-subtle);
+    border-radius: var(--r-md);
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+
+.stat-cell {
+    background: var(--bg-surface);
+    padding: 8px 14px;
+    transition: background var(--t-fast);
+}
+
+.stat-cell:hover {
+    background: var(--bg-card);
+}
+
+.stat-cell__num {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 400;
+    color: var(--text-primary);
+    line-height: 1;
+    margin-bottom: 2px;
+}
+
+.stat-cell__num.amber {
+    color: var(--amber);
+}
+
+.stat-cell__label {
+    font-size: 9px;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+/* Grid de widgets — flex para que ocupe el espacio restante */
+.dash-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 10px;
+    flex: 1;
+    min-height: 0;
+}
+
+.dash-col-2 {
+    grid-column: span 2;
+}
+
+.dash-col-3 {
+    grid-column: span 3;
+}
+
+.dash-col-4 {
+    grid-column: span 4;
+}
+
+.dash-col-5 {
+    grid-column: span 5;
+}
+
+.dash-col-6 {
+    grid-column: span 6;
+}
+
+.dash-col-7 {
+    grid-column: span 7;
+}
+
+.dash-col-12 {
+    grid-column: span 12;
+}
+
+@media (max-width: 900px) {
+
+    .dash-col-2,
+    .dash-col-3,
+    .dash-col-4,
+    .dash-col-5,
+    .dash-col-6,
+    .dash-col-7,
+    .dash-col-12 {
+        grid-column: span 12;
+    }
+}
+
+@media (min-width: 901px) and (max-width: 1100px) {
+    .dash-col-3 {
+        grid-column: span 6;
+    }
+
+    .dash-col-4 {
+        grid-column: span 6;
+    }
+
+    .dash-col-5 {
+        grid-column: span 12;
+    }
+
+    .dash-col-7 {
+        grid-column: span 12;
+    }
+}
+
+.dash-widget {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--r-lg);
+    padding: 8px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    overflow: hidden;
+    /* Evitar desbordes */
+    min-height: 0;
+}
+
+.widget-label {
+    font-size: 9px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
+/* Top álbumes */
+.top-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.top-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 2px 0;
+    border-bottom: 1px solid var(--border-subtle);
+    text-decoration: none;
+    transition: background var(--t-fast);
+}
+
+.top-item:last-child {
+    border-bottom: none;
+}
+
+.top-item:hover .top-item__title {
+    color: var(--amber);
+}
+
+.top-item__rank {
+    font-family: var(--font-display);
+    font-size: 13px;
+    color: var(--text-muted);
+    min-width: 16px;
+    text-align: right;
+    flex-shrink: 0;
+    font-style: italic;
+}
+
+.top-item__info {
+    flex: 1;
+    min-width: 0;
+}
+
+.top-item__title {
+    font-size: 12px;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color var(--t-fast);
+    line-height: 1.3;
+}
+
+.top-item__artist {
+    font-size: 10px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 1px;
+}
+
+.top-item__rating {
+    font-family: var(--font-display);
+    font-size: 14px;
+    color: var(--amber);
+    flex-shrink: 0;
+}
+
+/* Géneros — barras */
+.genre-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.genre-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.genre-bar__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+
+.genre-bar__name {
+    font-size: 11px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.genre-bar__count {
+    font-size: 10px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    margin-left: 8px;
+}
+
+.genre-bar__track {
+    height: 3px;
+    background: var(--border-subtle);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.genre-bar__fill {
+    height: 100%;
+    background: var(--cyan);
+    border-radius: 2px;
+    width: 0;
+    transition: width 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Skeleton loader */
+@keyframes shimmer {
+    0% {
+        background-position: -400px 0;
+    }
+
+    100% {
+        background-position: 400px 0;
+    }
+}
+
+.skeleton {
+    background: linear-gradient(90deg,
+            rgba(255, 255, 255, 0.04) 25%,
+            rgba(255, 255, 255, 0.08) 50%,
+            rgba(255, 255, 255, 0.04) 75%);
+    background-size: 800px 100%;
+    animation: shimmer 1.4s infinite;
+    border-radius: var(--r-sm);
+}
+
+/* Contenedor de charts Plotly */
+.chart-container {
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+}
+
+/* Forzar que Plotly ocupe el 100% del espacio del widget */
+.chart-container>div,
+.chart-container .js-plotly-plot,
+.chart-container .plot-container {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Extracted inline styles */
+.umap-error {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.umap-error-text {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.search-result__btn {
+    margin-top: 14px;
+    width: 100%;
+    justify-content: center;
+}
+
+.search-empty-text {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Stack vertical de charts (columna derecha) — cada uno 50% del alto */
+.dash-charts-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+    /* Asegurar que el stack ocupe todo el alto disponible */
+    min-height: 0;
+}
+
+.dash-widget-ratings,
+.dash-widget-listeners {
+    min-height: 200px;
+    flex: none;
+}
+
+/* Width utilities for dynamic bars */
+.w-0 {
+    width: 0% !important;
+}
+
+.w-1 {
+    width: 1% !important;
+}
+
+.w-2 {
+    width: 2% !important;
+}
+
+.w-3 {
+    width: 3% !important;
+}
+
+.w-4 {
+    width: 4% !important;
+}
+
+.w-5 {
+    width: 5% !important;
+}
+
+.w-6 {
+    width: 6% !important;
+}
+
+.w-7 {
+    width: 7% !important;
+}
+
+.w-8 {
+    width: 8% !important;
+}
+
+.w-9 {
+    width: 9% !important;
+}
+
+.w-10 {
+    width: 10% !important;
+}
+
+.w-11 {
+    width: 11% !important;
+}
+
+.w-12 {
+    width: 12% !important;
+}
+
+.w-13 {
+    width: 13% !important;
+}
+
+.w-14 {
+    width: 14% !important;
+}
+
+.w-15 {
+    width: 15% !important;
+}
+
+.w-16 {
+    width: 16% !important;
+}
+
+.w-17 {
+    width: 17% !important;
+}
+
+.w-18 {
+    width: 18% !important;
+}
+
+.w-19 {
+    width: 19% !important;
+}
+
+.w-20 {
+    width: 20% !important;
+}
+
+.w-21 {
+    width: 21% !important;
+}
+
+.w-22 {
+    width: 22% !important;
+}
+
+.w-23 {
+    width: 23% !important;
+}
+
+.w-24 {
+    width: 24% !important;
+}
+
+.w-25 {
+    width: 25% !important;
+}
+
+.w-26 {
+    width: 26% !important;
+}
+
+.w-27 {
+    width: 27% !important;
+}
+
+.w-28 {
+    width: 28% !important;
+}
+
+.w-29 {
+    width: 29% !important;
+}
+
+.w-30 {
+    width: 30% !important;
+}
+
+.w-31 {
+    width: 31% !important;
+}
+
+.w-32 {
+    width: 32% !important;
+}
+
+.w-33 {
+    width: 33% !important;
+}
+
+.w-34 {
+    width: 34% !important;
+}
+
+.w-35 {
+    width: 35% !important;
+}
+
+.w-36 {
+    width: 36% !important;
+}
+
+.w-37 {
+    width: 37% !important;
+}
+
+.w-38 {
+    width: 38% !important;
+}
+
+.w-39 {
+    width: 39% !important;
+}
+
+.w-40 {
+    width: 40% !important;
+}
+
+.w-41 {
+    width: 41% !important;
+}
+
+.w-42 {
+    width: 42% !important;
+}
+
+.w-43 {
+    width: 43% !important;
+}
+
+.w-44 {
+    width: 44% !important;
+}
+
+.w-45 {
+    width: 45% !important;
+}
+
+.w-46 {
+    width: 46% !important;
+}
+
+.w-47 {
+    width: 47% !important;
+}
+
+.w-48 {
+    width: 48% !important;
+}
+
+.w-49 {
+    width: 49% !important;
+}
+
+.w-50 {
+    width: 50% !important;
+}
+
+.w-51 {
+    width: 51% !important;
+}
+
+.w-52 {
+    width: 52% !important;
+}
+
+.w-53 {
+    width: 53% !important;
+}
+
+.w-54 {
+    width: 54% !important;
+}
+
+.w-55 {
+    width: 55% !important;
+}
+
+.w-56 {
+    width: 56% !important;
+}
+
+.w-57 {
+    width: 57% !important;
+}
+
+.w-58 {
+    width: 58% !important;
+}
+
+.w-59 {
+    width: 59% !important;
+}
+
+.w-60 {
+    width: 60% !important;
+}
+
+.w-61 {
+    width: 61% !important;
+}
+
+.w-62 {
+    width: 62% !important;
+}
+
+.w-63 {
+    width: 63% !important;
+}
+
+.w-64 {
+    width: 64% !important;
+}
+
+.w-65 {
+    width: 65% !important;
+}
+
+.w-66 {
+    width: 66% !important;
+}
+
+.w-67 {
+    width: 67% !important;
+}
+
+.w-68 {
+    width: 68% !important;
+}
+
+.w-69 {
+    width: 69% !important;
+}
+
+.w-70 {
+    width: 70% !important;
+}
+
+.w-71 {
+    width: 71% !important;
+}
+
+.w-72 {
+    width: 72% !important;
+}
+
+.w-73 {
+    width: 73% !important;
+}
+
+.w-74 {
+    width: 74% !important;
+}
+
+.w-75 {
+    width: 75% !important;
+}
+
+.w-76 {
+    width: 76% !important;
+}
+
+.w-77 {
+    width: 77% !important;
+}
+
+.w-78 {
+    width: 78% !important;
+}
+
+.w-79 {
+    width: 79% !important;
+}
+
+.w-80 {
+    width: 80% !important;
+}
+
+.w-81 {
+    width: 81% !important;
+}
+
+.w-82 {
+    width: 82% !important;
+}
+
+.w-83 {
+    width: 83% !important;
+}
+
+.w-84 {
+    width: 84% !important;
+}
+
+.w-85 {
+    width: 85% !important;
+}
+
+.w-86 {
+    width: 86% !important;
+}
+
+.w-87 {
+    width: 87% !important;
+}
+
+.w-88 {
+    width: 88% !important;
+}
+
+.w-89 {
+    width: 89% !important;
+}
+
+.w-90 {
+    width: 90% !important;
+}
+
+.w-91 {
+    width: 91% !important;
+}
+
+.w-92 {
+    width: 92% !important;
+}
+
+.w-93 {
+    width: 93% !important;
+}
+
+.w-94 {
+    width: 94% !important;
+}
+
+.w-95 {
+    width: 95% !important;
+}
+
+.w-96 {
+    width: 96% !important;
+}
+
+.w-97 {
+    width: 97% !important;
+}
+
+.w-98 {
+    width: 98% !important;
+}
+
+.w-99 {
+    width: 99% !important;
+}
+
+.w-100 {
+    width: 100% !important;
+}

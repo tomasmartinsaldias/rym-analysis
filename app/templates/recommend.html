@@ -1,0 +1,342 @@
+{% extends "base.html" %}
+{% set plotly_required = true %}
+
+{% block extra_head %}
+<style>
+    /* ---- Recommend Page Styles ---- */
+    .hero-section {
+        text-align: center;
+        padding: 2rem 0 1rem;
+    }
+    .hero-section h1 {
+        font-size: 2.2rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #e94560, #ff6b81);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .hero-section p {
+        color: var(--text-secondary);
+        max-width: 600px;
+        margin: 0.5rem auto;
+    }
+
+    /* Form card */
+    .form-card {
+        background: var(--bg-surface);
+        border: 1px solid rgba(233, 69, 96, 0.15);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .seed-input-group {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+        align-items: center;
+    }
+    .seed-input-group input {
+        flex: 1;
+        background: var(--bg-void);
+        border: 1px solid rgba(255,255,255,0.1);
+        color: var(--text-primary);
+        border-radius: 8px;
+        padding: 0.5rem 0.75rem;
+        font-family: var(--font-mono);
+        font-size: 13px;
+    }
+    .seed-input-group input:focus {
+        border-color: var(--amber);
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(232, 164, 48, 0.2);
+    }
+
+    .btn-recommend {
+        background: linear-gradient(135deg, #e94560, #c23152);
+        border: none;
+        color: white;
+        font-weight: 600;
+        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        width: 100%;
+        font-size: 1.05rem;
+        font-family: var(--font-mono);
+    }
+    .btn-recommend:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 20px rgba(233, 69, 96, 0.4);
+    }
+
+    /* Filter controls */
+    .filter-row {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+    }
+    .filter-row label {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+        display: block;
+    }
+    .filter-row select, .filter-row input[type="number"] {
+        background: var(--bg-void);
+        border: 1px solid rgba(255,255,255,0.1);
+        color: var(--text-primary);
+        border-radius: 8px;
+        padding: 0.4rem 0.6rem;
+        font-family: var(--font-mono);
+    }
+    .filter-row select:focus, .filter-row input[type="number"]:focus {
+        border-color: var(--amber);
+        outline: none;
+    }
+
+    /* Results */
+    .results-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .album-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--r-lg);
+        overflow: hidden;
+        transition: transform var(--t-normal), border-color var(--t-normal);
+    }
+    .album-card:hover {
+        transform: translateY(-3px);
+        border-color: var(--border-amber);
+    }
+
+    .album-card .cover-wrapper {
+        position: relative;
+        padding-top: 100%; /* 1:1 aspect ratio */
+        background: var(--bg-surface);
+        overflow: hidden;
+    }
+
+    /* Cover fallback — CSS background, no JS onerror */
+    .album-card .cover-wrapper .cover-fallback {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--font-display);
+        font-style: italic;
+        font-size: 48px;
+        color: rgba(240,236,224,0.06);
+        user-select: none;
+    }
+    .album-card .cover-wrapper img {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        object-fit: cover;
+    }
+
+    .album-card .card-body {
+        padding: 1rem;
+    }
+    .album-card .card-body h5 {
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .album-card .card-body .artist {
+        font-size: 0.82rem;
+        color: var(--text-secondary);
+        margin-bottom: 0.4rem;
+    }
+    .album-card .card-body .meta {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.78rem;
+        color: var(--text-secondary);
+    }
+    .album-card .score-badge {
+        position: absolute;
+        top: 8px; right: 8px;
+        background: rgba(233, 69, 96, 0.9);
+        color: white;
+        font-size: 0.7rem;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 20px;
+    }
+    .album-card .rank-badge {
+        position: absolute;
+        top: 8px; left: 8px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        font-size: 0.75rem;
+        font-weight: 700;
+        width: 28px; height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Sections */
+    .section-title {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin: 2rem 0 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid rgba(233, 69, 96, 0.3);
+    }
+
+    /* Scatter container */
+    .scatter-container {
+        background: var(--bg-card);
+        border-radius: var(--r-lg);
+        padding: 1rem;
+        margin-bottom: 2rem;
+        border: 1px solid var(--border-subtle);
+    }
+
+    /* Affinities */
+    .affinity-charts {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    .affinity-chart {
+        background: var(--bg-card);
+        border-radius: var(--r-lg);
+        padding: 1rem;
+        border: 1px solid var(--border-subtle);
+    }
+
+    /* No data state */
+    .no-data {
+        text-align: center;
+        padding: 3rem;
+        color: var(--text-secondary);
+    }
+    .no-data .icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<section class="hero-section">
+    <h1>Recomendador de Álbumes</h1>
+    <p>Seleccioná álbumes que te gusten y descubrí música similar basada en descriptores, géneros y popularidad.</p>
+</section>
+
+{% if not recommender_available %}
+<div class="no-data">
+    <div class="icon">⚠️</div>
+    <h3>Recomendador no disponible</h3>
+    <p>Ejecutá <code>python build_recommender.py</code> para generar los datos necesarios.</p>
+</div>
+{% else %}
+
+<!-- Formulario de semilla — sin JS, resolución server-side -->
+<div class="form-card">
+    <form method="POST" action="{{ url_for('main.recommend_page') }}">
+        <h5 style="margin-bottom: 1rem; font-weight: 600;">🎶 Elegí tu álbum semilla</h5>
+
+        <div class="seed-input-group">
+            <input type="text" name="seed_text" list="albums-list"
+                   placeholder="Buscá un álbum…" autocomplete="off" required
+                   value="{{ seed_text | default('') }}">
+        </div>
+
+        {# Datalist nativo del browser — autocomplete sin JS #}
+        <datalist id="albums-list">
+            {% for album in albums_list %}
+            <option value="{{ album.title }} — {{ album.artist }}{% if album.release_year %} ({{ album.release_year }}){% endif %}">
+            {% endfor %}
+        </datalist>
+
+        <div class="filter-row">
+            <div>
+                <label for="min_rating">Rating mínimo</label>
+                <input type="number" name="min_rating" id="min_rating"
+                       step="0.1" min="0" max="5" placeholder="ej: 3.5"
+                       value="{{ min_rating or '' }}">
+            </div>
+        </div>
+
+        <button type="submit" class="btn-recommend">🚀 Recomendar</button>
+    </form>
+</div>
+
+<!-- ========== RESULTADOS ========== -->
+{% if results %}
+
+<h2 class="section-title">🎵 Álbumes Recomendados</h2>
+<div class="results-grid">
+    {% for album in results %}
+    <a class="album-card" href="{{ url_for('main.album_detail', album_id=album.album_id) }}" style="text-decoration:none;color:inherit;">
+        <div class="cover-wrapper">
+            {# Fallback siempre presente como fondo; la img se superpone si carga #}
+            <div class="cover-fallback">{{ album.title[:2] }}</div>
+            {% if album.mbid %}
+            <img src="https://coverartarchive.org/release/{{ album.mbid }}/front-250"
+                 alt="Portada de {{ album.title }}"
+                 loading="lazy">
+            {% endif %}
+            <span class="rank-badge">{{ loop.index }}</span>
+            <span class="score-badge">{{ "%.3f"|format(album.score) }}</span>
+        </div>
+        <div class="card-body">
+            <h5 title="{{ album.title }}">{{ album.title }}</h5>
+            <div class="artist">{{ album.artist }}</div>
+            <div class="meta">
+                <span>⭐ {{ album.avg_rating }}</span>
+                <span>{{ album.genres[:40] }}{% if album.genres|length > 40 %}…{% endif %}</span>
+            </div>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+
+<!-- Scatter 2D -->
+{% if scatter_html %}
+<h2 class="section-title">🗺️ Mapa de Clusters</h2>
+<div class="scatter-container">
+    {{ scatter_html | safe }}
+</div>
+{% endif %}
+
+<!-- Affinities -->
+{% if affinities %}
+<h2 class="section-title">📊 Perfil de tus Recomendaciones</h2>
+<div class="affinity-charts">
+    {% if affinities.genres %}
+    <div class="affinity-chart">
+        {{ affinities.genres | safe }}
+    </div>
+    {% endif %}
+    {% if affinities.descriptors %}
+    <div class="affinity-chart">
+        {{ affinities.descriptors | safe }}
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+{% endif %} {# end if results #}
+{% endif %} {# end if recommender_available #}
+
+{% endblock %}
