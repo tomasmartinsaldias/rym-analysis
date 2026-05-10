@@ -36,6 +36,44 @@
     </form>
 </div>
 
+<!-- ========== SEMILLA ========== -->
+{% if seed_album %}
+<div class="seed-profile-card">
+    <div class="seed-cover">
+        {% if seed_cover_url %}
+            <img src="{{ seed_cover_url }}" alt="Portada de {{ seed_album.title }}">
+        {% else %}
+            <div class="cover-fallback">{{ seed_album.title[:2] }}</div>
+        {% endif %}
+    </div>
+    <div class="seed-info">
+        <div class="seed-header">
+            <span class="seed-badge">⭐ Semilla</span>
+            <span class="cluster-badge">Cluster {{ seed_cluster }}</span>
+        </div>
+        <h3><a href="{{ url_for('main.album_detail', album_id=seed_album.id) }}">{{ seed_album.title }}</a></h3>
+        <p class="seed-artist">{{ seed_album.artist }}</p>
+        
+        <div class="seed-stats">
+            <div class="stat-item">
+                <span class="stat-label">Rating</span>
+                <span class="stat-value">{{ "%.2f"|format(seed_album.avg_rating) }}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Oyentes</span>
+                <span class="stat-value">{{ "{:,}".format(seed_album.lastfm_listeners) }}</span>
+            </div>
+        </div>
+        
+        <div class="seed-genres">
+            {% for g in seed_album.genres[:4] %}
+            <span class="genre-tag">{{ g.name }}</span>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <!-- ========== RESULTADOS ========== -->
 {% if results %}
 

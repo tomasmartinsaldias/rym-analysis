@@ -335,6 +335,25 @@ def recommend_page():
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
             executor.map(fetch_cover, results)
+            
+        seed_album_obj = Album.query.get(seed_id)
+        seed_cover_url = None
+        seed_cluster = 'N/A'
+        
+        if seed_album_obj:
+            seed_mock = {'title': seed_album_obj.title, 'artist': seed_album_obj.artist}
+            fetch_cover(seed_mock)
+            seed_cover_url = seed_mock.get('cover_url')
+            if not seed_cover_url and seed_album_obj.mbid:
+                seed_cover_url = f"https://coverartarchive.org/release-group/{seed_album_obj.mbid}/front"
+                
+            data = current_app.recommender_data
+            try:
+                idx = list(data['album_ids']).index(seed_id)
+                cluster_lbl = data['cluster_labels'][idx]
+                seed_cluster = int(cluster_lbl) if cluster_lbl != -1 else 'Otros'
+            except ValueError:
+                pass
         
         return render_template('recommend.html',
                              page_title='Recomendaciones — RYM Analysis',
@@ -343,7 +362,10 @@ def recommend_page():
                              results=results,
                              scatter_html=scatter_html,
                              affinities=affinities,
-                             seed_text=seed_text)
+                             seed_text=seed_text,
+                             seed_album=seed_album_obj,
+                             seed_cover_url=seed_cover_url,
+                             seed_cluster=seed_cluster)
     
     return render_template('recommend.html',
                          page_title='Recomendador — RYM Analysis',

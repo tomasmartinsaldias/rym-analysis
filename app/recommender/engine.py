@@ -61,9 +61,11 @@ def recommend(seed_id, top_n=20, min_rating=None):
     seed_artist = artists[seed_idx]
 
     p_log    = np.array([math.log1p(l or 0) for l in album_info['lastfm_listeners']])
-    alpha    = 0.4
+    alpha    = 0.2  # Peso de la diferencia de popularidad
+    beta     = 0.4  # Peso de la diferencia de rating
     cluster_s = clusters[seed_idx]
     p_log_s  = p_log[seed_idx]
+    rating_s = ratings[seed_idx]
 
     candidates = []
     for c_idx in range(len(album_ids)):
@@ -75,17 +77,23 @@ def recommend(seed_id, top_n=20, min_rating=None):
         cos_sim   = similarity_cache[seed_idx, c_idx]
         cluster_c = clusters[c_idx]
         bonus     = 1.05 if (cluster_s == cluster_c and cluster_s != -1) else 1.0
+        
         delta_log_pop = abs(p_log_s - p_log[c_idx])
-        final_score   = cos_sim * bonus * (1.0 - alpha * delta_log_pop)
+        delta_rating  = abs(rating_s - ratings[c_idx])
+        
+        # Penalizamos usando decaimiento exponencial (más estable y suave)
+        pop_penalty    = np.exp(-alpha * delta_log_pop)
+        rating_penalty = np.exp(-beta * delta_rating)
+        final_score    = cos_sim * bonus * pop_penalty * rating_penalty
 
-        candidates.append((c_idx, final_score, cos_sim, delta_log_pop))
+        candidates.append((c_idx, final_score, cos_sim, delta_log_pop, delta_rating))
 
     candidates.sort(key=lambda x: x[1], reverse=True)
 
     final_results = []
     used_artists  = {seed_artist}
 
-    for c_idx, f_score, cos_sim, delta_log_pop in candidates:
+    for c_idx, f_score, cos_sim, delta_log_pop, delta_rating in candidates:
         if len(final_results) >= top_n:
             break
         artist_c = artists[c_idx]

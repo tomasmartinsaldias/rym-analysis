@@ -74,6 +74,113 @@
     background: rgba(232, 164, 48, 0.25);
 }
 
+/* Seed Profile Card */
+.seed-profile-card {
+    display: flex;
+    gap: 1.5rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-amber);
+    box-shadow: 0 0 20px rgba(232, 164, 48, 0.05);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    align-items: center;
+}
+.seed-cover {
+    width: 140px;
+    height: 140px;
+    flex-shrink: 0;
+    position: relative;
+    background: #111;
+}
+.seed-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.seed-cover .cover-fallback {
+    position: absolute;
+    inset: 0;
+    font-size: 3rem;
+}
+.seed-info {
+    flex: 1;
+}
+.seed-header {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+.seed-badge {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    background: rgba(232, 164, 48, 0.15);
+    color: var(--amber);
+    padding: 2px 6px;
+    border-radius: 2px;
+}
+.seed-info h3 {
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+    line-height: 1.1;
+}
+.seed-info h3 a {
+    color: inherit;
+    text-decoration: none;
+    transition: color var(--t-fast);
+}
+.seed-info h3 a:hover {
+    color: var(--amber);
+}
+.seed-artist {
+    font-family: var(--font-mono);
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+.seed-stats {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border-subtle);
+}
+.seed-stats .stat-item {
+    flex-direction: column;
+    align-items: flex-start;
+}
+.seed-stats .stat-value {
+    font-size: 1.2rem;
+}
+.seed-genres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.genre-tag {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    background: rgba(255,255,255,0.05);
+    color: var(--text-secondary);
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+@media (max-width: 600px) {
+    .seed-profile-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .seed-cover {
+        width: 100px;
+        height: 100px;
+    }
+}
+
 /* Section Headers */
 .section-title {
     font-family: var(--font-display);
