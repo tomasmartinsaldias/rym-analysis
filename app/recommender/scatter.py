@@ -89,6 +89,7 @@ def get_scatter_html(seed_id=None, recommended_ids=None, highlighted_id=None):
         base_df, x='x', y='y', color='cluster',
         custom_data=['title', 'artist', 'genres', 'cluster'],
         opacity=base_opacity,
+        render_mode='webgl',
     )
     
     # Actualizar hovertemplate para todos los trazos generados por px.scatter
@@ -96,45 +97,75 @@ def get_scatter_html(seed_id=None, recommended_ids=None, highlighted_id=None):
         hovertemplate='<b>%{customdata[0]}</b><br>%{customdata[1]}<br><i>%{customdata[2]}</i><br><br>%{customdata[3]}<extra></extra>'
     )
 
-    if seed_id:
-        seeds_df = scatter_df[scatter_df['role'] == '⭐ Semilla']
-        if not seeds_df.empty:
-            fig.add_trace(go.Scatter(
-                x=seeds_df['x'], y=seeds_df['y'],
-                mode='markers+text',
-                marker=dict(size=20, color='gold', symbol='star',
-                            line=dict(width=2, color='black')),
-                text=seeds_df['title'], textposition='top center',
-                name='⭐ Semilla',
-                hovertemplate='<b>%{text}</b><br>%{customdata[0]}<extra>Semilla</extra>',
-                customdata=seeds_df[['artist']].values,
-            ))
-
     if recommended_ids:
         recs_df = scatter_df[scatter_df['role'] == '🎯 Recomendado']
         if not recs_df.empty:
-            fig.add_trace(go.Scatter(
+            # Halo rojo sutil
+            fig.add_trace(go.Scattergl(
                 x=recs_df['x'], y=recs_df['y'],
                 mode='markers',
-                marker=dict(size=14, color='red', symbol='diamond',
-                            line=dict(width=1.5, color='white')),
+                marker=dict(size=18, color='rgba(255, 0, 0, 0.15)', line=dict(width=0)),
+                showlegend=False, hoverinfo='skip'
+            ))
+            fig.add_trace(go.Scattergl(
+                x=recs_df['x'], y=recs_df['y'],
+                mode='markers',
+                marker=dict(size=12, color='red', symbol='diamond',
+                            line=dict(width=1, color='white')),
                 name='🎯 Recomendados',
-                hovertemplate='<b>%{customdata[0]}</b><br>%{customdata[1]}<extra>Recomendado</extra>',
+                hovertemplate='<b>%{customdata[0]}</b><br>%{customdata[1]}<br><br><span style="color:#ff6b6b;">🎯 Recomendado</span><extra></extra>',
                 customdata=recs_df[['title', 'artist']].values,
+            ))
+
+    if seed_id:
+        seeds_df = scatter_df[scatter_df['role'] == '⭐ Semilla']
+        if not seeds_df.empty:
+            # Glow expansivo dorado
+            fig.add_trace(go.Scattergl(
+                x=seeds_df['x'], y=seeds_df['y'],
+                mode='markers',
+                marker=dict(size=35, color='rgba(232, 164, 48, 0.2)', line=dict(width=0)),
+                showlegend=False, hoverinfo='skip'
+            ))
+            # Punto central: Estrella dorada con borde blanco para contraste
+            fig.add_trace(go.Scattergl(
+                x=seeds_df['x'], y=seeds_df['y'],
+                mode='markers',
+                marker=dict(size=18, color='gold', symbol='star',
+                            line=dict(width=2, color='white')),
+                name='⭐ Semilla',
+                hovertemplate='<b>%{customdata[2]}</b><br>%{customdata[0]}<br><br><span style="color:gold;">⭐ Semilla</span><extra></extra>',
+                customdata=seeds_df[['artist', 'cluster', 'title']].values,
             ))
 
     if highlighted_id:
         h_df = scatter_df[scatter_df['role'] == '🔍 Buscado']
         if not h_df.empty:
-            fig.add_trace(go.Scatter(
+            # 1. Glow Cian (el aura)
+            fig.add_trace(go.Scattergl(
                 x=h_df['x'], y=h_df['y'],
-                mode='markers+text',
-                marker=dict(size=18, color='#4dc9e6', symbol='circle',
-                            line=dict(width=2, color='white')),
-                text=h_df['title'], textposition='top center',
+                mode='markers',
+                marker=dict(
+                    size=28,
+                    color='rgba(77, 201, 230, 0.3)',
+                    line=dict(width=0)
+                ),
+                showlegend=False,
+                hoverinfo='skip'
+            ))
+            # 2. Punto Blanco (el núcleo) para que resalte sobre cualquier color
+            fig.add_trace(go.Scattergl(
+                x=h_df['x'], y=h_df['y'],
+                mode='markers',
+                marker=dict(
+                    size=12, 
+                    color='white', 
+                    symbol='circle',
+                    line=dict(width=3, color='#4dc9e6') # Borde Cian
+                ),
                 name='🔍 Buscado',
-                hovertemplate='<b>%{text}</b><br>%{customdata[0]}<extra>Buscado</extra>',
-                customdata=h_df[['artist']].values,
+                hovertemplate='<b>%{customdata[2]}</b><br>%{customdata[0]}<br><br><span style="color:#4dc9e6;">🔍 Buscado</span><extra></extra>',
+                customdata=h_df[['artist', 'cluster', 'title']].values,
             ))
 
     fig.update_layout(**_LAYOUT_BASE)

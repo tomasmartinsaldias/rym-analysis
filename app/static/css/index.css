@@ -58,7 +58,7 @@ body {
     position: absolute;
     top: 28px;
     left: clamp(18px, 3vw, 48px);
-    z-index: 10;
+    z-index: 9999;
     width: min(340px, calc(100vw - 36px));
     pointer-events: none;
     /* el form reactiva con su propio pointer-events */
@@ -233,7 +233,7 @@ body {
     color: var(--text-muted);
     pointer-events: none;
     white-space: nowrap;
-    z-index: 10;
+    z-index: 9999;
     text-align: center;
     display: flex;
     flex-direction: column;
