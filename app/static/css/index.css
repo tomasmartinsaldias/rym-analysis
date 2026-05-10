@@ -402,6 +402,10 @@ body {
 }
 
 @media (max-width: 900px) {
+    #umap-wrap {
+        padding-left: clamp(12px, 3vw, 24px);
+        padding-right: clamp(12px, 3vw, 24px);
+    }
 
     .dash-col-2,
     .dash-col-3,

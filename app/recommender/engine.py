@@ -32,7 +32,6 @@ def recommend(seed_id, top_n=20, min_rating=None):
     Args:
         seed_id:    ID del álbum semilla.
         top_n:      Cantidad de recomendaciones a devolver.
-        min_rating: Rating mínimo (float) o None (se calcula dinámicamente).
 
     Returns:
         Lista de dicts con info del álbum + score + is_wildcard.
@@ -61,12 +60,8 @@ def recommend(seed_id, top_n=20, min_rating=None):
     ratings     = album_info['avg_rating'].values
     seed_artist = artists[seed_idx]
 
-    if min_rating is None:
-        seed_rating = ratings[seed_idx] or 0
-        min_rating  = max(2.5, (seed_rating or 3.0) - 0.5)
-
     p_log    = np.array([math.log1p(l or 0) for l in album_info['lastfm_listeners']])
-    alpha    = 0.25
+    alpha    = 0.4
     cluster_s = clusters[seed_idx]
     p_log_s  = p_log[seed_idx]
 
@@ -75,8 +70,6 @@ def recommend(seed_id, top_n=20, min_rating=None):
         if c_idx == seed_idx or not has_descriptors[c_idx]:
             continue
         if artists[c_idx] == seed_artist:
-            continue
-        if (ratings[c_idx] or 0) < min_rating:
             continue
 
         cos_sim   = similarity_cache[seed_idx, c_idx]
@@ -98,7 +91,13 @@ def recommend(seed_id, top_n=20, min_rating=None):
         artist_c = artists[c_idx]
         if artist_c not in used_artists:
             used_artists.add(artist_c)
-            final_results.append({'c_idx': c_idx, 'score': f_score, 'is_wildcard': False})
+            final_results.append({
+                'c_idx': c_idx, 
+                'score': f_score, 
+                'cos_sim': cos_sim,
+                'cluster': clusters[c_idx],
+                'is_wildcard': False
+            })
 
     results = []
     for item in final_results:
@@ -113,6 +112,8 @@ def recommend(seed_id, top_n=20, min_rating=None):
             'genres':          row['genres'],
             'lastfm_listeners': row['lastfm_listeners'],
             'score':           round(float(item['score']), 4),
+            'cos_sim':         round(float(item['cos_sim']), 4),
+            'cluster':         int(item['cluster']) if item['cluster'] != -1 else 'Otros',
             'is_wildcard':     item['is_wildcard'],
         })
 

@@ -221,6 +221,7 @@
 .data-filters__input--half {
   width: auto;
   flex: 1;
+  min-width: 0;
 }
 
 .data-filters__range-sep {

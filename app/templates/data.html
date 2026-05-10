@@ -21,7 +21,8 @@ Cuando se hace click en la columna activa, invierte el orden.
 q=q, genre=sel_genres, descriptor=sel_descs,
 genre_mode=genre_mode, desc_mode=desc_mode,
 rating_min=rating_min, rating_max=rating_max,
-cluster=sel_cluster, sort=col, order=next_order, page=1) -}}
+listeners_min=listeners_min, listeners_max=listeners_max,
+cluster=sel_cluster, label=sel_label, sort=col, order=next_order, page=1) -}}
 {% endmacro %}
 
 {# MACRO: href de paginación preservando todos los filtros #}
@@ -30,7 +31,8 @@ cluster=sel_cluster, sort=col, order=next_order, page=1) -}}
 q=q, genre=sel_genres, descriptor=sel_descs,
 genre_mode=genre_mode, desc_mode=desc_mode,
 rating_min=rating_min, rating_max=rating_max,
-cluster=sel_cluster, sort=sort, order=order, page=p) -}}
+listeners_min=listeners_min, listeners_max=listeners_max,
+cluster=sel_cluster, label=sel_label, sort=sort, order=order, page=p) -}}
 {% endmacro %}
 
 {% block content %}
@@ -57,9 +59,9 @@ cluster=sel_cluster, sort=sort, order=order, page=p) -}}
 
     <form method="GET" action="{{ url_for('main.data') }}" id="filters-form">
 
-      {# ── Búsqueda de texto ──────────────────────────── #}
+      {# ── Búsqueda por Artista ──────────────────────────── #}
       <div class="data-filters__group">
-        <label class="data-filters__label" for="filter-q">Buscar</label>
+        <label class="data-filters__label" for="filter-q">Artista</label>
         <div class="data-filters__input-wrap">
           <svg class="data-filters__input-icon" width="13" height="13" viewBox="0 0 16 16" fill="none"
             stroke="currentColor" stroke-width="1.5" aria-hidden="true">
@@ -67,7 +69,7 @@ cluster=sel_cluster, sort=sort, order=order, page=p) -}}
             <line x1="10.5" y1="10.5" x2="14.5" y2="14.5" />
           </svg>
           <input id="filter-q" class="data-filters__input" type="search" name="q" value="{{ q }}"
-            placeholder="Título o artista…" list="search-suggestions">
+            placeholder="Nombre del artista…" list="search-suggestions">
           <datalist id="search-suggestions">
             {% for suggestion in search_suggestions %}
             <option value="{{ suggestion }}"></option>
@@ -140,6 +142,31 @@ cluster=sel_cluster, sort=sort, order=order, page=p) -}}
           <input id="filter-rmax" class="data-filters__input data-filters__input--half" type="number" name="rating_max"
             value="{{ rating_max if rating_max is not none else '' }}" min="0" max="5" step="0.5" placeholder="Máx">
         </div>
+      </div>
+
+      {# ── Oyentes (Last.fm) ────────────────────────── #}
+      <div class="data-filters__group">
+        <label class="data-filters__label">Oyentes (Last.fm)</label>
+        <div class="data-filters__range-row">
+          <input id="filter-lmin" class="data-filters__input data-filters__input--half" type="number" name="listeners_min"
+            value="{{ listeners_min if listeners_min is not none else '' }}" min="0" placeholder="Mín">
+          <span class="data-filters__range-sep">—</span>
+          <input id="filter-lmax" class="data-filters__input data-filters__input--half" type="number" name="listeners_max"
+            value="{{ listeners_max if listeners_max is not none else '' }}" min="0" placeholder="Máx">
+        </div>
+      </div>
+
+      {# ── Sello ─────────────────────────────────────── #}
+      <div class="data-filters__group">
+        <label class="data-filters__label" for="filter-label">Sello</label>
+        <select id="filter-label" class="data-filters__input data-filters__select" name="label">
+          <option value="">Todos</option>
+          {% for lab in all_labels %}
+          <option value="{{ lab }}" {% if sel_label == lab %}selected{% endif %}>
+            {{ lab }}
+          </option>
+          {% endfor %}
+        </select>
       </div>
 
       {# ── Cluster ─────────────────────────────────────── #}
@@ -226,8 +253,16 @@ cluster=sel_cluster, sort=sort, order=order, page=p) -}}
           ★ {{ rating_min if rating_min is not none else '0' }}–{{ rating_max if rating_max is not none else '5' }}
         </span>
         {% endif %}
+        {% if listeners_min is not none or listeners_max is not none %}
+        <span class="nd-tag nd-tag--cluster">
+          🎧 {{ "{:,}".format(listeners_min).replace(",", ".") if listeners_min is not none else '0' }}–{{ "{:,}".format(listeners_max).replace(",", ".") if listeners_max is not none else '∞' }}
+        </span>
+        {% endif %}
         {% if sel_cluster is not none %}
         <span class="nd-tag nd-tag--cluster">Cluster {{ sel_cluster }}</span>
+        {% endif %}
+        {% if sel_label %}
+        <span class="nd-tag nd-tag--genre">Sello: {{ sel_label }}</span>
         {% endif %}
       </div>
       {% endif %}
@@ -262,6 +297,9 @@ cluster=sel_cluster, sort=sort, order=order, page=p) -}}
 
               {# ── Artista ── #}
               <th>Artista</th>
+
+              {# ── Sello ── #}
+              <th>Sello</th>
 
               {# ── Año (sort) ── #}
               <th>
@@ -327,6 +365,17 @@ cluster=sel_cluster, sort=sort, order=order, page=p) -}}
                   style="color: var(--text-secondary);">
                   {{ album.artist }}
                 </a>
+              </td>
+
+              {# Sello #}
+              <td class="data-table__cell-label">
+                {% if album.label %}
+                <a href="{{ url_for('main.data', label=album.label) }}" class="nd-table__link" style="color: var(--text-secondary); font-size: 0.85em;">
+                  {{ album.label }}
+                </a>
+                {% else %}
+                <span class="nd-table__empty">—</span>
+                {% endif %}
               </td>
 
               {# Año #}

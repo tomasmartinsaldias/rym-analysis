@@ -14,6 +14,7 @@ from sklearn.decomposition import TruncatedSVD
 from sklearn.preprocessing import MinMaxScaler, normalize
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.neighbors import KNeighborsClassifier
 import umap
 import hdbscan
 
@@ -141,15 +142,25 @@ def build():
 
         print("  Clusterizando con HDBSCAN en 15 dimensiones...")
         clusterer = hdbscan.HDBSCAN(
-            min_cluster_size=20,
-            min_samples=5,
+            min_cluster_size=60,
+            min_samples=10,
             metric='euclidean'
         )
         cluster_labels = clusterer.fit_predict(umap_15d_coords)
         
-        n_clusters_found = len(set(cluster_labels)) - (1 if -1 in cluster_labels else 0)
+        # --- Asignar ruido (-1) al cluster más cercano ---
+        noise_mask = (cluster_labels == -1)
+        if noise_mask.any() and not noise_mask.all():
+            print("  Asignando ruido (-1) al cluster más cercano usando KNN...")
+            knn = KNeighborsClassifier(n_neighbors=5)
+            # Entrenar solo con los puntos que sí tienen cluster
+            knn.fit(umap_15d_coords[~noise_mask], cluster_labels[~noise_mask])
+            # Predecir para el ruido
+            cluster_labels[noise_mask] = knn.predict(umap_15d_coords[noise_mask])
+            
+        n_clusters_found = len(set(cluster_labels))
         n_noise = list(cluster_labels).count(-1)
-        print(f"  Clusters encontrados: {n_clusters_found} (Ruido: {n_noise} álbumes)")
+        print(f"  Clusters finales: {n_clusters_found} (Ruido: {n_noise} álbumes)")
 
         print("  UMAP (2D) exclusivo para visualización en pantalla...")
         reducer_2d = umap.UMAP(

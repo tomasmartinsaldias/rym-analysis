@@ -111,12 +111,22 @@ def make_radar_chart(album_id):
     categories = ['RATING', 'RATINGS', 'OYENTES', 'PLAYS', 'RATING']  # loop cerrado
     values     = [p_rating, p_ratings, p_listeners, p_plays, p_rating]
 
+    real_values = [
+        row['avg_rating'] or 0,
+        row['rating_count'] or 0,
+        row['lastfm_listeners'] or 0,
+        row['lastfm_playcount'] or 0,
+        row['avg_rating'] or 0
+    ]
+
     fig = go.Figure(data=go.Scatterpolar(
         r=values, theta=categories,
         fill='toself',
         fillcolor='rgba(232, 164, 48, 0.15)',
         line=dict(color='#e8a430', width=1.5),
         marker=dict(color='#e8a430', size=6),
+        customdata=real_values,
+        hovertemplate='<b>%{theta}</b><br>Valor real: %{customdata:,.2f}<br>Percentil: %{r:.1%}<extra></extra>'
     ))
 
     fig.update_layout(
@@ -144,8 +154,8 @@ def make_radar_chart(album_id):
 
 def get_affinities(results):
     """
-    Genera gráficos de affinities (géneros + descriptores) para una lista de
-    resultados del recomendador. Retorna dict con HTML de cada gráfico.
+    Calcula las frecuencias de géneros y descriptores para una lista de
+    resultados del recomendador. Retorna dict con listas de diccionarios.
     """
     data = get_data()
     if data is None or not results:
@@ -164,7 +174,7 @@ def get_affinities(results):
     if not result_rows:
         return {}
 
-    result_html = {}
+    result_data = {}
 
     # ── Géneros ──────────────────────────────────────────────────────────────
     genre_counts = {}
@@ -175,22 +185,12 @@ def get_affinities(results):
                 genre_counts[g] = genre_counts.get(g, 0) + 1
 
     if genre_counts:
-        genre_df = pd.DataFrame([
-            {'Género': g, 'Frecuencia': c}
-            for g, c in sorted(genre_counts.items(), key=lambda x: -x[1])[:15]
-        ]).sort_values('Frecuencia', ascending=True)
-
-        fig_genres = px.bar(
-            genre_df, x='Frecuencia', y='Género', orientation='h',
-            title='Géneros predominantes en tus Recomendaciones',
-            color='Frecuencia', color_continuous_scale='Viridis',
-            height=max(300, len(genre_df) * 30),
-        )
-        fig_genres.update_layout(template='plotly_dark',
-                                 paper_bgcolor='rgba(0,0,0,0)',
-                                 plot_bgcolor='rgba(0,0,0,0)',
-                                 margin=dict(l=150))
-        result_html['genres'] = fig_genres.to_html(full_html=False, include_plotlyjs=False)
+        top_genres = sorted(genre_counts.items(), key=lambda x: -x[1])[:15]
+        max_count = top_genres[0][1] if top_genres else 1
+        result_data['genres'] = [
+            {'name': g, 'count': c, 'pct': round((c / max_count) * 100)}
+            for g, c in top_genres
+        ]
 
     # ── Descriptores ─────────────────────────────────────────────────────────
     desc_counts = {}
@@ -201,21 +201,11 @@ def get_affinities(results):
                 desc_counts[d] = desc_counts.get(d, 0) + 1
 
     if desc_counts:
-        desc_df = pd.DataFrame([
-            {'Descriptor': d, 'Frecuencia': c}
-            for d, c in sorted(desc_counts.items(), key=lambda x: -x[1])[:15]
-        ]).sort_values('Frecuencia', ascending=True)
+        top_descs = sorted(desc_counts.items(), key=lambda x: -x[1])[:15]
+        max_count = top_descs[0][1] if top_descs else 1
+        result_data['descriptors'] = [
+            {'name': d, 'count': c, 'pct': round((c / max_count) * 100)}
+            for d, c in top_descs
+        ]
 
-        fig_desc = px.bar(
-            desc_df, x='Frecuencia', y='Descriptor', orientation='h',
-            title='Descriptores dominantes en tus Recomendaciones',
-            color='Frecuencia', color_continuous_scale='Magma',
-            height=max(300, len(desc_df) * 30),
-        )
-        fig_desc.update_layout(template='plotly_dark',
-                                paper_bgcolor='rgba(0,0,0,0)',
-                                plot_bgcolor='rgba(0,0,0,0)',
-                                margin=dict(l=150))
-        result_html['descriptors'] = fig_desc.to_html(full_html=False, include_plotlyjs=False)
-
-    return result_html
+    return result_data

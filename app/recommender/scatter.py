@@ -64,6 +64,9 @@ def get_scatter_html(seed_id=None, recommended_ids=None, highlighted_id=None):
 
     scatter_df['album_id'] = [str(aid) for aid in album_ids]
 
+    # Mapear el ruido (-1) a 'Otros'
+    scatter_df['cluster'] = [f'Cluster {c}' if c != -1 else 'Otros' for c in clusters]
+
     if seed_id and seed_id in id_to_idx:
         scatter_df.loc[id_to_idx[seed_id], 'role'] = '⭐ Semilla'
     if recommended_ids:
@@ -73,11 +76,24 @@ def get_scatter_html(seed_id=None, recommended_ids=None, highlighted_id=None):
     if highlighted_id and highlighted_id in id_to_idx:
         scatter_df.loc[id_to_idx[highlighted_id], 'role'] = '🔍 Buscado'
 
+    # Ordenar para que "Otros" quede al fondo y los clusters encima
+    scatter_df = scatter_df.sort_values(by='cluster', ascending=False)
+
+    has_highlights = bool(seed_id or recommended_ids or highlighted_id)
+    base_opacity = 0.4 if has_highlights else 0.8
+
+    # Filtrar el DataFrame base para no dibujar dos veces los puntos resaltados
+    base_df = scatter_df[scatter_df['role'] == 'Otros'] if has_highlights else scatter_df
+
     fig = px.scatter(
-        scatter_df, x='x', y='y', color='cluster',
-        hover_data=['title', 'artist', 'genres'],
-        custom_data=['album_id', 'genres', 'cluster'],
-        opacity=0.8,
+        base_df, x='x', y='y', color='cluster',
+        custom_data=['title', 'artist', 'genres', 'cluster'],
+        opacity=base_opacity,
+    )
+    
+    # Actualizar hovertemplate para todos los trazos generados por px.scatter
+    fig.update_traces(
+        hovertemplate='<b>%{customdata[0]}</b><br>%{customdata[1]}<br><i>%{customdata[2]}</i><br><br>%{customdata[3]}<extra></extra>'
     )
 
     if seed_id:
@@ -122,7 +138,10 @@ def get_scatter_html(seed_id=None, recommended_ids=None, highlighted_id=None):
             ))
 
     fig.update_layout(**_LAYOUT_BASE)
-    return fig.to_html(full_html=False, include_plotlyjs=False)
+    return fig.to_html(
+        full_html=False, include_plotlyjs=False,
+        config={'displayModeBar': False, 'responsive': True},
+    )
 
 
 def get_filtered_scatter_html(filtered_ids: set):
@@ -156,19 +175,31 @@ def get_filtered_scatter_html(filtered_ids: set):
         return ""
 
     filtered_info = info[mask].reset_index(drop=True)
+    filtered_clusters = clusters[mask]
+
+    # Mapear el ruido (-1) a 'Otros'
+    filtered_cluster_labels = [f'Cluster {c}' if c != -1 else 'Otros' for c in filtered_clusters]
 
     scatter_df = pd.DataFrame({
         'x':       coords[mask, 0],
         'y':       coords[mask, 1],
-        'cluster': [f'Cluster {c}' for c in clusters[mask]],
+        'cluster': filtered_cluster_labels,
         'title':   filtered_info['title'].values,
         'artist':  filtered_info['artist'].values,
+        'genres':  filtered_info['genres'].values,
     })
+    
+    # Ordenar para que "Otros" quede al fondo
+    scatter_df = scatter_df.sort_values(by='cluster', ascending=False)
 
     fig = px.scatter(
         scatter_df, x='x', y='y', color='cluster',
-        hover_data=['title', 'artist'],
+        custom_data=['title', 'artist', 'genres', 'cluster'],
         opacity=0.85,
+    )
+    
+    fig.update_traces(
+        hovertemplate='<b>%{customdata[0]}</b><br>%{customdata[1]}<br><i>%{customdata[2]}</i><br><br>%{customdata[3]}<extra></extra>'
     )
 
     layout = dict(_LAYOUT_BASE)
