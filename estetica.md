@@ -17,18 +17,6 @@ UI/cuerpo: DM Mono — monoespaciada pero elegante, da sensación de datos técn
 Números/stats: DM Mono más grande, tratados como elementos visuales.
 
 
-📐 Layout por Página
-/ (Landing / UMAP Explorer)
-El UMAP ocupa el 85% del viewport, casi full-screen. La navbar es una barra fina semi-transparente arriba. Un pequeño panel colapsable a la izquierda con filtros de género/cluster. Al hover sobre un punto → tooltip flotante con portada del álbum (si la hay), artista, rating. Al click → navega a /album/<id>. El fondo tiene partículas muy sutiles que dan profundidad.
-/album/<id> (Álbum Individual)
-Layout asimétrico: portada grande a la izquierda (si no hay imagen, un arte generativo basado en los géneros), y a la derecha la info en capas. Stats (rating, plays, listeners) como números grandes estilo editorial. Los géneros como chips con colores por cluster. Los descriptores como texto corrido pequeño, tipo reseña. Abajo: sección "Álbumes cercanos" (los vecinos en el espacio UMAP).
-/data (Tabla)
-Tabla estilo terminal-editorial: fondo oscuro, filas con separadores finos, sorting con íconos ámbar. Searchbar minimalista arriba. Paginación discreta. Cada fila tiene el nombre del álbum como link a su página individual.
-/analysis (Gráficos)
-Diseño de data zine — secciones que se leen como artículos visuales. Cada gráfico tiene un título editorial grande y un párrafo de insight debajo. Los gráficos de Plotly con tema oscuro custom que matchea la paleta.
-/recommend (Recomendador)
-Interfaz de "búsqueda por similitud". Input grande centrado (estilo buscador) con autocompletado. Al buscar un álbum → aparecen las recomendaciones como cards en grid con una mini-visualización del cluster.
-
 ✨ Detalles que lo hacen memorable
 
 El cursor se reemplaza por un pequeño círculo que sigue al mouse en el UMAP
