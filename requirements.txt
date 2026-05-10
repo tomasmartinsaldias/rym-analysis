@@ -15,6 +15,8 @@ plotly
 
 # Machine Learning (SVD, KMeans, t-SNE, cosine_similarity)
 scikit-learn
+umap-learn
+hdbscan
 
 # Serialización de modelos pre-computados
 joblib

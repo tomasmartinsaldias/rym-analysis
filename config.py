@@ -7,7 +7,7 @@ load_dotenv()
 class Config:
     # Flask y SQLAlchemy
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'clave-de-emergencia-no-segura'
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///database.db'
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///instance/database.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # Last.fm Config
