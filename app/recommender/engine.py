@@ -61,7 +61,7 @@ def recommend(seed_id, top_n=20, min_rating=None):
     seed_artist = artists[seed_idx]
 
     p_log    = np.array([math.log1p(l or 0) for l in album_info['lastfm_listeners']])
-    alpha    = 0.2  # Peso de la diferencia de popularidad
+    alpha    = 0.1  # Peso de la diferencia de popularidad
     beta     = 0.4  # Peso de la diferencia de rating
     cluster_s = clusters[seed_idx]
     p_log_s  = p_log[seed_idx]

@@ -491,6 +491,18 @@ main {
   background: rgba(77, 201, 230, 0.2);
 }
 
+/* Géneros secundarios: misma forma, cian apagado */
+.nd-tag--genre-sec {
+  background: rgba(77, 201, 230, 0.06);
+  border: 1px solid rgba(77, 201, 230, 0.2);
+  color: rgba(77, 201, 230, 0.55);
+}
+
+.nd-tag--genre-sec:hover {
+  background: rgba(77, 201, 230, 0.12);
+  color: var(--cyan);
+}
+
 .nd-tag--descriptor {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--border-subtle);

@@ -104,10 +104,22 @@ def album_detail(album_id):
     if not cover_url and album.mbid:
         cover_url = f"https://coverartarchive.org/release-group/{album.mbid}/front"
     
+    # Obtener géneros separados (Primarios vs Secundarios)
+    from app.models import album_genres, Genre
+    from app import db
+    genres_data = db.session.query(Genre.name, album_genres.c.is_primary)\
+        .join(album_genres, Genre.id == album_genres.c.genre_id)\
+        .filter(album_genres.c.album_id == album.id).all()
+        
+    primary_genres = [g[0] for g in genres_data if g[1]]
+    secondary_genres = [g[0] for g in genres_data if not g[1]]
+    
     return render_template('album_detail.html', 
                            album=album, 
                            radar_chart_html=radar_chart_html,
                            cover_url=cover_url,
+                           primary_genres=primary_genres,
+                           secondary_genres=secondary_genres,
                            page_title=album.title)
 
 @main_bp.route('/data')
@@ -354,6 +366,15 @@ def recommend_page():
                 seed_cluster = int(cluster_lbl) if cluster_lbl != -1 else 'Otros'
             except ValueError:
                 pass
+            
+            # Géneros separados para la tarjeta semilla
+            from app.models import album_genres as ag_table, Genre
+            from app import db as _db
+            genres_data = _db.session.query(Genre.name, ag_table.c.is_primary)\
+                .join(ag_table, Genre.id == ag_table.c.genre_id)\
+                .filter(ag_table.c.album_id == seed_id).all()
+            seed_primary_genres = [g[0] for g in genres_data if g[1]]
+            seed_secondary_genres = [g[0] for g in genres_data if not g[1]]
         
         return render_template('recommend.html',
                              page_title='Recomendaciones — RYM Analysis',
@@ -365,7 +386,9 @@ def recommend_page():
                              seed_text=seed_text,
                              seed_album=seed_album_obj,
                              seed_cover_url=seed_cover_url,
-                             seed_cluster=seed_cluster)
+                             seed_cluster=seed_cluster,
+                             seed_primary_genres=seed_primary_genres,
+                             seed_secondary_genres=seed_secondary_genres)
     
     return render_template('recommend.html',
                          page_title='Recomendador — RYM Analysis',

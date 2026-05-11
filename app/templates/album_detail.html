@@ -79,11 +79,14 @@
         {% endif %}
       </div>
 
-      {# Géneros #}
-      {% if album.genres %}
+      {# Géneros: Primarios y Secundarios en el mismo bloque #}
+      {% if primary_genres or secondary_genres %}
       <div class="nd-tags">
-        {% for g in album.genres %}
-        <a href="{{ url_for('main.data', genre=g.name) }}" class="nd-tag nd-tag--genre" style="text-decoration: none;">{{ g.name }}</a>
+        {% for g in primary_genres %}
+        <a href="{{ url_for('main.data', genre=g) }}" class="nd-tag nd-tag--genre" style="text-decoration: none;">{{ g }}</a>
+        {% endfor %}
+        {% for g in secondary_genres %}
+        <a href="{{ url_for('main.data', genre=g) }}" class="nd-tag nd-tag--genre-sec" style="text-decoration: none;">{{ g }}</a>
         {% endfor %}
       </div>
       {% endif %}

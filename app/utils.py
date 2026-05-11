@@ -51,17 +51,35 @@ def process_csv_to_db(file_or_path):
             )
             db.session.add(album)
 
-        # 3. Lógica para Géneros (Muchos a Muchos)
-        if pd.notna(row.get('primary_genres')):
-            genres_list = str(row['primary_genres']).split(',')
-            for g_name in genres_list:
-                g_name = g_name.strip()
-                genero = Genre.query.filter_by(name=g_name).first()
-                if not genero:
-                    genero = Genre(name=g_name)
-                    db.session.add(genero)
-                if genero not in album.genres:
-                    album.genres.append(genero)
+        # 3. Lógica para Géneros (Muchos a Muchos con is_primary)
+        db.session.flush() # Asegurar que el album tenga ID
+
+        def add_genres(genres_str, primary_flag):
+            if pd.notna(genres_str):
+                g_list = [g.strip() for g in str(genres_str).split(',') if g.strip()]
+                for g_name in g_list:
+                    genero = Genre.query.filter_by(name=g_name).first()
+                    if not genero:
+                        genero = Genre(name=g_name)
+                        db.session.add(genero)
+                        db.session.flush()
+                    
+                    # Chequear si ya existe el vínculo en la tabla intermedia
+                    exists = db.session.query(album_genres).filter_by(
+                        album_id=album.id, genre_id=genero.id
+                    ).first()
+                    
+                    if not exists:
+                        db.session.execute(
+                            album_genres.insert().values(
+                                album_id=album.id, 
+                                genre_id=genero.id, 
+                                is_primary=primary_flag
+                            )
+                        )
+
+        add_genres(row.get('primary_genres'), True)
+        add_genres(row.get('secondary_genres'), False)
 
         # 4. Lógica para Descriptores
         if pd.notna(row.get('descriptors')):

@@ -173,10 +173,26 @@ def build():
         tsne_coords = reducer_2d.fit_transform(feature_matrix)
 
         # -------------------------------------------------------
-        # 8. Info de álbumes para el frontend
+        # 8. Info de álbumes para el frontend (con géneros distinguidos)
         # -------------------------------------------------------
-        album_info = pd.DataFrame([
-            {
+        print("[7/7] Preparando info de álbumes y formateando géneros...")
+        
+        # Optimizamos: traemos todos los links de géneros de una vez
+        all_genre_links = db.session.query(album_genres.c.album_id, Genre.name, album_genres.c.is_primary)\
+            .join(Genre, Genre.id == album_genres.c.genre_id).all()
+            
+        from collections import defaultdict
+        album_to_genres = defaultdict(lambda: {'p': [], 's': []})
+        seen_per_album = defaultdict(set)  # Evita duplicados si la DB tiene filas repetidas
+        for aid, gname, is_p in all_genre_links:
+            if gname not in seen_per_album[aid]:
+                seen_per_album[aid].add(gname)
+                album_to_genres[aid]['p' if is_p else 's'].append(gname)
+
+        rows = []
+        for a in albums:
+            g_data = album_to_genres[a.id]
+            rows.append({
                 'id': a.id,
                 'title': a.title,
                 'artist': a.artist,
@@ -186,15 +202,16 @@ def build():
                 'lastfm_listeners': a.lastfm_listeners,
                 'lastfm_playcount': a.lastfm_playcount,
                 'release_year': a.release_date.year if a.release_date else '',
-                'genres': ', '.join([g.name for g in a.genres]) if a.genres else '',
+                'genres': ', '.join(g_data['p']),           # Solo primarios
+                'genres_secondary': ', '.join(g_data['s']), # Solo secundarios
                 'descriptors': ', '.join([d.name for d in a.descriptors]) if a.descriptors else '',
                 'has_descriptors': bool(a.descriptors),
-            }
-            for a in albums
-        ])
+            })
+            
+        album_info = pd.DataFrame(rows)
 
         # -------------------------------------------------------
-        # 8. Guardar todo
+        # 9. Guardar todo
         # -------------------------------------------------------
         print("[7/7] Guardando archivos y metadatos...")
         data = {
