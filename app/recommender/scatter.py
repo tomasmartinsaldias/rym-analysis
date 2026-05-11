@@ -120,14 +120,21 @@ def get_scatter_html(seed_id=None, recommended_ids=None, highlighted_id=None):
     if seed_id:
         seeds_df = scatter_df[scatter_df['role'] == '⭐ Semilla']
         if not seeds_df.empty:
-            # Glow expansivo dorado
+            # 1. Glow externo (aura lejana)
             fig.add_trace(go.Scattergl(
                 x=seeds_df['x'], y=seeds_df['y'],
                 mode='markers',
-                marker=dict(size=35, color='rgba(232, 164, 48, 0.2)', line=dict(width=0)),
+                marker=dict(size=45, color='rgba(232, 164, 48, 0.15)', line=dict(width=0)),
                 showlegend=False, hoverinfo='skip'
             ))
-            # Punto central: Estrella dorada con borde blanco para contraste
+            # 2. Glow interno (brillo central)
+            fig.add_trace(go.Scattergl(
+                x=seeds_df['x'], y=seeds_df['y'],
+                mode='markers',
+                marker=dict(size=25, color='rgba(232, 164, 48, 0.4)', line=dict(width=0)),
+                showlegend=False, hoverinfo='skip'
+            ))
+            # 3. Punto central: Estrella dorada
             fig.add_trace(go.Scattergl(
                 x=seeds_df['x'], y=seeds_df['y'],
                 mode='markers',
@@ -141,19 +148,31 @@ def get_scatter_html(seed_id=None, recommended_ids=None, highlighted_id=None):
     if highlighted_id:
         h_df = scatter_df[scatter_df['role'] == '🔍 Buscado']
         if not h_df.empty:
-            # 1. Glow Cian (el aura)
+            # 1. Glow externo Cian (el aura)
             fig.add_trace(go.Scattergl(
                 x=h_df['x'], y=h_df['y'],
                 mode='markers',
                 marker=dict(
-                    size=28,
-                    color='rgba(77, 201, 230, 0.3)',
+                    size=40,
+                    color='rgba(77, 201, 230, 0.2)',
                     line=dict(width=0)
                 ),
                 showlegend=False,
                 hoverinfo='skip'
             ))
-            # 2. Punto Blanco (el núcleo) para que resalte sobre cualquier color
+            # 2. Glow interno Cian (núcleo de luz)
+            fig.add_trace(go.Scattergl(
+                x=h_df['x'], y=h_df['y'],
+                mode='markers',
+                marker=dict(
+                    size=22,
+                    color='rgba(77, 201, 230, 0.5)',
+                    line=dict(width=0)
+                ),
+                showlegend=False,
+                hoverinfo='skip'
+            ))
+            # 3. Punto Blanco (el núcleo)
             fig.add_trace(go.Scattergl(
                 x=h_df['x'], y=h_df['y'],
                 mode='markers',

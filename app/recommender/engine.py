@@ -76,7 +76,7 @@ def recommend(seed_id, top_n=20, min_rating=None):
 
         cos_sim   = similarity_cache[seed_idx, c_idx]
         cluster_c = clusters[c_idx]
-        bonus     = 1.05 if (cluster_s == cluster_c and cluster_s != -1) else 1.0
+        bonus     = 1.15 if (cluster_s == cluster_c and cluster_s != -1) else 1.0
         
         delta_log_pop = abs(p_log_s - p_log[c_idx])
         delta_rating  = abs(rating_s - ratings[c_idx])

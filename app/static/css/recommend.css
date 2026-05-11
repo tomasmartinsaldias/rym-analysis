@@ -160,6 +160,12 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+.seed-descriptors {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
 }
 .genre-tag {
     font-family: var(--font-mono);
@@ -168,6 +174,15 @@
     color: var(--text-secondary);
     padding: 2px 8px;
     border-radius: 12px;
+}
+.descriptor-tag {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--cyan);
+    border: 1px solid var(--cyan-border);
+    padding: 2px 8px;
+    border-radius: 4px;
+    text-transform: lowercase;
 }
 
 @media (max-width: 600px) {
@@ -335,6 +350,29 @@
     font-family: var(--font-display);
     font-size: 0.95rem;
     color: var(--amber);
+}
+
+@media (max-width: 550px) {
+    .album-overlay {
+        padding: 0.5rem;
+    }
+    .overlay-body h5 {
+        font-size: 0.8rem;
+    }
+    .overlay-body .artist {
+        font-size: 0.6rem;
+        margin-bottom: 0.3rem;
+    }
+    .overlay-stats {
+        gap: 0.25rem;
+        padding-top: 0.25rem;
+    }
+    .stat-value {
+        font-size: 0.85rem;
+    }
+    .rank-badge {
+        font-size: 1.2rem;
+    }
 }
 
 /* CSS Affinities Charts */

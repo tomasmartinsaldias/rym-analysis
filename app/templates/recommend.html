@@ -9,7 +9,7 @@
 <div class="recommend-container">
     <!-- Hero -->
     <section class="hero-section">
-        <h1>The<em> Vault</em></h1>
+        <h1>The <em>Lost</em> and <em>Found</em></h1>
         <p>Recomendaciones basadas en descriptores, géneros, popularidad y rating</p>
     </section>
 
@@ -68,6 +68,11 @@
             <div class="seed-genres">
                 {% for g in seed_album.genres[:4] %}
                 <span class="genre-tag">{{ g.name }}</span>
+                {% endfor %}
+            </div>
+            <div class="seed-descriptors">
+                {% for d in seed_album.descriptors[:6] %}
+                <span class="descriptor-tag">{{ d.name }}</span>
                 {% endfor %}
             </div>
         </div>
