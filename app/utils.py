@@ -1,11 +1,12 @@
 import pandas as pd
 from datetime import datetime
 from app import db
-from app.models import Album, Genre, Descriptor
+from app.models import Album, Genre, Descriptor, album_genres
 from sqlalchemy import func
 
 def process_csv_to_db(file_or_path):
     data = pd.read_csv(file_or_path)
+    count = 0
     for index, row in data.iterrows():
         # 1. Transformar la fecha (M/D/Y o YYYY-MM-DD -> objeto Date)
         try:
@@ -23,8 +24,7 @@ def process_csv_to_db(file_or_path):
         except (ValueError, TypeError):
             fecha_obj = None
 
-        # 2. Lógica de "Merge": Buscar si el álbum ya existe (cargado por API)
-        # release_name y artist_name vienen del CSV. Se usa ilike para ignorar mayúsculas/minúsculas
+        # 2. Lógica de "Merge"
         album = Album.query.filter(
             func.lower(Album.title) == func.lower(str(row['release_name'])),
             func.lower(Album.artist) == func.lower(str(row['artist_name'])),
@@ -32,14 +32,12 @@ def process_csv_to_db(file_or_path):
         ).first()
 
         if album:
-            # Pegamos los datos del CSV a lo que ya existe
             album.position = row['position']
             album.release_date = fecha_obj
             album.avg_rating = row['avg_rating']
             album.rating_count = row['rating_count']
             album.review_count = row['review_count']
         else:
-            # Si no existe, lo creamos de cero
             album = Album(
                 position=row['position'],
                 title=row['release_name'],
@@ -51,7 +49,7 @@ def process_csv_to_db(file_or_path):
             )
             db.session.add(album)
 
-        # 3. Lógica para Géneros (Muchos a Muchos con is_primary)
+        # 3. Lógica para Géneros (Muchos a Muchos con is_primary) de tu compañero
         db.session.flush() # Asegurar que el album tenga ID
 
         def add_genres(genres_str, primary_flag):
@@ -93,5 +91,9 @@ def process_csv_to_db(file_or_path):
                 if descriptor not in album.descriptors:
                     album.descriptors.append(descriptor)
                     
-    # 5. Guardar todo al final de los registros
+        # 5. Guardar por bloques para evitar 'database is locked' (mi mejora)
+        count += 1
+        if count % 100 == 0:
+            db.session.commit()
+            
     db.session.commit()

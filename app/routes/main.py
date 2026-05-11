@@ -304,7 +304,145 @@ def data():
 
 @main_bp.route('/analysis')
 def analysis():
-    return "Aquí se mostrarán los gráficos y análisis."
+    from app.analysis import (
+        chart_top_genres_by_count,
+        chart_genres_by_avg_rating,
+        chart_genres_by_listeners,
+        chart_top_labels_by_count,
+        chart_labels_by_avg_rating,
+        chart_top_artists,
+        chart_rating_by_year,
+        chart_albums_by_year,
+        chart_rating_by_decade,
+        chart_rym_rating_vs_listeners,
+        chart_rym_rating_vs_playcount,
+        chart_ratingcount_vs_listeners,
+    )
+
+    return render_template('analysis.html',
+        plotly_required=True,
+        # 2.1 Géneros
+        chart_genres_count=chart_top_genres_by_count(),
+        chart_genres_rating=chart_genres_by_avg_rating(),
+        chart_genres_listeners=chart_genres_by_listeners(),
+        # 2.2 Labels
+        chart_labels_count=chart_top_labels_by_count(),
+        chart_labels_rating=chart_labels_by_avg_rating(),
+        # 2.3 Artistas
+        chart_artists=chart_top_artists(),
+        # 2.4 Temporal
+        chart_rating_year=chart_rating_by_year(),
+        chart_albums_year=chart_albums_by_year(),
+        chart_rating_decade=chart_rating_by_decade(),
+        # 2.5 RYM vs Last.fm
+        chart_rym_listeners=chart_rym_rating_vs_listeners(),
+        chart_rym_playcount=chart_rym_rating_vs_playcount(),
+        chart_ratings_listeners=chart_ratingcount_vs_listeners(),
+    )
+
+@main_bp.route('/user-map', methods=['GET', 'POST'])
+def user_map():
+    from app.models import Album
+    from app.recommender.scatter import get_user_collection_map_html
+    import pandas as pd
+    from sqlalchemy import func
+
+    user_map_html = None
+    album_counts = {}
+    stats = None
+    matched_albums = []
+    top_albums = []
+    top_genres = []
+    ratings_chart_html = None
+    listeners_chart_html = None
+
+    if request.method == 'POST':
+        file = request.files.get('file')
+        if file and file.filename.endswith('.csv'):
+            try:
+                df_user = pd.read_csv(file)
+                col_album = next((c for c in df_user.columns if 'album' in c.lower()), None)
+                col_artist = next((c for c in df_user.columns if 'artist' in c.lower()), None)
+
+                if col_album and col_artist:
+                    counts = df_user.groupby([col_album, col_artist]).size().reset_index(name='songs')
+                    
+                    matched_albums = []
+                    for _, row in counts.iterrows():
+                        album_obj = Album.query.filter(
+                            func.lower(Album.title) == func.lower(str(row[col_album])),
+                            func.lower(Album.artist) == func.lower(str(row[col_artist]))
+                        ).first()
+                        if album_obj:
+                            album_counts[album_obj.id] = int(row['songs'])
+                            matched_albums.append(album_obj)
+                    
+                    user_map_html = get_user_collection_map_html(album_counts)
+                    
+                    if matched_albums:
+                        # DATA PARA DASHBOARD (IDÉNTICA A INDEX.HTML)
+                        m_df = pd.DataFrame([{
+                            'rating': a.avg_rating,
+                            'listeners': a.lastfm_listeners,
+                            'rating_count': a.rating_count,
+                            'genres': a.genres,
+                            'title': a.title,
+                            'artist': a.artist,
+                            'id': a.id
+                        } for a in matched_albums])
+
+                        # Stats globales de la colección
+                        all_genres = []
+                        for g_list in m_df['genres']:
+                            all_genres.extend([g.name for g in g_list])
+                        
+                        top_genres_data = pd.Series(all_genres).value_counts().head(10).reset_index()
+                        top_genres_data.columns = ['name', 'count']
+
+                        stats = {
+                            'album_count': len(matched_albums),
+                            'avg_rating': m_df['rating'].mean(),
+                            'genre_count': len(set(all_genres)),
+                            'cluster_count': len(m_df), # En colección propia, clusters = albums mostrados
+                            'avg_listeners': f"{int(m_df['listeners'].mean()/1000)}K" if not m_df.empty else "0K",
+                            'total_ratings': f"{round(m_df['rating_count'].sum()/1000000, 1)}M" if not m_df.empty else "0M"
+                        }
+
+                        # Preparar listas
+                        top_albums = m_df.sort_values('rating', ascending=False).head(10).to_dict('records')
+                        top_genres = top_genres_data.to_dict('records')
+
+                        # Gráficos (usando mismos nombres que index.html)
+                        from app.analysis import _get_dark_layout, _fig_to_html, COLOR_AMBAR, COLOR_CIAN
+                        import plotly.express as px
+
+                        # Distribución de Ratings
+                        fig_r = px.histogram(m_df, x='rating', nbins=20, color_discrete_sequence=[COLOR_AMBAR])
+                        fig_r.update_layout(**_get_dark_layout())
+                        fig_r.update_layout(height=140, margin=dict(t=5, b=5, l=5, r=5), xaxis_title=None, yaxis_title=None, showlegend=False)
+                        ratings_chart_html = _fig_to_html(fig_r)
+
+                        # Distribución de Oyentes
+                        fig_l = px.histogram(m_df, x='listeners', nbins=20, color_discrete_sequence=[COLOR_CIAN])
+                        fig_l.update_layout(**_get_dark_layout())
+                        fig_l.update_layout(height=140, margin=dict(t=5, b=5, l=5, r=5), xaxis_title=None, yaxis_title=None, showlegend=False)
+                        listeners_chart_html = _fig_to_html(fig_l)
+
+                    flash(f"¡Universo actualizado! Se identificaron {len(album_counts)} álbumes.")
+                else:
+                    flash("No se encontraron columnas de 'Album' o 'Artist' en el CSV.", "error")
+            except Exception as e:
+                flash(f"Error al procesar el CSV: {str(e)}", "error")
+
+    return render_template('user_map.html', 
+                           user_map_html=user_map_html, 
+                           stats=stats,
+                           top_albums=top_albums if matched_albums else [],
+                           top_genres=top_genres if matched_albums else [],
+                           ratings_chart_html=ratings_chart_html if matched_albums else None,
+                           listeners_chart_html=listeners_chart_html if matched_albums else None,
+                           plotly_required=True,
+                           page_title="Mi Mapa Musical")
 
 @main_bp.route('/recommend', methods=['GET', 'POST'])
 def recommend_page():

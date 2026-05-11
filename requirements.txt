@@ -10,13 +10,12 @@ pylast==7.0.2
 musicbrainzngs==0.7.1
 requests==2.33.1
 
-# Gráficos interactivos
+# Charts & Analysis
 plotly
+scipy
 
 # Machine Learning (SVD, KMeans, t-SNE, cosine_similarity)
 scikit-learn
-umap-learn
-hdbscan
 
 # Serialización de modelos pre-computados
 joblib

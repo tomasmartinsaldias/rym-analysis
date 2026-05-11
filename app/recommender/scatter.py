@@ -260,3 +260,72 @@ def get_filtered_scatter_html(filtered_ids: set):
         full_html=False, include_plotlyjs=False,
         config={'displayModeBar': False, 'responsive': True},
     )
+
+
+def get_user_collection_map_html(album_counts: dict):
+    """
+    Genera un mapa UMAP resaltando solo los álbumes del usuario.
+    album_counts: { album_id: count, ... }
+    """
+    data = get_data()
+    if data is None or not album_counts:
+        return "<p class='text-muted'>Sube un archivo para visualizar tu mapa.</p>"
+
+    coords    = data['tsne_coords']
+    info      = data['album_info']
+    album_ids = data['album_ids']
+    
+    # Asegurarnos de que album_ids sea un array de numpy para el filtrado
+    import numpy as np
+    album_ids_arr = np.array(album_ids)
+    
+    # Crear DF solo con los álbumes que tiene el usuario
+    user_ids = set(album_counts.keys())
+    mask = np.array([aid in user_ids for aid in album_ids_arr])
+    
+    if mask.sum() == 0:
+        return "<p class='text-muted'>No se encontraron coincidencias en la base de datos.</p>"
+
+    filtered_info = info[mask].copy()
+    filtered_coords = coords[mask]
+    
+    # Agregar la cuenta de canciones
+    # Usamos la versión filtrada de los IDs para mapear los counts
+    matched_ids = album_ids_arr[mask]
+    filtered_info['song_count'] = [album_counts.get(int(aid), 1) for aid in matched_ids]
+    
+    # Crear DF para el gráfico
+    clusters = data['cluster_labels']
+    scatter_df = pd.DataFrame({
+        'x': filtered_coords[:, 0],
+        'y': filtered_coords[:, 1],
+        'cluster': [f'Cluster {c}' if c != -1 else 'Otros' for c in clusters[mask]],
+        'title': filtered_info['title'].values,
+        'artist': filtered_info['artist'].values,
+        'count': [album_counts.get(int(aid), 1) for aid in matched_ids],
+    })
+    
+    # El tamaño depende de la cantidad de canciones
+    import numpy as np
+    scatter_df['size'] = np.log1p(scatter_df['count']) * 8 + 4
+
+    # Ordenar para que los puntos grandes queden arriba
+    scatter_df = scatter_df.sort_values(by='count', ascending=True)
+
+    fig = px.scatter(
+        scatter_df, x='x', y='y', color='cluster',
+        size='size',
+        custom_data=['title', 'artist', 'count', 'cluster'],
+        render_mode='webgl',
+        opacity=0.9
+    )
+
+    fig.update_traces(
+        hovertemplate='<b>%{customdata[0]}</b><br>%{customdata[1]}<br>Canciones: %{customdata[2]}<br><i>%{customdata[3]}</i><extra></extra>'
+    )
+
+    fig.update_layout(**_LAYOUT_BASE)
+    return fig.to_html(
+        full_html=False, include_plotlyjs=False,
+        config={'displayModeBar': False, 'responsive': True},
+    )

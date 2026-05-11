@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+
+{% block title %}Exploración Estática{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* Personalización extra para la página de análisis */
+  .analysis-header {
+    padding: 6rem 0 4rem;
+    text-align: center;
+    border-bottom: 1px border-bottom: 1px solid rgba(240, 236, 224, 0.1);
+    margin-bottom: 3rem;
+  }
+  
+  .analysis-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 4.5rem;
+    color: var(--color-amber, #e8a430);
+    margin-bottom: 1rem;
+  }
+  
+  .analysis-header p {
+    font-family: 'DM Mono', monospace;
+    color: var(--color-text-muted, #a09a8e);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+  }
+
+  .nav-tabs {
+    border-bottom: 1px solid rgba(240, 236, 224, 0.1);
+    justify-content: center;
+    margin-bottom: 3rem;
+    gap: 2rem;
+  }
+
+  .nav-tabs .nav-link {
+    background: none !important;
+    border: none !important;
+    color: #a09a8e !important;
+    font-family: 'DM Mono', monospace;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.15em;
+    padding: 1rem 0;
+    transition: color 0.3s ease;
+    position: relative;
+  }
+
+  .nav-tabs .nav-link:after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background-color: var(--color-cyan, #4dc9e6);
+    transition: width 0.3s ease;
+  }
+
+  .nav-tabs .nav-link.active {
+    color: var(--color-cyan, #4dc9e6) !important;
+  }
+
+  .nav-tabs .nav-link.active:after {
+    width: 100%;
+  }
+
+  .chart-card {
+    background: rgba(240, 236, 224, 0.03);
+    border: 1px solid rgba(240, 236, 224, 0.05);
+    border-radius: 4px;
+    padding: 1.5rem 1rem; /* Reducimos padding lateral */
+    margin-bottom: 2rem;
+    transition: border-color 0.4s ease;
+    overflow: hidden; /* Evita que el gráfico se salga */
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .chart-card:hover {
+    border-color: rgba(77, 201, 230, 0.2);
+  }
+
+  .chart-title {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.8rem;
+    color: #f0ece0;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .chart-title::before {
+    content: '';
+    display: block;
+    width: 30px;
+    height: 1px;
+    background: #e8a430;
+  }
+
+  .tab-pane {
+    animation: fadeIn 0.6s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Header Editorial -->
+  <header class="analysis-header">
+    <p>Observatorio de Datos</p>
+    <h1>Exploración Estática</h1>
+    <p>Patrones, tendencias y correlaciones en el universo sonoro</p>
+  </header>
+
+  <!-- Pestañas Estilizadas -->
+  <ul class="nav nav-tabs" id="analysisTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="genres-tab" data-bs-toggle="tab" data-bs-target="#genres" type="button" role="tab">01. Géneros</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="labels-tab" data-bs-toggle="tab" data-bs-target="#labels" type="button" role="tab">02. Sellos</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="artists-tab" data-bs-toggle="tab" data-bs-target="#artists" type="button" role="tab">03. Artistas</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="temporal-tab" data-bs-toggle="tab" data-bs-target="#temporal" type="button" role="tab">04. Temporal</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="correlations-tab" data-bs-toggle="tab" data-bs-target="#correlations" type="button" role="tab">05. Correlaciones</button>
+    </li>
+  </ul>
+
+  <!-- Contenido de las Pestañas -->
+  <div class="tab-content" id="analysisTabsContent">
+    
+    <!-- GÉNEROS -->
+    <div class="tab-pane fade show active" id="genres" role="tabpanel">
+      <div class="row">
+        <div class="col-lg-6">
+          <div class="chart-card">
+            <h3 class="chart-title">Volumen por Género</h3>
+            {{ chart_genres_count | safe }}
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="chart-card">
+            <h3 class="chart-title">Calidad Percibida</h3>
+            {{ chart_genres_rating | safe }}
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="chart-card">
+            <h3 class="chart-title">Impacto en Audiencia</h3>
+            {{ chart_genres_listeners | safe }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LABELS -->
+    <div class="tab-pane fade" id="labels" role="tabpanel">
+      <div class="row">
+        <div class="col-lg-7">
+          <div class="chart-card">
+            <h3 class="chart-title">Liderazgo de Sellos</h3>
+            {{ chart_labels_count | safe }}
+          </div>
+        </div>
+        <div class="col-lg-5">
+          <div class="chart-card">
+            <h3 class="chart-title">Promedio de Excelencia</h3>
+            {{ chart_labels_rating | safe }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ARTISTAS -->
+    <div class="tab-pane fade" id="artists" role="tabpanel">
+      <div class="row">
+        <div class="col-12">
+          <div class="chart-card">
+            <h3 class="chart-title">Presencia Dominante</h3>
+            {{ chart_artists | safe }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TEMPORAL -->
+    <div class="tab-pane fade" id="temporal" role="tabpanel">
+      <div class="row">
+        <div class="col-12">
+          <div class="chart-card">
+            <h3 class="chart-title">Ratings a través del tiempo</h3>
+            {{ chart_rating_year | safe }}
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="chart-card">
+            <h3 class="chart-title">Densidad de Lanzamientos</h3>
+            {{ chart_albums_year | safe }}
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="chart-card">
+            <h3 class="chart-title">Consistencia por Década</h3>
+            {{ chart_rating_decade | safe }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CORRELACIONES -->
+    <div class="tab-pane fade" id="correlations" role="tabpanel">
+      <div class="row">
+        <div class="col-lg-6">
+          <div class="chart-card">
+            <h3 class="chart-title">Calidad vs Popularidad</h3>
+            {{ chart_rym_listeners | safe }}
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="chart-card">
+            <h3 class="chart-title">Rating vs Reproducciones</h3>
+            {{ chart_rym_playcount | safe }}
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="chart-card">
+            <h3 class="chart-title">Volumen de Votos vs Oyentes</h3>
+            {{ chart_ratings_listeners | safe }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- Bootstrap Bundle con JS para las pestañas -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Truco para que Plotly recalcule el tamaño de los gráficos al cargar
+  window.addEventListener('load', function() {
+    setTimeout(function() {
+      window.dispatchEvent(new Event('resize'));
+    }, 200);
+  });
+  
+  // También recalcular al cambiar de pestaña
+  document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tabEl => {
+    tabEl.addEventListener('shown.bs.tab', function() {
+      window.dispatchEvent(new Event('resize'));
+    });
+  });
+</script>
+{% endblock %}
