@@ -96,6 +96,15 @@
         </a>
       </li>
       <li>
+        <a class="nd-nav__link {% if request.endpoint == 'main.recommend_page' %}active{% endif %}"
+          href="{{ url_for('main.recommend_page') }}">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+            <polygon points="8,1.5 9.8,6.2 14.8,6.2 10.8,9.2 12.2,14 8,11 3.8,14 5.2,9.2 1.2,6.2 6.2,6.2" />
+          </svg>
+          Recomendador
+        </a>
+      </li>
+      <li>
         <a class="nd-nav__link {% if request.endpoint == 'main.user_map' %}active{% endif %}"
           href="{{ url_for('main.user_map') }}">
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
@@ -104,15 +113,6 @@
             <path d="M8,1 L8,4 M8,12 L8,15 M1,8 L4,8 M12,8 L15,8" />
           </svg>
           Mapa Colección
-        </a>
-      </li>
-      <li>
-        <a class="nd-nav__link {% if request.endpoint == 'main.recommend_page' %}active{% endif %}"
-          href="{{ url_for('main.recommend_page') }}">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
-            <polygon points="8,1.5 9.8,6.2 14.8,6.2 10.8,9.2 12.2,14 8,11 3.8,14 5.2,9.2 1.2,6.2 6.2,6.2" />
-          </svg>
-          Recomendador
         </a>
       </li>
     </ul>

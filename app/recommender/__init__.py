@@ -16,6 +16,7 @@ from .charts  import (                                        # noqa: F401
     make_radar_chart,
     get_affinities,
 )
+from .constants import CLUSTER_NAMES
 
 __all__ = [
     'load_recommender_data',
@@ -28,4 +29,5 @@ __all__ = [
     'make_listeners_chart',
     'make_radar_chart',
     'get_affinities',
+    'CLUSTER_NAMES',
 ]

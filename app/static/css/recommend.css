@@ -142,6 +142,18 @@
     font-size: 0.9rem;
     margin-bottom: 1rem;
 }
+.seed-galaxy {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--cyan);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    margin-bottom: 0.75rem;
+    border-left: 2px solid var(--cyan-border);
+    padding-left: 8px;
+    opacity: 0.85;
+}
+
 .seed-stats {
     display: flex;
     gap: 2rem;
@@ -339,6 +351,21 @@
     border-radius: 2px;
 }
 
+.galaxy-label {
+    font-family: var(--font-mono);
+    font-size: 8px;
+    color: var(--amber);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 0.5rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    display: block;
+    opacity: 0.8;
+}
+
 .overlay-body h5 {
     font-family: var(--font-display);
     font-size: 0.95rem;
@@ -478,7 +505,7 @@
 /* Scatter container */
 .scatter-container {
     background: var(--bg-void);
-    height: 500px;
+    height: 600px;
     margin-bottom: 4rem;
     border: 1px solid var(--border-subtle);
 }

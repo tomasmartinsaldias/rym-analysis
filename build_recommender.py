@@ -135,15 +135,16 @@ def build():
             n_components=15,
             metric='cosine',
             random_state=42,
-            n_neighbors=15,
+            n_neighbors=12,
             min_dist=0.0
         )
         umap_15d_coords = reducer_15d.fit_transform(feature_matrix)
 
         print("  Clusterizando con HDBSCAN en 15 dimensiones...")
         clusterer = hdbscan.HDBSCAN(
-            min_cluster_size=60,
-            min_samples=10,
+            min_cluster_size=45,
+            min_samples=7,
+            cluster_selection_method='leaf',
             metric='euclidean'
         )
         cluster_labels = clusterer.fit_predict(umap_15d_coords)

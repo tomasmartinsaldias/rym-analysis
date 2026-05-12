@@ -22,7 +22,7 @@ q=q, genre=sel_genres, descriptor=sel_descs,
 genre_mode=genre_mode, desc_mode=desc_mode,
 rating_min=rating_min, rating_max=rating_max,
 listeners_min=listeners_min, listeners_max=listeners_max,
-cluster=sel_cluster, label=sel_label, sort=col, order=next_order, page=1) -}}
+cluster=sel_cluster, mega=sel_mega, label=sel_label, sort=col, order=next_order, page=1) -}}
 {% endmacro %}
 
 {# MACRO: href de paginación preservando todos los filtros #}
@@ -32,7 +32,7 @@ q=q, genre=sel_genres, descriptor=sel_descs,
 genre_mode=genre_mode, desc_mode=desc_mode,
 rating_min=rating_min, rating_max=rating_max,
 listeners_min=listeners_min, listeners_max=listeners_max,
-cluster=sel_cluster, label=sel_label, sort=sort, order=order, page=p) -}}
+cluster=sel_cluster, mega=sel_mega, label=sel_label, sort=sort, order=order, page=p) -}}
 {% endmacro %}
 
 {% block content %}
@@ -148,11 +148,13 @@ cluster=sel_cluster, label=sel_label, sort=sort, order=order, page=p) -}}
       <div class="data-filters__group">
         <label class="data-filters__label">Oyentes (Last.fm)</label>
         <div class="data-filters__range-row">
-          <input id="filter-lmin" class="data-filters__input data-filters__input--half" type="number" name="listeners_min"
-            value="{{ listeners_min if listeners_min is not none else '' }}" min="0" placeholder="Mín">
+          <input id="filter-lmin" class="data-filters__input data-filters__input--half" type="number"
+            name="listeners_min" value="{{ listeners_min if listeners_min is not none else '' }}" min="0"
+            placeholder="Mín">
           <span class="data-filters__range-sep">—</span>
-          <input id="filter-lmax" class="data-filters__input data-filters__input--half" type="number" name="listeners_max"
-            value="{{ listeners_max if listeners_max is not none else '' }}" min="0" placeholder="Máx">
+          <input id="filter-lmax" class="data-filters__input data-filters__input--half" type="number"
+            name="listeners_max" value="{{ listeners_max if listeners_max is not none else '' }}" min="0"
+            placeholder="Máx">
         </div>
       </div>
 
@@ -162,22 +164,32 @@ cluster=sel_cluster, label=sel_label, sort=sort, order=order, page=p) -}}
         <select id="filter-label" class="data-filters__input data-filters__select" name="label">
           <option value="">Todos</option>
           {% for lab in all_labels %}
-          <option value="{{ lab }}" {% if sel_label == lab %}selected{% endif %}>
+          <option value="{{ lab }}" {% if sel_label==lab %}selected{% endif %}>
             {{ lab }}
           </option>
           {% endfor %}
         </select>
       </div>
 
-      {# ── Cluster ─────────────────────────────────────── #}
-      {% if all_clusters %}
+      {# ── Cluster / Galaxia ─────────────────────────── #}
+      {% if all_clusters or all_mega %}
       <div class="data-filters__group">
-        <label class="data-filters__label" for="filter-cluster">Cluster</label>
+        <label class="data-filters__label" for="filter-mega">Galaxia (Macro)</label>
+        <select id="filter-mega" class="data-filters__input data-filters__select" name="mega">
+          <option value="">Todas</option>
+          {% for m in all_mega %}
+          <option value="{{ m }}" {% if sel_mega==m %}selected{% endif %}>{{ m }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="data-filters__group">
+        <label class="data-filters__label" for="filter-cluster">Micro Cluster</label>
         <select id="filter-cluster" class="data-filters__input data-filters__select" name="cluster">
           <option value="">Todos</option>
           {% for c in all_clusters %}
           <option value="{{ c }}" {% if sel_cluster==c %}selected{% endif %}>
-            Cluster {{ c }}
+            {{ cluster_names.get(c, 'Cluster ' ~ c) }}
           </option>
           {% endfor %}
         </select>
@@ -255,11 +267,16 @@ cluster=sel_cluster, label=sel_label, sort=sort, order=order, page=p) -}}
         {% endif %}
         {% if listeners_min is not none or listeners_max is not none %}
         <span class="nd-tag nd-tag--cluster">
-          🎧 {{ "{:,}".format(listeners_min).replace(",", ".") if listeners_min is not none else '0' }}–{{ "{:,}".format(listeners_max).replace(",", ".") if listeners_max is not none else '∞' }}
+          🎧 {{ "{:,}".format(listeners_min).replace(",", ".") if listeners_min is not none else '0' }}–{{
+          "{:,}".format(listeners_max).replace(",", ".") if listeners_max is not none else '∞' }}
         </span>
         {% endif %}
+        {% if sel_mega %}
+        <span class="nd-tag nd-tag--cluster" style="border-color: var(--cyan); color: var(--cyan);">Galaxia: {{ sel_mega
+          }}</span>
+        {% endif %}
         {% if sel_cluster is not none %}
-        <span class="nd-tag nd-tag--cluster">Cluster {{ sel_cluster }}</span>
+        <span class="nd-tag nd-tag--cluster">{{ cluster_names.get(sel_cluster, 'Cluster ' ~ sel_cluster) }}</span>
         {% endif %}
         {% if sel_label %}
         <span class="nd-tag nd-tag--genre">Sello: {{ sel_label }}</span>
@@ -287,7 +304,7 @@ cluster=sel_cluster, label=sel_label, sort=sort, order=order, page=p) -}}
           <thead>
             <tr>
 
-              {# ── Álbum (sort alfabético) ── #}
+              {# ── Álbum ── #}
               <th class="nd-table__th-title">
                 <a href="{{ sort_url('title', text_col=true) }}"
                   class="nd-table__sort-link {% if sort=='title' %}sort-{{ order }}{% endif %}">
@@ -370,7 +387,8 @@ cluster=sel_cluster, label=sel_label, sort=sort, order=order, page=p) -}}
               {# Sello #}
               <td class="data-table__cell-label">
                 {% if album.label %}
-                <a href="{{ url_for('main.data', label=album.label) }}" class="nd-table__link" style="color: var(--text-secondary); font-size: 0.85em;">
+                <a href="{{ url_for('main.data', label=album.label) }}" class="nd-table__link"
+                  style="color: var(--text-secondary); font-size: 0.85em;">
                   {{ album.label }}
                 </a>
                 {% else %}

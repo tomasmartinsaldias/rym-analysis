@@ -3,7 +3,7 @@ import urllib.parse
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 from app.recommender import (get_album_list, recommend, get_scatter_html,
     get_filtered_scatter_html, get_affinities,
-    make_ratings_chart, make_listeners_chart, make_radar_chart)
+    make_ratings_chart, make_listeners_chart, make_radar_chart, CLUSTER_NAMES)
 import concurrent.futures
 
 main_bp = Blueprint('main', __name__)
@@ -157,15 +157,16 @@ def data():
         listeners_max = None
 
     sel_cluster  = request.args.get('cluster',      type=int)
+    sel_mega     = request.args.get('mega',         '').strip()
     sel_label    = request.args.get('label', '').strip()
-    sort         = request.args.get('sort',  'rating')
+    sort         = request.args.get('sort',  'rating_count')
     order        = request.args.get('order', 'desc')
     page         = request.args.get('page',  1, type=int)
 
     # Validar
     valid_sorts = {'rating', 'rating_count', 'listeners', 'playcount', 'year', 'title'}
     if sort not in valid_sorts:
-        sort = 'rating'
+        sort = 'rating_count'
     if order not in {'asc', 'desc'}:
         order = 'desc'
     if genre_mode not in {'and', 'or'}:
@@ -210,16 +211,22 @@ def data():
         qry = qry.filter(Album.lastfm_listeners <= listeners_max)
 
     # Filtro de cluster (requiere el pkl)
-    if sel_cluster is not None and current_app.recommender_data is not None:
+    if (sel_cluster is not None or sel_mega) and current_app.recommender_data is not None:
         pkl      = current_app.recommender_data
         ids_pkl  = pkl['album_ids']
         labels   = pkl['cluster_labels']
-        ids_in_cluster = {aid for aid, lbl in zip(ids_pkl, labels)
-                          if lbl == sel_cluster}
+        mega_cls = pkl['mega_clusters']
+        
+        if sel_cluster is not None:
+            ids_in_cluster = {aid for aid, lbl in zip(ids_pkl, labels)
+                              if lbl == sel_cluster}
+        else: # sel_mega
+            ids_in_cluster = {aid for aid, mcl in zip(ids_pkl, mega_cls)
+                              if mcl == sel_mega}
+            
         if ids_in_cluster:
             qry = qry.filter(Album.id.in_(ids_in_cluster))
         else:
-            # Cluster sin resultados → filtro imposible
             qry = qry.filter(db.false())
 
     # Filtro de sello
@@ -257,9 +264,11 @@ def data():
     all_descriptors = Descriptor.query.filter(Descriptor.name != '...').order_by(Descriptor.name).all()
 
     all_clusters = []
+    all_mega = []
     if current_app.recommender_data is not None:
         raw_labels   = current_app.recommender_data['cluster_labels']
         all_clusters = sorted({int(c) for c in raw_labels if c != -1})
+        all_mega = sorted({str(m) for m in current_app.recommender_data['mega_clusters'] if m != "Otros"})
         
     all_labels = [row[0] for row in db.session.query(Album.label).filter(Album.label.isnot(None)).distinct().order_by(Album.label).all() if row[0].strip()]
 
@@ -270,7 +279,7 @@ def data():
     has_filters = bool(q or sel_genres or sel_descs
                        or rating_min is not None or rating_max is not None
                        or listeners_min is not None or listeners_max is not None
-                       or sel_cluster is not None or sel_label)
+                       or sel_cluster is not None or sel_mega or sel_label)
 
     return render_template('data.html',
         page_title='Explorador de Álbumes',
@@ -283,6 +292,8 @@ def data():
         all_genres=all_genres,
         all_descriptors=all_descriptors,
         all_clusters=all_clusters,
+        all_mega=all_mega,
+        cluster_names=CLUSTER_NAMES,
         all_labels=all_labels,
         search_suggestions=search_suggestions,
         # Valores actuales de filtros
@@ -296,6 +307,7 @@ def data():
         listeners_min=listeners_min,
         listeners_max=listeners_max,
         sel_cluster=sel_cluster,
+        sel_mega=sel_mega,
         sel_label=sel_label,
         sort=sort,
         order=order,
@@ -317,6 +329,7 @@ def analysis():
         chart_rym_rating_vs_listeners,
         chart_rym_rating_vs_playcount,
         chart_ratingcount_vs_listeners,
+        get_rankings_data,
     )
 
     return render_template('analysis.html',
@@ -338,6 +351,8 @@ def analysis():
         chart_rym_listeners=chart_rym_rating_vs_listeners(),
         chart_rym_playcount=chart_rym_rating_vs_playcount(),
         chart_ratings_listeners=chart_ratingcount_vs_listeners(),
+        # 2.6 Rankings (Data Cruda para CSS Bars)
+        rankings=get_rankings_data(),
     )
 
 @main_bp.route('/user-map', methods=['GET', 'POST'])
@@ -497,12 +512,14 @@ def recommend_page():
             if not seed_cover_url and seed_album_obj.mbid:
                 seed_cover_url = f"https://coverartarchive.org/release-group/{seed_album_obj.mbid}/front"
                 
-            data = current_app.recommender_data
+            data_pkl = current_app.recommender_data
             try:
-                idx = list(data['album_ids']).index(seed_id)
-                cluster_lbl = data['cluster_labels'][idx]
+                idx = list(data_pkl['album_ids']).index(seed_id)
+                cluster_lbl = data_pkl['cluster_labels'][idx]
                 seed_cluster = int(cluster_lbl) if cluster_lbl != -1 else 'Otros'
+                seed_mega = data_pkl['mega_clusters'][idx]
             except ValueError:
+                seed_mega = 'Otros'
                 pass
             
             # Géneros separados para la tarjeta semilla
@@ -525,6 +542,7 @@ def recommend_page():
                              seed_album=seed_album_obj,
                              seed_cover_url=seed_cover_url,
                              seed_cluster=seed_cluster,
+                             seed_mega=seed_mega,
                              seed_primary_genres=seed_primary_genres,
                              seed_secondary_genres=seed_secondary_genres)
     

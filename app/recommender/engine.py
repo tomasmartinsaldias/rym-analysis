@@ -64,6 +64,8 @@ def recommend(seed_id, top_n=20, min_rating=None):
     alpha    = 0.1  # Peso de la diferencia de popularidad
     beta     = 0.4  # Peso de la diferencia de rating
     cluster_s = clusters[seed_idx]
+    mega_cls = data['mega_clusters']
+    mega_s = mega_cls[seed_idx]
     p_log_s  = p_log[seed_idx]
     rating_s = ratings[seed_idx]
 
@@ -76,7 +78,14 @@ def recommend(seed_id, top_n=20, min_rating=None):
 
         cos_sim   = similarity_cache[seed_idx, c_idx]
         cluster_c = clusters[c_idx]
-        bonus     = 1.15 if (cluster_s == cluster_c and cluster_s != -1) else 1.0
+        mega_c    = mega_cls[c_idx]
+        
+        # Bonos por jerarquía
+        bonus = 1.0
+        if cluster_s == cluster_c and cluster_s != -1:
+            bonus = 1.20 # Bonus fuerte por mismo micro-cluster
+        elif mega_s == mega_c and mega_s != "Otros":
+            bonus = 1.05 # Bonus ligero por misma galaxia (macro)
         
         delta_log_pop = abs(p_log_s - p_log[c_idx])
         delta_rating  = abs(rating_s - ratings[c_idx])
@@ -104,6 +113,7 @@ def recommend(seed_id, top_n=20, min_rating=None):
                 'score': f_score, 
                 'cos_sim': cos_sim,
                 'cluster': clusters[c_idx],
+                'mega': mega_cls[c_idx],
                 'is_wildcard': False
             })
 
@@ -122,6 +132,7 @@ def recommend(seed_id, top_n=20, min_rating=None):
             'score':           round(float(item['score']), 4),
             'cos_sim':         round(float(item['cos_sim']), 4),
             'cluster':         int(item['cluster']) if item['cluster'] != -1 else 'Otros',
+            'mega_cluster':    item['mega'],
             'is_wildcard':     item['is_wildcard'],
         })
 

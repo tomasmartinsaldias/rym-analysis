@@ -12,6 +12,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from .loader import get_data
+from .constants import MEGA_CLUSTER_MAP, MEGA_CLUSTER_COLORS, CLUSTER_NAMES
 
 
 # ── Configuración de layout compartida ───────────────────────────────────────
@@ -25,9 +26,17 @@ _LAYOUT_BASE = dict(
     template='plotly_dark',
     paper_bgcolor='rgba(0,0,0,0)',
     plot_bgcolor='rgba(0,0,0,0)',
-    showlegend=False,
+    showlegend=True, # Mostrar leyenda para las galaxias
+    legend=dict(
+        orientation="h",
+        yanchor="top",
+        y=-0.2,
+        xanchor="center",
+        x=0.5,
+        font=dict(size=10, family='DM Mono, monospace')
+    ),
     autosize=True,
-    margin=dict(t=0, b=0, l=0, r=0),
+    margin=dict(t=30, b=0, l=0, r=0),
     hoverlabel=dict(
         bgcolor='rgba(8,10,18,0.95)',
         bordercolor='rgba(232,164,48,0.6)',
@@ -38,7 +47,7 @@ _LAYOUT_BASE = dict(
 
 def get_scatter_html(seed_id=None, recommended_ids=None, highlighted_id=None):
     """
-    Genera un scatter 2D coloreado por cluster (Plotly HTML).
+    Genera un scatter 2D coloreado por Mega Cluster (Galaxia).
     Resalta semilla, recomendaciones y álbum buscado si se proporcionan.
     """
     data = get_data()
@@ -49,13 +58,18 @@ def get_scatter_html(seed_id=None, recommended_ids=None, highlighted_id=None):
     clusters  = data['cluster_labels']
     info      = data['album_info']
     album_ids = data['album_ids']
+    mega_cl   = data['mega_clusters']
 
     id_to_idx = {aid: i for i, aid in enumerate(album_ids)}
 
     scatter_df = pd.DataFrame({
         'x':       coords[:, 0],
         'y':       coords[:, 1],
-        'cluster': [f'Cluster {c}' for c in clusters],
+        'cluster': [
+            f"C{c}: {CLUSTER_NAMES.get(int(c), 'Otros')}" if c != -1 else "Otros"
+            for c in clusters
+        ],
+        'galaxy':  mega_cl,
         'title':   info['title'],
         'artist':  info['artist'],
         'genres':  info['genres'],
@@ -63,9 +77,6 @@ def get_scatter_html(seed_id=None, recommended_ids=None, highlighted_id=None):
     })
 
     scatter_df['album_id'] = [str(aid) for aid in album_ids]
-
-    # Mapear el ruido (-1) a 'Otros'
-    scatter_df['cluster'] = [f'Cluster {c}' if c != -1 else 'Otros' for c in clusters]
 
     if seed_id and seed_id in id_to_idx:
         scatter_df.loc[id_to_idx[seed_id], 'role'] = '⭐ Semilla'
@@ -76,26 +87,33 @@ def get_scatter_html(seed_id=None, recommended_ids=None, highlighted_id=None):
     if highlighted_id and highlighted_id in id_to_idx:
         scatter_df.loc[id_to_idx[highlighted_id], 'role'] = '🔍 Buscado'
 
-    # Ordenar para que "Otros" quede al fondo y los clusters encima
-    scatter_df = scatter_df.sort_values(by='cluster', ascending=False)
+    # Ordenar para que las galaxias se dibujen consistentemente
+    scatter_df = scatter_df.sort_values(by='galaxy')
 
     has_highlights = bool(seed_id or recommended_ids or highlighted_id)
-    base_opacity = 0.4 if has_highlights else 0.8
+    base_opacity = 0.35 if has_highlights else 0.75
 
     # Filtrar el DataFrame base para no dibujar dos veces los puntos resaltados
     base_df = scatter_df[scatter_df['role'] == 'Otros'] if has_highlights else scatter_df
 
     fig = px.scatter(
-        base_df, x='x', y='y', color='cluster',
-        custom_data=['title', 'artist', 'genres', 'cluster'],
+        base_df, x='x', y='y', color='galaxy',
+        color_discrete_map=MEGA_CLUSTER_COLORS,
+        custom_data=['title', 'artist', 'genres', 'cluster', 'galaxy'],
         opacity=base_opacity,
         render_mode='webgl',
+        category_orders={"galaxy": sorted(list(MEGA_CLUSTER_COLORS.keys()))},
+        labels={'galaxy': ''}
     )
     
-    # Actualizar hovertemplate para todos los trazos generados por px.scatter
+    # Tooltip jerárquico: [Galaxia] > [Cluster]
     fig.update_traces(
-        hovertemplate='<b>%{customdata[0]}</b><br>%{customdata[1]}<br><i>%{customdata[2]}</i><br><br>%{customdata[3]}<extra></extra>'
+        hovertemplate='<b>%{customdata[0]}</b><br>%{customdata[1]}<br><i>%{customdata[2]}</i><br><br><span style="color:#e8a430">%{customdata[4]}</span> > %{customdata[3]}<extra></extra>'
     )
+
+    # Limpiar nombres de la leyenda y quitar título
+    fig.for_each_trace(lambda t: t.update(name=t.name.split('=')[-1]) if t.name else t)
+    fig.update_layout(legend_title_text=None)
 
     if recommended_ids:
         recs_df = scatter_df[scatter_df['role'] == '🎯 Recomendado']
@@ -187,6 +205,10 @@ def get_scatter_html(seed_id=None, recommended_ids=None, highlighted_id=None):
                 customdata=h_df[['artist', 'cluster', 'title']].values,
             ))
 
+    # Limpiar nombres de la leyenda y quitar título
+    fig.for_each_trace(lambda t: t.update(name=t.name.split('=')[-1]) if t.name else t)
+    fig.update_layout(legend_title_text=None)
+
     fig.update_layout(**_LAYOUT_BASE)
     return fig.to_html(
         full_html=False, include_plotlyjs=False,
@@ -226,34 +248,47 @@ def get_filtered_scatter_html(filtered_ids: set):
 
     filtered_info = info[mask].reset_index(drop=True)
     filtered_clusters = clusters[mask]
+    mega_cl = data['mega_clusters']
+    filtered_mega = [mega_cl[i] for i, val in enumerate(mask) if val]
 
     # Mapear el ruido (-1) a 'Otros'
-    filtered_cluster_labels = [f'Cluster {c}' if c != -1 else 'Otros' for c in filtered_clusters]
+    filtered_cluster_labels = [
+        f"C{c}: {CLUSTER_NAMES.get(int(c), 'Otros')}" if c != -1 else "Otros"
+        for c in filtered_clusters
+    ]
 
     scatter_df = pd.DataFrame({
         'x':       coords[mask, 0],
         'y':       coords[mask, 1],
         'cluster': filtered_cluster_labels,
+        'galaxy':  filtered_mega,
         'title':   filtered_info['title'].values,
         'artist':  filtered_info['artist'].values,
         'genres':  filtered_info['genres'].values,
     })
     
-    # Ordenar para que "Otros" quede al fondo
-    scatter_df = scatter_df.sort_values(by='cluster', ascending=False)
+    # Ordenar para que las galaxias se dibujen consistentemente
+    scatter_df = scatter_df.sort_values(by='galaxy')
 
     fig = px.scatter(
-        scatter_df, x='x', y='y', color='cluster',
-        custom_data=['title', 'artist', 'genres', 'cluster'],
+        scatter_df, x='x', y='y', color='galaxy',
+        color_discrete_map=MEGA_CLUSTER_COLORS,
+        custom_data=['title', 'artist', 'genres', 'cluster', 'galaxy'],
         opacity=0.85,
+        category_orders={"galaxy": sorted(list(MEGA_CLUSTER_COLORS.keys()))},
+        labels={'galaxy': ''}
     )
     
     fig.update_traces(
-        hovertemplate='<b>%{customdata[0]}</b><br>%{customdata[1]}<br><i>%{customdata[2]}</i><br><br>%{customdata[3]}<extra></extra>'
+        hovertemplate='<b>%{customdata[0]}</b><br>%{customdata[1]}<br><i>%{customdata[2]}</i><br><br><span style="color:#e8a430">%{customdata[4]}</span> > %{customdata[3]}<extra></extra>'
     )
 
+    # Limpiar nombres de la leyenda y quitar título
+    fig.for_each_trace(lambda t: t.update(name=t.name.split('=')[-1]) if t.name else t)
+    fig.update_layout(legend_title_text=None)
+
     layout = dict(_LAYOUT_BASE)
-    layout['margin'] = dict(t=4, b=4, l=4, r=4)
+    layout['margin'] = dict(t=25, b=100, l=5, r=5)
     fig.update_layout(**layout)
 
     return fig.to_html(
@@ -296,10 +331,15 @@ def get_user_collection_map_html(album_counts: dict):
     
     # Crear DF para el gráfico
     clusters = data['cluster_labels']
+    mega_cl = data['mega_clusters']
     scatter_df = pd.DataFrame({
         'x': filtered_coords[:, 0],
         'y': filtered_coords[:, 1],
-        'cluster': [f'Cluster {c}' if c != -1 else 'Otros' for c in clusters[mask]],
+        'cluster': [
+            f"C{c}: {CLUSTER_NAMES.get(int(c), 'Otros')}" if c != -1 else "Otros"
+            for c in clusters[mask]
+        ],
+        'galaxy': [mega_cl[i] for i, val in enumerate(mask) if val],
         'title': filtered_info['title'].values,
         'artist': filtered_info['artist'].values,
         'count': [album_counts.get(int(aid), 1) for aid in matched_ids],
@@ -309,19 +349,26 @@ def get_user_collection_map_html(album_counts: dict):
     import numpy as np
     scatter_df['size'] = np.log1p(scatter_df['count']) * 8 + 4
 
-    # Ordenar para que los puntos grandes queden arriba
-    scatter_df = scatter_df.sort_values(by='count', ascending=True)
+    # Ordenar por galaxia
+    scatter_df = scatter_df.sort_values(by='galaxy')
 
     fig = px.scatter(
-        scatter_df, x='x', y='y', color='cluster',
+        scatter_df, x='x', y='y', color='galaxy',
+        color_discrete_map=MEGA_CLUSTER_COLORS,
         size='size',
-        custom_data=['title', 'artist', 'count', 'cluster'],
+        custom_data=['title', 'artist', 'count', 'cluster', 'galaxy'],
         render_mode='webgl',
-        opacity=0.9
+        opacity=0.9,
+        category_orders={"galaxy": sorted(list(MEGA_CLUSTER_COLORS.keys()))},
+        labels={'galaxy': ''}
     )
 
+    # Limpiar nombres de la leyenda y quitar título
+    fig.for_each_trace(lambda t: t.update(name=t.name.split('=')[-1]) if t.name else t)
+    fig.update_layout(legend_title_text=None)
+
     fig.update_traces(
-        hovertemplate='<b>%{customdata[0]}</b><br>%{customdata[1]}<br>Canciones: %{customdata[2]}<br><i>%{customdata[3]}</i><extra></extra>'
+        hovertemplate='<b>%{customdata[0]}</b><br>%{customdata[1]}<br>Canciones: %{customdata[2]}<br><span style="color:#e8a430">%{customdata[4]}</span> > %{customdata[3]}<extra></extra>'
     )
 
     fig.update_layout(**_LAYOUT_BASE)

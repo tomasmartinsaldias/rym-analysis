@@ -1,0 +1,194 @@
+/* Personalización extra para la página de análisis */
+.analysis-header {
+    padding: 4rem 0 2rem; /* Reducido de 6rem 4rem */
+    text-align: center;
+    border-bottom: 1px solid rgba(240, 236, 224, 0.1);
+    margin-bottom: 1.5rem; /* Reducido de 3rem */
+}
+
+.analysis-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 4.5rem;
+    color: var(--color-amber, #e8a430);
+    margin-bottom: 1rem;
+}
+
+.analysis-header p {
+    font-family: 'DM Mono', monospace;
+    color: var(--color-text-muted, #a09a8e);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+}
+
+.nav-tabs {
+    border-bottom: 1px solid rgba(240, 236, 224, 0.1);
+    justify-content: center;
+    margin-bottom: 3rem;
+    gap: 2rem;
+}
+
+.nav-tabs .nav-link {
+    background: none !important;
+    border: none !important;
+    color: #a09a8e !important;
+    font-family: 'DM Mono', monospace;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.15em;
+    padding: 1rem 0;
+    transition: color 0.3s ease;
+    position: relative;
+}
+
+.nav-tabs .nav-link:after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background-color: var(--color-cyan, #4dc9e6);
+    transition: width 0.3s ease;
+}
+
+.nav-tabs .nav-link.active {
+    color: var(--color-cyan, #4dc9e6) !important;
+}
+
+.nav-tabs .nav-link.active:after {
+    width: 100%;
+}
+
+.chart-card {
+    background: rgba(240, 236, 224, 0.03);
+    border: 1px solid rgba(240, 236, 224, 0.05);
+    border-radius: 4px;
+    padding: 1.5rem 1rem;
+    /* Reducimos padding lateral */
+    margin-bottom: 2rem;
+    transition: border-color 0.4s ease;
+    overflow: hidden;
+    /* Evita que el gráfico se salga */
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.chart-card:hover {
+    border-color: rgba(77, 201, 230, 0.2);
+}
+
+.chart-title {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.8rem;
+    color: #f0ece0;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.chart-title::before {
+    content: '';
+    display: block;
+    width: 30px;
+    height: 1px;
+    background: #e8a430;
+}
+
+.tab-pane {
+    animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Componente de Ranking Bar (Inspirado en Index) */
+.ranking-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding: 0.5rem 0;
+}
+
+.ranking-item {
+    display: block;
+    text-decoration: none !important;
+    transition: transform 0.2s ease;
+}
+
+.ranking-item:hover {
+    transform: translateX(4px);
+}
+
+.ranking-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 0.5rem;
+}
+
+.ranking-name {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.9rem;
+    color: #f0ece0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.ranking-item:hover .ranking-name {
+    color: var(--color-cyan, #4dc9e6);
+}
+
+.ranking-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--color-text-muted, #a09a8e);
+}
+
+.ranking-track {
+    height: 4px;
+    background: rgba(240, 236, 224, 0.05);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.ranking-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ranking-fill.cyan {
+    background-color: var(--color-cyan, #4dc9e6);
+}
+
+.ranking-fill.amber {
+    background-color: var(--color-amber, #e8a430);
+}
+
+/* FIX PARA PLOTLY EN PESTAÑAS (CERO JS) */
+.tab-content > .tab-pane {
+    display: block !important;
+    height: 0;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+}
+.tab-content > .active {
+    height: auto;
+    opacity: 1;
+    pointer-events: auto;
+}

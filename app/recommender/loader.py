@@ -11,6 +11,8 @@ Expone:
 import os
 import joblib
 
+from .constants import MEGA_CLUSTER_MAP
+
 _data = None
 
 
@@ -20,6 +22,12 @@ def load_recommender_data():
     pkl_path = os.path.join('instance', 'recommender_data.pkl')
     if os.path.exists(pkl_path):
         _data = joblib.load(pkl_path)
+        
+        # Enriquecer con Mega Clusters si no están en el PKL
+        if _data and 'mega_clusters' not in _data:
+            labels = _data['cluster_labels']
+            _data['mega_clusters'] = [MEGA_CLUSTER_MAP.get(int(c), "Otros") for c in labels]
+            
         print(f"[OK] Recommender data loaded: {len(_data['album_ids'])} albums")
         return _data
     else:

@@ -51,6 +51,7 @@
                 <span class="seed-badge">⭐ Semilla</span>
                 <span class="cluster-badge">Cluster {{ seed_cluster }}</span>
             </div>
+            <div class="seed-galaxy">{{ seed_mega }}</div>
             <h3><a href="{{ url_for('main.album_detail', album_id=seed_album.id) }}">{{ seed_album.title }}</a></h3>
             <p class="seed-artist">{{ seed_album.artist }}</p>
 
@@ -101,10 +102,11 @@
             <div class="album-overlay">
                 <div class="overlay-header">
                     <span class="rank-badge">#{{ loop.index }}</span>
-                    <span class="cluster-badge">Cluster {{ album.cluster }}</span>
+                    <span class="cluster-badge">C{{ album.cluster }}</span>
                 </div>
 
                 <div class="overlay-body">
+                    <div class="galaxy-label">{{ album.mega_cluster }}</div>
                     <h5 title="{{ album.title }}">{{ album.title }}</h5>
                     <div class="artist">{{ album.artist }}</div>
 
@@ -134,7 +136,8 @@
             <h3>Géneros Dominantes</h3>
             {% for item in affinities.genres %}
             <div class="bar-row">
-                <a href="{{ url_for('main.data', genre=item.name) }}" class="bar-label" title="{{ item.name }}">{{ item.name }}</a>
+                <a href="{{ url_for('main.data', genre=item.name) }}" class="bar-label" title="{{ item.name }}">{{
+                    item.name }}</a>
                 <div class="bar-track">
                     <div class="bar-fill" style="width: {{ item.pct }}%;"></div>
                 </div>
@@ -149,7 +152,8 @@
             <h3>Descriptores</h3>
             {% for item in affinities.descriptors %}
             <div class="bar-row">
-                <a href="{{ url_for('main.data', descriptor=item.name) }}" class="bar-label" title="{{ item.name }}">{{ item.name }}</a>
+                <a href="{{ url_for('main.data', descriptor=item.name) }}" class="bar-label" title="{{ item.name }}">{{
+                    item.name }}</a>
                 <div class="bar-track">
                     <div class="bar-fill amber" style="width: {{ item.pct }}%;"></div>
                 </div>

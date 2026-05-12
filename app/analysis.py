@@ -20,7 +20,17 @@ def _get_dark_layout():
         font=dict(color=COLOR_TEXTO, family='DM Mono, monospace', size=10),
         title_font=dict(family='Playfair Display, serif', size=20, color=COLOR_AMBAR),
         margin=dict(t=40, b=40, l=40, r=20),
-        autosize=True
+        autosize=True,
+        xaxis=dict(
+            gridcolor='rgba(240, 236, 224, 0.05)', # Muy sutil, cercano al fondo
+            gridwidth=0.5,
+            zeroline=False
+        ),
+        yaxis=dict(
+            gridcolor='rgba(240, 236, 224, 0.05)',
+            gridwidth=0.5,
+            zeroline=False
+        )
     )
 
 def _fig_to_html(fig):
@@ -81,36 +91,48 @@ def chart_genres_by_listeners():
 # --- 2.2 ANÁLISIS DE LABELS ---
 
 def chart_top_labels_by_count():
+    # Obtenemos los 15 sellos con más discos (Top 15)
     res = db.session.query(Album.label, func.count(Album.id).label('count'))\
-            .filter(Album.label != None)\
-            .group_by(Album.label).order_by(db.desc('count')).limit(10).all()
+            .filter(Album.label != None, Album.label != '[no label]', Album.label != '')\
+            .group_by(Album.label).order_by(db.desc('count')).limit(15).all()
     
     df = pd.DataFrame(res, columns=['Label', 'Count'])
-    fig = px.pie(df, values='Count', names='Label', title='Distribución por Sellos',
-                 color_discrete_sequence=px.colors.sequential.YlOrBr)
+    
+    # Ordenamos para que el mayor aparezca arriba en el gráfico horizontal
+    df = df.sort_values('Count', ascending=True)
+
+    fig = px.bar(df, x='Count', y='Label', orientation='h',
+                 title='Sellos con más Lanzamientos',
+                 color_discrete_sequence=[COLOR_CIAN])
     
     fig.update_layout(**_get_dark_layout())
-    # Leyenda a la derecha y achicar un poco la torta
-    fig.update_traces(textposition='inside', textinfo='percent+label')
-    fig.update_layout(
-        showlegend=True, 
-        legend=dict(orientation="v", x=1, y=0.5),
-        margin=dict(t=40, b=40, l=20, r=100) # Más espacio a la derecha para la leyenda
-    )
     return _fig_to_html(fig)
 
 def chart_labels_by_avg_rating():
-    res = db.session.query(Album.label, func.avg(Album.avg_rating).label('avg'))\
-            .filter(Album.label != None)\
-            .group_by(Album.label).having(func.count(Album.id) >= 10)\
-            .order_by(db.desc('avg')).limit(15).all()
+    # Obtenemos sello, promedio de rating y conteo de álbumes
+    res = db.session.query(
+        Album.label, 
+        func.avg(Album.avg_rating).label('avg'),
+        func.count(Album.id).label('count')
+    )\
+    .filter(Album.label != None, Album.label != '[no label]', Album.label != '')\
+    .group_by(Album.label).having(func.count(Album.id) >= 10)\
+    .order_by(db.desc('avg')).limit(15).all()
     
-    df = pd.DataFrame(res, columns=['Label', 'Rating'])
+    df = pd.DataFrame(res, columns=['Label', 'Rating', 'Count'])
+    
+    # Para que el mejor aparezca ARRIBA en el gráfico horizontal, 
+    # Plotly suele requerir el orden inverso o configurar el eje.
+    # Usaremos el orden descendente y nos aseguraremos de que Plotly lo respete.
+    df = df.sort_values('Rating', ascending=True) 
+
     fig = px.bar(df, x='Rating', y='Label', orientation='h',
                  title='Sellos con Mejores Calificaciones',
                  color_discrete_sequence=[COLOR_AMBAR],
-                 range_x=[3.5, 4.5])
+                 text='Count', # Añadimos el conteo de discos
+                 range_x=[3.5, 4.1])
     
+    fig.update_traces(texttemplate='%{text} álbumes', textposition='outside')
     fig.update_layout(**_get_dark_layout())
     return _fig_to_html(fig)
 
@@ -159,17 +181,25 @@ def chart_albums_by_year():
     return _fig_to_html(fig)
 
 def chart_rating_by_decade():
-    res = db.session.query((func.cast(func.strftime('%Y', Album.release_date), db.Integer) / 10 * 10).label('decade'), 
-                           func.avg(Album.avg_rating).label('avg'))\
-            .filter(Album.release_date != None)\
-            .group_by('decade').all()
+    # Obtenemos años y ratings
+    res = db.session.query(func.strftime('%Y', Album.release_date).label('year'), 
+                           Album.avg_rating)\
+            .filter(Album.release_date != None).all()
     
-    df = pd.DataFrame(res, columns=['Decade', 'Rating'])
-    df = df.sort_values('Decade')
-    df['Decade'] = df['Decade'].astype(str) + 's'
+    df = pd.DataFrame(res, columns=['Year', 'Rating'])
+    df['Year'] = pd.to_numeric(df['Year'], errors='coerce')
+    df = df.dropna(subset=['Year'])
     
-    fig = px.bar(df, x='Decade', y='Rating', title='Promedio por Década',
-                 color_discrete_sequence=[COLOR_AMBAR], range_y=[3.5, 4.2])
+    # Agrupamos por década (ej: 1974 -> 1970)
+    df['DecadeInt'] = (df['Year'] // 10) * 10
+    
+    df_grouped = df.groupby('DecadeInt')['Rating'].mean().reset_index()
+    df_grouped = df_grouped.sort_values('DecadeInt')
+    df_grouped['Decade'] = df_grouped['DecadeInt'].astype(int).astype(str) + 's'
+    
+    # Rango en 3.0 para que se vean las décadas recientes (que rondan 3.3)
+    fig = px.bar(df_grouped, x='Decade', y='Rating', title='Promedio por Década',
+                 color_discrete_sequence=[COLOR_AMBAR], range_y=[3.0, 3.9])
     
     fig.update_layout(**_get_dark_layout())
     return _fig_to_html(fig)
@@ -180,13 +210,19 @@ def chart_rym_rating_vs_listeners():
     res = db.session.query(Album.avg_rating, Album.lastfm_listeners, Album.title, Album.artist).all()
     df = pd.DataFrame(res, columns=['Rating', 'Listeners', 'Title', 'Artist'])
     
-    fig = px.scatter(df, x='Rating', y='Listeners', log_y=True,
-                     hover_data=['Title', 'Artist'],
-                     title='Calidad vs Popularidad',
+    # Calcular el Ranking RYM basado en el rating (1 es el mejor)
+    df = df.sort_values('Rating', ascending=False)
+    df['RYM_Rank'] = range(1, len(df) + 1)
+    
+    fig = px.scatter(df, x='RYM_Rank', y='Listeners', log_y=True,
+                     hover_data=['Title', 'Artist', 'Rating'],
+                     title='Calidad (Rank) vs Popularidad (Oyentes)',
                      color_discrete_sequence=[COLOR_CIAN],
-                     opacity=0.6, height=400)
+                     opacity=0.5, height=450)
     
     fig.update_layout(**_get_dark_layout())
+    fig.update_xaxes(title='Posición en RYM (Rank)')
+    fig.update_yaxes(title='Oyentes Last.fm (Log)')
     return _fig_to_html(fig)
 
 def chart_rym_rating_vs_playcount():
@@ -214,3 +250,49 @@ def chart_ratingcount_vs_listeners():
     
     fig.update_layout(**_get_dark_layout())
     return _fig_to_html(fig)
+
+def get_rankings_data():
+    """
+    Retorna un diccionario con los datos de rankings (Géneros, Sellos, Artistas)
+    para ser renderizados como componentes nativos en el template.
+    """
+    data = {}
+
+    # 1. Top Géneros por Conteo
+    genres_count = db.session.query(Genre.name, func.count(Genre.id).label('count'))\
+            .join(album_genres, Genre.id == album_genres.c.genre_id)\
+            .filter(album_genres.c.is_primary == True)\
+            .group_by(Genre.id).order_by(db.desc('count')).limit(15).all()
+    data['genres_count'] = [dict(name=r[0], count=r[1]) for r in genres_count]
+
+    # 2. Géneros por Rating
+    genres_rating = db.session.query(Genre.name, func.avg(Album.avg_rating).label('avg'))\
+            .join(album_genres, Genre.id == album_genres.c.genre_id)\
+            .join(Album, Album.id == album_genres.c.album_id)\
+            .group_by(Genre.id).having(func.count(Album.id) >= 20)\
+            .order_by(db.desc('avg')).limit(15).all()
+    data['genres_rating'] = [dict(name=r[0], avg=round(r[1], 2)) for r in genres_rating]
+
+    # 3. Sellos por Conteo
+    labels_count = db.session.query(Album.label, func.count(Album.id).label('count'))\
+            .filter(Album.label != None, Album.label != '[no label]', Album.label != '')\
+            .group_by(Album.label).order_by(db.desc('count')).limit(15).all()
+    data['labels_count'] = [dict(name=r[0], count=r[1]) for r in labels_count]
+
+    # 4. Sellos por Rating
+    labels_rating = db.session.query(
+        Album.label, 
+        func.avg(Album.avg_rating).label('avg'),
+        func.count(Album.id).label('count')
+    )\
+    .filter(Album.label != None, Album.label != '[no label]', Album.label != '')\
+    .group_by(Album.label).having(func.count(Album.id) >= 10)\
+    .order_by(db.desc('avg')).limit(15).all()
+    data['labels_rating'] = [dict(name=r[0], avg=round(r[1], 2), count=r[2]) for r in labels_rating]
+
+    # 5. Top Artistas
+    artists_count = db.session.query(Album.artist, func.count(Album.id).label('count'))\
+            .group_by(Album.artist).order_by(db.desc('count')).limit(15).all()
+    data['artists_count'] = [dict(name=r[0], count=r[1]) for r in artists_count]
+
+    return data
