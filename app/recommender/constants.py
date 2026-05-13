@@ -2,94 +2,102 @@
 app/recommender/constants.py
 ────────────────────────────
 Definición de la jerarquía de clusters (Galaxias) y paleta de colores.
+Actualizado según la nueva estructura de 45 clusters (20D).
 """
 
 # Mapeo de Cluster ID -> Nombre de la Galaxia (Mega Cluster)
 MEGA_CLUSTER_MAP = {
-    # 1. Hip Hop & Beats
-    8: "Hip Hop & Beats", 13: "Hip Hop & Beats", 14: "Hip Hop & Beats", 19: "Hip Hop & Beats",
+    # 1. Rock Alternativo e Indie
+    13: "Rock Alternativo e Indie", 37: "Rock Alternativo e Indie", 36: "Rock Alternativo e Indie", 
+    42: "Rock Alternativo e Indie", 41: "Rock Alternativo e Indie", 16: "Rock Alternativo e Indie",
     
-    # 2. Jazz, Soul & Grooves
-    1: "Jazz, Soul & Grooves", 2: "Jazz, Soul & Grooves", 27: "Jazz, Soul & Grooves",
+    # 2. Hip Hop y R&B
+    5: "Hip Hop y R&B", 6: "Hip Hop y R&B", 7: "Hip Hop y R&B", 8: "Hip Hop y R&B", 
+    9: "Hip Hop y R&B", 40: "Hip Hop y R&B", 43: "Hip Hop y R&B",
     
-    # 3. Metal & Hardcore
-    4: "Metal & Hardcore", 12: "Metal & Hardcore", 15: "Metal & Hardcore", 
-    16: "Metal & Hardcore", 22: "Metal & Hardcore", 23: "Metal & Hardcore", 25: "Metal & Hardcore",
+    # 3. Metal y Hardcore
+    29: "Metal y Hardcore", 11: "Metal y Hardcore", 3: "Metal y Hardcore", 10: "Metal y Hardcore", 
+    15: "Metal y Hardcore", 14: "Metal y Hardcore", 4: "Metal y Hardcore", 12: "Metal y Hardcore",
     
-    # 4. Indie & Folk
-    32: "Indie & Folk", 33: "Indie & Folk", 34: "Indie & Folk", 35: "Indie & Folk", 36: "Indie & Folk",
+    # 4. Rock Clásico y Progresivo
+    28: "Rock Clásico y Progresivo", 20: "Rock Clásico y Progresivo", 21: "Rock Clásico y Progresivo", 
+    22: "Rock Clásico y Progresivo", 27: "Rock Clásico y Progresivo", 23: "Rock Clásico y Progresivo",
     
-    # 5. Dreamy & Psychedelic
-    5: "Dreamy & Psychedelic", 9: "Dreamy & Psychedelic", 37: "Dreamy & Psychedelic", 38: "Dreamy & Psychedelic",
+    # 5. Cantautor y Folk
+    30: "Cantautor y Folk", 35: "Cantautor y Folk", 34: "Cantautor y Folk",
     
-    # 6. Post-Punk & Alternative
-    0: "Post-Punk & Alternative", 11: "Post-Punk & Alternative", 17: "Post-Punk & Alternative", 
-    18: "Post-Punk & Alternative", 28: "Post-Punk & Alternative", 29: "Post-Punk & Alternative",
+    # 6. Electrónica, Pop y Sintetizadores
+    38: "Electrónica, Pop y Sintetizadores", 44: "Electrónica, Pop y Sintetizadores", 
+    39: "Electrónica, Pop y Sintetizadores", 31: "Electrónica, Pop y Sintetizadores", 
+    32: "Electrónica, Pop y Sintetizadores",
     
-    # 7. Pop & Art Pop
-    26: "Pop & Art Pop", 30: "Pop & Art Pop", 31: "Pop & Art Pop",
+    # 7. Jazz y Música Instrumental
+    2: "Jazz y Música Instrumental", 1: "Jazz y Música Instrumental", 
+    33: "Jazz y Música Instrumental", 26: "Jazz y Música Instrumental",
     
-    # 8. Classic & Prog Rock
-    3: "Classic & Prog Rock", 6: "Classic & Prog Rock", 7: "Classic & Prog Rock", 
-    21: "Classic & Prog Rock", 24: "Classic & Prog Rock",
-    
-    # 9. Ambient & IDM
-    10: "Ambient & IDM", 20: "Ambient & IDM"
+    # 8. Experimental y Post-Punk
+    18: "Experimental y Post-Punk", 19: "Experimental y Post-Punk", 0: "Experimental y Post-Punk", 
+    17: "Experimental y Post-Punk", 24: "Experimental y Post-Punk", 25: "Experimental y Post-Punk"
 }
 
 # Paleta de colores para las Galaxias (Estética Cinematic/Deep Space)
 MEGA_CLUSTER_COLORS = {
-    "Hip Hop & Beats": "#f0932b",          # Spiced Orange
-    "Jazz, Soul & Grooves": "#6ab04c",     # Fresh Green
-    "Metal & Hardcore": "#eb4d4b",         # Carmine Red
-    "Indie & Folk": "#f9ca24",             # Bee Keeper Yellow
-    "Dreamy & Psychedelic": "#7ed6df",     # Middle Blue
-    "Post-Punk & Alternative": "#686de0",  # Exodus Blue/Purple
-    "Pop & Art Pop": "#e056fd",            # Heliotrope Purple
-    "Classic & Prog Rock": "#ffbe76",      # Topaz
-    "Ambient & IDM": "#4834d4",            # Deep Deep Blue
-    "Otros": "#535c68"                     # Wizard Grey (más saturado)
+    "Rock Alternativo e Indie": "#f9ca24",         # Yellow
+    "Hip Hop y R&B": "#f0932b",                    # Orange
+    "Metal y Hardcore": "#eb4d4b",                 # Red
+    "Rock Clásico y Progresivo": "#ffbe76",        # Topaz
+    "Cantautor y Folk": "#6ab04c",                 # Green
+    "Electrónica, Pop y Sintetizadores": "#e056fd", # Purple
+    "Jazz y Música Instrumental": "#4834d4",       # Deep Blue
+    "Experimental y Post-Punk": "#686de0",         # Exodus Blue
+    "Otros": "#535c68"
 }
 
 # Nombres descriptivos para los Micro Clusters (se muestran en tooltips)
 CLUSTER_NAMES = {
-    0: "Punk & Pop Punk",
-    1: "Jazz Fusion",
-    2: "Hard Bop & Post-Bop",
-    3: "Progressive Rock",
-    4: "Thrash & Groove Metal",
-    5: "Post-Rock",
-    6: "Pop Rock",
-    7: "Art & Experimental Rock",
-    8: "Pop Rap & Trap",
-    9: "Psychedelic Rock",
-    10: "Ambient & Drone",
-    11: "Post-Hardcore & Noise Rock",
-    12: "Black & Post-Metal",
-    13: "Abstract & West Coast Hip Hop",
-    14: "East Coast Hip Hop",
-    15: "Progressive Metal",
-    16: "Death Metal",
-    17: "Post-Punk & Gothic",
-    18: "Art Punk & Post-Punk",
-    19: "Beats & Plunderphonics",
-    20: "IDM & Trip Hop",
-    21: "Blues Rock & Garage",
-    22: "Stoner & Sludge Metal",
-    23: "Alternative & Nu Metal",
-    24: "Hard Rock & Glam",
-    25: "Heavy Metal",
-    26: "Art Pop & Avant-Pop",
-    27: "Soul, Funk & Reggae",
-    28: "Alternative Rock",
-    29: "Alt-Pop & Power Pop",
-    30: "Electropop & R&B",
-    31: "Synthpop & New Wave",
-    32: "Indie Folk & Singer-Songwriter",
-    33: "Folk Rock & Americana",
-    34: "Contemporary Folk & Slowcore",
-    35: "Indie Rock & Lo-Fi",
-    36: "Indie Pop & Jangle Pop",
-    37: "Neo-Psychedelia & Psych Pop",
-    38: "Dream Pop & Shoegaze"
+    0: "Post-Rock y Experimental",
+    1: "Jazz Fusion y Vanguardia",
+    2: "Jazz Clásico (Bop/Modal)",
+    3: "Metal Alternativo y Nu Metal",
+    4: "Stoner y Metal Industrial",
+    5: "Trap y Pop Rap",
+    6: "Rap Clásico y Gangsta",
+    7: "Jazz Rap y Conscious Hip Hop",
+    8: "Rap de Mensaje y West Coast",
+    9: "Hip Hop Experimental",
+    10: "Black Metal y Metal Melódico",
+    11: "Thrash y Groove Metal",
+    12: "Punk y Pop Punk",
+    13: "Rock Alternativo",
+    14: "Metal Progresivo y Técnico",
+    15: "Death Metal",
+    16: "Post-Hardcore y Math Rock",
+    17: "Noise Rock",
+    18: "Post-Punk y Art Punk",
+    19: "Rock Gótico y Oscuro",
+    20: "Rock Progresivo",
+    21: "Rock Sinfónico",
+    22: "Rock Psicodélico Clásico",
+    23: "Pop Rock Clásico",
+    24: "Art Rock Experimental",
+    25: "Industrial y Avant-Folk",
+    26: "Ambient y Música de Cine",
+    27: "Blues Rock y Garage",
+    28: "Hard Rock y Glam",
+    29: "Heavy Metal Clásico",
+    30: "Cantautor y Folk Acústico",
+    31: "Electrónica de Baile",
+    32: "IDM y Trip Hop",
+    33: "Soul, Funk y Jazz Vocal",
+    34: "Folk Rock y Country Rock",
+    35: "Folk Contemporáneo y Americana",
+    36: "Indie Pop y Jangle Pop",
+    37: "Indie Rock y Lo-Fi",
+    38: "Synthpop y New Wave",
+    39: "Art Pop",
+    40: "Neo-Soul y R&B Moderno",
+    41: "Psicodelia Moderna",
+    42: "Dream Pop y Shoegaze",
+    43: "R&B y Pop Comercial",
+    44: "Electropop"
 }

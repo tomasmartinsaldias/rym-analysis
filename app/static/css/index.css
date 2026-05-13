@@ -59,7 +59,7 @@ body {
     top: 28px;
     left: clamp(18px, 3vw, 48px);
     z-index: 9999;
-    width: min(340px, calc(100vw - 36px));
+    width: min(380px, calc(100vw - 36px));
     pointer-events: none;
     /* el form reactiva con su propio pointer-events */
 }
@@ -93,17 +93,19 @@ body {
 }
 
 #umap-overlay .sub {
-    font-size: 10.5px;
-    color: var(--text-muted);
-    margin-top: 8px;
-    margin-bottom: 18px;
-    letter-spacing: 0.04em;
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 10px;
+    margin-bottom: 22px;
+    letter-spacing: 0.02em;
+    line-height: 1.4;
     pointer-events: none;
 }
 
 /* Buscador */
 .umap-search {
     pointer-events: all;
+    width: min(360px, calc(100vw - 36px));
 }
 
 .umap-search__wrap {
@@ -648,4 +650,3 @@ body {
 .dash-widget-listeners {
     min-height: 200px;
     flex: none;
-

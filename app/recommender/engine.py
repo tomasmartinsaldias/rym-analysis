@@ -8,9 +8,39 @@ Expone:
   recommend(seed_id, top_n, min_rating) → list[dict]
 """
 
+import os
+import joblib
 import math
 import numpy as np
-from .loader import get_data
+from .constants import MEGA_CLUSTER_MAP, CLUSTER_NAMES
+
+_data = None
+
+def load_recommender_data():
+    """Carga el .pkl pre-computado. Retorna el dict o None si no existe."""
+    global _data
+    pkl_path = os.path.join('instance', 'recommender_data.pkl')
+    if os.path.exists(pkl_path):
+        _data = joblib.load(pkl_path)
+        
+        # Enriquecer con Mega Clusters si no están en el PKL
+        if _data and 'mega_clusters' not in _data:
+            labels = _data['cluster_labels']
+            _data['mega_clusters'] = [MEGA_CLUSTER_MAP.get(int(c), "Otros") for c in labels]
+            
+        print(f"[OK] Recommender data loaded: {len(_data['album_ids'])} albums")
+        return _data
+    else:
+        print("[WARN] recommender_data.pkl no encontrado. Ejecuta: python build_recommender.py")
+        return None
+
+def get_data():
+    """Retorna los datos cargados, o intenta cargarlos si aún no lo fueron."""
+    global _data
+    if _data is None:
+        load_recommender_data()
+    return _data
+
 
 
 def get_album_list():
@@ -131,7 +161,7 @@ def recommend(seed_id, top_n=20, min_rating=None):
             'lastfm_listeners': row['lastfm_listeners'],
             'score':           round(float(item['score']), 4),
             'cos_sim':         round(float(item['cos_sim']), 4),
-            'cluster':         int(item['cluster']) if item['cluster'] != -1 else 'Otros',
+            'cluster':         CLUSTER_NAMES.get(int(item['cluster']), 'Otros') if item['cluster'] != -1 else 'Otros',
             'mega_cluster':    item['mega'],
             'is_wildcard':     item['is_wildcard'],
         })

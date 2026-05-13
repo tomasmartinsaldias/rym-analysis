@@ -22,44 +22,80 @@
     font-size: 0.9rem;
 }
 
-.nav-tabs {
-    border-bottom: 1px solid rgba(240, 236, 224, 0.1);
+/* PESTAÑAS CSS-ONLY */
+.nd-tabs {
+    display: flex;
+    flex-wrap: wrap;
     justify-content: center;
-    margin-bottom: 3rem;
-    gap: 2rem;
+    gap: 0;
 }
 
-.nav-tabs .nav-link {
-    background: none !important;
-    border: none !important;
-    color: #a09a8e !important;
+.nd-tabs__input {
+    display: none;
+}
+
+.nd-tabs__label {
+    display: inline-block;
+    padding: 1rem 2rem;
     font-family: 'DM Mono', monospace;
     text-transform: uppercase;
     font-size: 0.85rem;
     letter-spacing: 0.15em;
-    padding: 1rem 0;
+    color: #a09a8e;
+    cursor: pointer;
     transition: color 0.3s ease;
     position: relative;
+    margin: 0 1rem;
 }
 
-.nav-tabs .nav-link:after {
+.nd-tabs__label:after {
     content: '';
     position: absolute;
     bottom: 0;
-    left: 0;
+    left: 50%;
     width: 0;
     height: 1px;
     background-color: var(--color-cyan, #4dc9e6);
-    transition: width 0.3s ease;
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
 }
 
-.nav-tabs .nav-link.active {
-    color: var(--color-cyan, #4dc9e6) !important;
+.nd-tabs__input:checked + .nd-tabs__label {
+    color: var(--color-cyan, #4dc9e6);
 }
 
-.nav-tabs .nav-link.active:after {
+.nd-tabs__input:checked + .nd-tabs__label:after {
+    width: 80%;
+}
+
+.tab-content-container {
     width: 100%;
+    margin-top: 3rem;
+    position: relative;
 }
+
+.tab-pane {
+    position: absolute;
+    left: -9999px;
+    width: 100%;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Mostrar panel correspondiente al radio seleccionado */
+#tab-genres:checked ~ .tab-content-container #genres,
+#tab-labels:checked ~ .tab-content-container #labels,
+#tab-artists:checked ~ .tab-content-container #artists,
+#tab-clusters:checked ~ .tab-content-container #clusters,
+#tab-temporal:checked ~ .tab-content-container #temporal,
+#tab-correlations:checked ~ .tab-content-container #correlations {
+    position: relative;
+    left: 0;
+    opacity: 1;
+    pointer-events: auto;
+    display: block;
+}
+
 
 .chart-card {
     background: rgba(240, 236, 224, 0.03);
@@ -119,13 +155,13 @@
 .ranking-list {
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
-    padding: 0.5rem 0;
+    gap: 0.75rem;
 }
 
 .ranking-item {
     display: block;
     text-decoration: none !important;
+    padding: 2px 0;
     transition: transform 0.2s ease;
 }
 
@@ -142,7 +178,7 @@
 
 .ranking-name {
     font-family: 'DM Mono', monospace;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     color: #f0ece0;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -171,6 +207,7 @@
     transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Rankings */
 .ranking-fill.cyan {
     background-color: var(--color-cyan, #4dc9e6);
 }
@@ -179,16 +216,3 @@
     background-color: var(--color-amber, #e8a430);
 }
 
-/* FIX PARA PLOTLY EN PESTAÑAS (CERO JS) */
-.tab-content > .tab-pane {
-    display: block !important;
-    height: 0;
-    overflow: hidden;
-    opacity: 0;
-    pointer-events: none;
-}
-.tab-content > .active {
-    height: auto;
-    opacity: 1;
-    pointer-events: auto;
-}

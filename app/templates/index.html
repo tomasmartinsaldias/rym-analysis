@@ -49,7 +49,6 @@
             </svg>
             <input class="umap-search__input" type="search" name="q" value="{{ q | default('') }}"
               placeholder="Buscar álbum o artista…" autocomplete="off" list="albums-list" aria-label="Buscar álbum">
-            {# datalist: autocomplete nativo del browser, sin JS #}
             <datalist id="albums-list">
               {% for album in all_albums %}
               <option

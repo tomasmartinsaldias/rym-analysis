@@ -97,3 +97,39 @@ def process_csv_to_db(file_or_path):
             db.session.commit()
             
     db.session.commit()
+
+def resolve_album_id(text):
+    """
+    Resuelve un texto de búsqueda a un ID de álbum.
+    Soporta formato "Título — Artista" o búsquedas parciales.
+    """
+    if not text:
+        return None
+    
+    # 1. Intentar coincidencia exacta con formato "Título — Artista"
+    if ' — ' in text:
+        parts = text.split(' — ', 1)
+        title_part = parts[0].strip()
+        artist_part = parts[1].strip()
+        # Limpiar año si viene en formato "Artista (1995)"
+        if artist_part and artist_part.endswith(')') and '(' in artist_part:
+            artist_part = artist_part[:artist_part.rfind('(')].strip()
+            
+        album = Album.query.filter(
+            Album.title.ilike(title_part), 
+            Album.artist.ilike(artist_part)
+        ).first()
+        if album:
+            return album.id
+    
+    # 2. Intentar por título
+    album = Album.query.filter(Album.title.ilike(f'%{text}%')).first()
+    if album:
+        return album.id
+    
+    # 3. Intentar por artista
+    album = Album.query.filter(Album.artist.ilike(f'%{text}%')).first()
+    if album:
+        return album.id
+    
+    return None

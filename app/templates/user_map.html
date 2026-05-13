@@ -24,8 +24,14 @@
         style="color: var(--text-muted); font-family: var(--font-mono); font-size: 0.85rem; margin-bottom: 1.5rem;">El
         archivo debe contener columnas de "Album" y "Artist".</div>
       <label for="file-upload" class="upload-btn">Seleccionar CSV</label>
-      <input id="file-upload" type="file" name="file" onchange="if(this.files[0]) { document.getElementById('file-name').textContent = 'Cargando: ' + this.files[0].name + '...'; this.form.submit(); }">
-      <div id="file-name" style="margin-top: 1rem; font-family: var(--font-mono); color: var(--amber); font-size: 0.85rem;"></div>
+      <input id="file-upload" type="file" name="file" accept=".csv">
+      <button type="submit" class="nd-btn nd-btn--primary" style="margin-top: 1rem;">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+          <path d="M8,1 L8,11 M4,7 L8,11 L12,7 M1,15 L15,15" />
+        </svg>
+        Actualizar Universo
+      </button>
+
     </form>
   </div>
 

@@ -14,8 +14,10 @@ requests==2.33.1
 plotly
 scipy
 
-# Machine Learning (SVD, KMeans, t-SNE, cosine_similarity)
+# Machine Learning (SVD, KMeans, UMAP, HDBSCAN)
 scikit-learn
+umap-learn
+hdbscan
 
 # Serialización de modelos pre-computados
 joblib

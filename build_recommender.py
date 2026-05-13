@@ -126,38 +126,40 @@ def build():
         similarity_cache = cosine_similarity(feature_matrix).astype(np.float16)
 
         # -------------------------------------------------------
-        # 7. UMAP (15D -> HDBSCAN) + UMAP (2D -> Visual) (Capa 2)
+        # 7. UMAP (20D -> HDBSCAN) + UMAP (2D -> Visual) (Capa 2)
         # -------------------------------------------------------
         print("[6/7] Calculando UMAP y HDBSCAN...")
-        print("  UMAP (15D) para clustering sin perder información...")
+        print("  UMAP (20D) para clustering sin perder información...")
 
-        reducer_15d = umap.UMAP(
-            n_components=15,
+        reducer_20d = umap.UMAP(
+            n_components=20,
             metric='cosine',
             random_state=42,
-            n_neighbors=12,
+            n_neighbors=15,
             min_dist=0.0
         )
-        umap_15d_coords = reducer_15d.fit_transform(feature_matrix)
+        umap_20d_coords = reducer_20d.fit_transform(feature_matrix)
 
-        print("  Clusterizando con HDBSCAN en 15 dimensiones...")
+        print("  Clusterizando con HDBSCAN en 20 dimensiones...")
         clusterer = hdbscan.HDBSCAN(
-            min_cluster_size=45,
-            min_samples=7,
+            min_cluster_size=40,
+            min_samples=5,
+
+
             cluster_selection_method='leaf',
             metric='euclidean'
         )
-        cluster_labels = clusterer.fit_predict(umap_15d_coords)
+        cluster_labels = clusterer.fit_predict(umap_20d_coords)
         
         # --- Asignar ruido (-1) al cluster más cercano ---
         noise_mask = (cluster_labels == -1)
-        if noise_mask.any() and not noise_mask.all():
+        if noise_mask.any():
             print("  Asignando ruido (-1) al cluster más cercano usando KNN...")
             knn = KNeighborsClassifier(n_neighbors=5)
             # Entrenar solo con los puntos que sí tienen cluster
-            knn.fit(umap_15d_coords[~noise_mask], cluster_labels[~noise_mask])
+            knn.fit(umap_20d_coords[~noise_mask], cluster_labels[~noise_mask])
             # Predecir para el ruido
-            cluster_labels[noise_mask] = knn.predict(umap_15d_coords[noise_mask])
+            cluster_labels[noise_mask] = knn.predict(umap_20d_coords[noise_mask])
             
         n_clusters_found = len(set(cluster_labels))
         n_noise = list(cluster_labels).count(-1)

@@ -79,6 +79,18 @@
         {% endif %}
       </div>
 
+      {# Clusters / Galaxias #}
+      {% if cluster_name or mega_cluster %}
+      <div class="album-clusters mb-16">
+        {% if mega_cluster %}
+        <a href="{{ url_for('main.data', mega=mega_cluster) }}" class="cluster-badge galaxy-badge" style="text-decoration: none;">{{ mega_cluster }}</a>
+        {% endif %}
+        {% if cluster_name and cluster_id is not none %}
+        <a href="{{ url_for('main.data', cluster=cluster_id) }}" class="cluster-badge micro-badge" style="text-decoration: none;">{{ cluster_name }}</a>
+        {% endif %}
+      </div>
+      {% endif %}
+
       {# Géneros: Primarios y Secundarios en el mismo bloque #}
       {% if primary_genres or secondary_genres %}
       <div class="nd-tags">
@@ -94,7 +106,7 @@
       {# Label #}
       {% if album.label %}
       <div class="album-label mt-16">
-        Sello: <strong>{{ album.label }}</strong>
+        Sello: <a href="{{ url_for('main.data', label=album.label) }}" style="text-decoration: none;"><strong>{{ album.label }}</strong></a>
       </div>
       {% endif %}
     </div>
@@ -131,19 +143,22 @@
     </div>
     {% endif %}
 
+    {# Scatter Plot / Map #}
+    {% if scatter_html %}
+    <div class="album-card album-section album-card--map">
+      <div class="album-section__label">Ubicación en el Mapa Musical</div>
+      <div class="album-scatter">
+        {{ scatter_html | safe }}
+      </div>
+    </div>
+    {% endif %}
+
   </div>{# /album-details-grid #}
 
 
   {# ── Actions ────────────────────────────────────────── #}
   <div class="album-actions">
-    <a href="{{ url_for('main.index', album_id=album.id) }}" class="nd-btn nd-btn--primary">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
-        <circle cx="8" cy="8" r="6.5"/>
-        <circle cx="8" cy="8" r="1.5" fill="currentColor" stroke="none"/>
-      </svg>
-      Ver en el mapa
-    </a>
-    <a href="{{ url_for('main.recommend_page', album_id=album.id) }}" class="nd-btn">
+    <a href="{{ url_for('main.recommend_page', album_id=album.id) }}" class="nd-btn nd-btn--primary">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
         <polygon points="8,1.5 9.8,6.2 14.8,6.2 10.8,9.2 12.2,14 8,11 3.8,14 5.2,9.2 1.2,6.2 6.2,6.2"/>
       </svg>

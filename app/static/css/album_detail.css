@@ -174,6 +174,10 @@
   .album-label strong {
     color: var(--text-secondary);
     font-weight: 400;
+    transition: color var(--t-fast);
+  }
+  .album-label a:hover strong {
+    color: var(--amber);
   }
 
   /* Actions */
@@ -202,4 +206,55 @@
     border: 1px solid var(--border-subtle);
     border-radius: var(--r-lg);
     padding: 20px 24px;
+  }
+
+  /* Cluster Badges */
+  .album-clusters {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .cluster-badge {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 100px;
+    font-family: var(--font-display);
+    border: 1px solid transparent;
+  }
+  .galaxy-badge {
+    background: rgba(77, 201, 230, 0.1);
+    color: var(--cyan);
+    border-color: rgba(77, 201, 230, 0.2);
+  }
+  .micro-badge {
+    background: rgba(232, 164, 48, 0.1);
+    color: var(--amber);
+    border-color: rgba(232, 164, 48, 0.2);
+  }
+
+  .mb-16 { margin-bottom: 16px; }
+  .mt-16 { margin-top: 16px; }
+
+  /* Map card specific */
+  .album-card--map {
+    grid-column: span 2; /* Take full width of the grid */
+  }
+  @media (max-width: 700px) {
+    .album-card--map {
+      grid-column: span 1;
+    }
+  }
+  .album-scatter {
+    height: 400px;
+    background: var(--bg-void);
+    border-radius: var(--r-md);
+    margin-top: 10px;
+  }
+  .album-scatter .js-plotly-plot,
+  .album-scatter .plot-container.plotly,
+  .album-scatter .svg-container {
+    width: 100% !important;
+    height: 100% !important;
   }

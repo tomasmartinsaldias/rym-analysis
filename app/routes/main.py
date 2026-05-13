@@ -1,9 +1,14 @@
 import requests
 import urllib.parse
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
-from app.recommender import (get_album_list, recommend, get_scatter_html,
-    get_filtered_scatter_html, get_affinities,
-    make_ratings_chart, make_listeners_chart, make_radar_chart, CLUSTER_NAMES)
+from app.recommender import get_album_list, recommend, CLUSTER_NAMES
+from app.analysis import (
+    get_scatter_html, get_filtered_scatter_html, get_affinities,
+    make_ratings_chart, make_listeners_chart, make_radar_chart,
+    get_user_collection_map_html
+)
+
+from app.utils import resolve_album_id
 import concurrent.futures
 
 main_bp = Blueprint('main', __name__)
@@ -25,7 +30,7 @@ def index():
     
     if recommender_available:
         if q:
-            resolved_id = _resolve_album_id(q)
+            resolved_id = resolve_album_id(q)
             found = Album.query.get(resolved_id) if resolved_id else None
             
         highlight = album_id if album_id else (found.id if found else None)
@@ -43,7 +48,7 @@ def index():
     else:
         # Fallback if recommender not built
         if q:
-            resolved_id = _resolve_album_id(q)
+            resolved_id = resolve_album_id(q)
             found = Album.query.get(resolved_id) if resolved_id else None
         stats = {
             'album_count': Album.query.count(),
@@ -114,12 +119,33 @@ def album_detail(album_id):
     primary_genres = [g[0] for g in genres_data if g[1]]
     secondary_genres = [g[0] for g in genres_data if not g[1]]
     
+    cluster_id = None
+    cluster_name = None
+    mega_cluster = None
+    scatter_html = None
+    if current_app.recommender_data is not None:
+        data_pkl = current_app.recommender_data
+        try:
+            idx = list(data_pkl['album_ids']).index(album.id)
+            cluster_id = int(data_pkl['cluster_labels'][idx])
+            cluster_name = CLUSTER_NAMES.get(cluster_id, 'Otros') if cluster_id != -1 else 'Otros'
+            mega_cluster = data_pkl['mega_clusters'][idx]
+            
+            # Generar mapa resaltado (puntos borrosos + álbum actual) sin leyenda
+            scatter_html = get_scatter_html(highlighted_id=album.id, show_legend=False)
+        except ValueError:
+            pass
+
     return render_template('album_detail.html', 
                            album=album, 
                            radar_chart_html=radar_chart_html,
                            cover_url=cover_url,
                            primary_genres=primary_genres,
                            secondary_genres=secondary_genres,
+                           cluster_id=cluster_id,
+                           cluster_name=cluster_name,
+                           mega_cluster=mega_cluster,
+                           scatter_html=scatter_html,
                            page_title=album.title)
 
 @main_bp.route('/data')
@@ -317,49 +343,29 @@ def data():
 @main_bp.route('/analysis')
 def analysis():
     from app.analysis import (
-        chart_top_genres_by_count,
-        chart_genres_by_avg_rating,
-        chart_genres_by_listeners,
-        chart_top_labels_by_count,
-        chart_labels_by_avg_rating,
-        chart_top_artists,
-        chart_rating_by_year,
-        chart_albums_by_year,
-        chart_rating_by_decade,
-        chart_rym_rating_vs_listeners,
-        chart_rym_rating_vs_playcount,
-        chart_ratingcount_vs_listeners,
-        get_rankings_data,
+        chart_rating_by_year, chart_albums_by_year, chart_rating_by_decade,
+        chart_rym_rating_vs_listeners, chart_rym_rating_vs_playcount,
+        chart_mega_cluster_playcount_boxplot, get_rankings_data
     )
 
     return render_template('analysis.html',
         plotly_required=True,
-        # 2.1 Géneros
-        chart_genres_count=chart_top_genres_by_count(),
-        chart_genres_rating=chart_genres_by_avg_rating(),
-        chart_genres_listeners=chart_genres_by_listeners(),
-        # 2.2 Labels
-        chart_labels_count=chart_top_labels_by_count(),
-        chart_labels_rating=chart_labels_by_avg_rating(),
-        # 2.3 Artistas
-        chart_artists=chart_top_artists(),
-        # 2.4 Temporal
+        # Temporal
         chart_rating_year=chart_rating_by_year(),
         chart_albums_year=chart_albums_by_year(),
         chart_rating_decade=chart_rating_by_decade(),
-        # 2.5 RYM vs Last.fm
         chart_rym_listeners=chart_rym_rating_vs_listeners(),
         chart_rym_playcount=chart_rym_rating_vs_playcount(),
-        chart_ratings_listeners=chart_ratingcount_vs_listeners(),
-        # 2.6 Rankings (Data Cruda para CSS Bars)
+        chart_mega_boxplot=chart_mega_cluster_playcount_boxplot(),
+        # Rankings (Data Cruda para CSS Bars)
         rankings=get_rankings_data(),
     )
 
 @main_bp.route('/user-map', methods=['GET', 'POST'])
 def user_map():
     from app.models import Album
-    from app.recommender.scatter import get_user_collection_map_html
     import pandas as pd
+
     from sqlalchemy import func
 
     user_map_html = None
@@ -427,21 +433,11 @@ def user_map():
                         top_albums = m_df.sort_values('rating', ascending=False).head(10).to_dict('records')
                         top_genres = top_genres_data.to_dict('records')
 
-                        # Gráficos (usando mismos nombres que index.html)
-                        from app.analysis import _get_dark_layout, _fig_to_html, COLOR_AMBAR, COLOR_CIAN
-                        import plotly.express as px
+                        # Gráficos usando helper centralizado
+                        from app.analysis import make_histogram_html, COLOR_AMBAR, COLOR_CIAN
 
-                        # Distribución de Ratings
-                        fig_r = px.histogram(m_df, x='rating', nbins=20, color_discrete_sequence=[COLOR_AMBAR])
-                        fig_r.update_layout(**_get_dark_layout())
-                        fig_r.update_layout(height=140, margin=dict(t=5, b=5, l=5, r=5), xaxis_title=None, yaxis_title=None, showlegend=False)
-                        ratings_chart_html = _fig_to_html(fig_r)
-
-                        # Distribución de Oyentes
-                        fig_l = px.histogram(m_df, x='listeners', nbins=20, color_discrete_sequence=[COLOR_CIAN])
-                        fig_l.update_layout(**_get_dark_layout())
-                        fig_l.update_layout(height=140, margin=dict(t=5, b=5, l=5, r=5), xaxis_title=None, yaxis_title=None, showlegend=False)
-                        listeners_chart_html = _fig_to_html(fig_l)
+                        ratings_chart_html = make_histogram_html(m_df, 'rating', COLOR_AMBAR)
+                        listeners_chart_html = make_histogram_html(m_df, 'listeners', COLOR_CIAN)
 
                     flash(f"¡Universo actualizado! Se identificaron {len(album_counts)} álbumes.")
                 else:
@@ -470,7 +466,7 @@ def recommend_page():
     if recommender_available:
         if request.method == 'POST':
             seed_text = request.form.get('seed_text', '').strip()
-            seed_id = _resolve_album_id(seed_text)
+            seed_id = resolve_album_id(seed_text)
         elif request.method == 'GET':
             album_id = request.args.get('album_id', type=int)
             if album_id:
@@ -516,7 +512,7 @@ def recommend_page():
             try:
                 idx = list(data_pkl['album_ids']).index(seed_id)
                 cluster_lbl = data_pkl['cluster_labels'][idx]
-                seed_cluster = int(cluster_lbl) if cluster_lbl != -1 else 'Otros'
+                seed_cluster = CLUSTER_NAMES.get(int(cluster_lbl), 'Otros') if cluster_lbl != -1 else 'Otros'
                 seed_mega = data_pkl['mega_clusters'][idx]
             except ValueError:
                 seed_mega = 'Otros'
@@ -552,26 +548,3 @@ def recommend_page():
                          albums_list=get_album_list() if recommender_available else [],
                          results=None)
 
-def _resolve_album_id(text):
-    """
-    Resuelve un texto de búsqueda a un album ID.
-    """
-    from app.models import Album
-    if not text: return None
-    
-    if ' — ' in text:
-        parts = text.split(' — ', 1)
-        title_part = parts[0].strip()
-        artist_part = parts[1].strip()
-        if artist_part and artist_part[-1] == ')' and '(' in artist_part:
-            artist_part = artist_part[:artist_part.rfind('(')].strip()
-        album = Album.query.filter(Album.title.ilike(title_part), Album.artist.ilike(artist_part)).first()
-        if album: return album.id
-    
-    album = Album.query.filter(Album.title.ilike(f'%{text}%')).first()
-    if album: return album.id
-    
-    album = Album.query.filter(Album.artist.ilike(f'%{text}%')).first()
-    if album: return album.id
-    
-    return None
