@@ -235,7 +235,8 @@
   display: flex;
   flex-direction: column;
   gap: 0;
-  max-height: 200px;         /* ~8 ítems visibles */
+  max-height: 200px;
+  /* ~8 ítems visibles */
   overflow-y: auto;
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
@@ -328,7 +329,8 @@
   display: flex;
   flex-direction: column;
   gap: 0;
-  min-width: 0;   /* evita overflow horizontal en grid */
+  min-width: 0;
+  /* evita overflow horizontal en grid */
 }
 
 /* Encabezado del contenido */
@@ -396,7 +398,7 @@
 }
 
 /* Forzar que Plotly llene el contenedor */
-.data-umap-wrap > div,
+.data-umap-wrap>div,
 .data-umap-wrap .js-plotly-plot,
 .data-umap-wrap .plot-container {
   width: 100% !important;

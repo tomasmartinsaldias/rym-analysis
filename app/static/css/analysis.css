@@ -1,33 +1,55 @@
-/* Personalización extra para la página de análisis */
+/* =========================================================
+   analysis.css — Estilos específicos de /analysis
+   Identidad: "Vinyl in the Void" (hereda tokens de main.css)
+   Bootstrap se usa sólo para el grid de columnas (.row / .col-*)
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   1. HEADER EDITORIAL
+   --------------------------------------------------------- */
 .analysis-header {
-    padding: 4rem 0 2rem; /* Reducido de 6rem 4rem */
-    text-align: center;
-    border-bottom: 1px solid rgba(240, 236, 224, 0.1);
-    margin-bottom: 1.5rem; /* Reducido de 3rem */
+    padding: 40px 0 24px;
+    border-bottom: 1px solid var(--border-subtle);
+    margin-bottom: 24px;
+    text-align: left;
+}
+
+.analysis-header__eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    margin-bottom: 8px;
 }
 
 .analysis-header h1 {
-    font-family: 'Playfair Display', serif;
+    font-family: var(--font-display);
     font-style: italic;
-    font-size: 4.5rem;
-    color: var(--color-amber, #e8a430);
-    margin-bottom: 1rem;
+    font-size: clamp(28px, 3.5vw, 40px);
+    font-weight: 400;
+    color: var(--amber);
+    line-height: 1.1;
+    margin-bottom: 6px;
 }
 
 .analysis-header p {
-    font-family: 'DM Mono', monospace;
-    color: var(--color-text-muted, #a09a8e);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    font-size: 0.9rem;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    font-size: 12px;
 }
 
-/* PESTAÑAS CSS-ONLY */
+
+/* ---------------------------------------------------------
+   2. PESTAÑAS CSS-ONLY
+   --------------------------------------------------------- */
 .nd-tabs {
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 0;
+    border-bottom: 1px solid var(--border-subtle);
+    margin-bottom: 0;
 }
 
 .nd-tabs__input {
@@ -36,41 +58,40 @@
 
 .nd-tabs__label {
     display: inline-block;
-    padding: 1rem 2rem;
-    font-family: 'DM Mono', monospace;
+    padding: 12px 20px;
+    font-family: var(--font-mono);
     text-transform: uppercase;
-    font-size: 0.85rem;
+    font-size: 10px;
     letter-spacing: 0.15em;
-    color: #a09a8e;
+    color: var(--text-muted);
     cursor: pointer;
-    transition: color 0.3s ease;
+    transition: color var(--t-normal);
     position: relative;
-    margin: 0 1rem;
+    white-space: nowrap;
 }
 
 .nd-tabs__label:after {
     content: '';
     position: absolute;
-    bottom: 0;
-    left: 50%;
+    bottom: -1px;
+    left: 0;
     width: 0;
-    height: 1px;
-    background-color: var(--color-cyan, #4dc9e6);
-    transition: all 0.3s ease;
-    transform: translateX(-50%);
+    height: 2px;
+    background-color: var(--amber);
+    transition: width var(--t-normal);
 }
 
 .nd-tabs__input:checked + .nd-tabs__label {
-    color: var(--color-cyan, #4dc9e6);
+    color: var(--amber);
 }
 
 .nd-tabs__input:checked + .nd-tabs__label:after {
-    width: 80%;
+    width: 100%;
 }
 
 .tab-content-container {
     width: 100%;
-    margin-top: 3rem;
+    margin-top: 32px;
     position: relative;
 }
 
@@ -83,9 +104,9 @@
 }
 
 /* Mostrar panel correspondiente al radio seleccionado */
-#tab-genres:checked ~ .tab-content-container #genres,
-#tab-labels:checked ~ .tab-content-container #labels,
-#tab-artists:checked ~ .tab-content-container #artists,
+#tab-genres:checked   ~ .tab-content-container #genres,
+#tab-labels:checked   ~ .tab-content-container #labels,
+#tab-artists:checked  ~ .tab-content-container #artists,
 #tab-clusters:checked ~ .tab-content-container #clusters,
 #tab-temporal:checked ~ .tab-content-container #temporal,
 #tab-correlations:checked ~ .tab-content-container #correlations {
@@ -96,73 +117,73 @@
     display: block;
 }
 
+.tab-pane {
+    animation: fadeIn 0.4s ease-out;
+}
 
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+
+/* ---------------------------------------------------------
+   3. CHART CARDS
+   --------------------------------------------------------- */
 .chart-card {
-    background: rgba(240, 236, 224, 0.03);
-    border: 1px solid rgba(240, 236, 224, 0.05);
-    border-radius: 4px;
-    padding: 1.5rem 1rem;
-    /* Reducimos padding lateral */
-    margin-bottom: 2rem;
-    transition: border-color 0.4s ease;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--r-lg);
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    transition: border-color var(--t-normal);
     overflow: hidden;
-    /* Evita que el gráfico se salga */
     width: 100%;
     display: flex;
     flex-direction: column;
 }
 
 .chart-card:hover {
-    border-color: rgba(77, 201, 230, 0.2);
+    border-color: var(--cyan-border);
 }
 
 .chart-title {
-    font-family: 'Playfair Display', serif;
+    font-family: var(--font-display);
     font-style: italic;
-    font-size: 1.8rem;
-    color: #f0ece0;
-    margin-bottom: 1.5rem;
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--text-primary);
+    margin-bottom: 20px;
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 12px;
+    line-height: 1.2;
 }
 
 .chart-title::before {
     content: '';
     display: block;
-    width: 30px;
+    width: 24px;
     height: 1px;
-    background: #e8a430;
+    background: var(--amber);
+    flex-shrink: 0;
 }
 
-.tab-pane {
-    animation: fadeIn 0.6s ease-out;
-}
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Componente de Ranking Bar (Inspirado en Index) */
+/* ---------------------------------------------------------
+   4. RANKING BARS
+   --------------------------------------------------------- */
 .ranking-list {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 10px;
 }
 
 .ranking-item {
     display: block;
-    text-decoration: none !important;
+    text-decoration: none;
     padding: 2px 0;
-    transition: transform 0.2s ease;
+    transition: transform var(--t-fast);
 }
 
 .ranking-item:hover {
@@ -173,30 +194,37 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
-    margin-bottom: 0.5rem;
+    margin-bottom: 6px;
 }
 
 .ranking-name {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.8rem;
-    color: #f0ece0;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 75%;
+    transition: color var(--t-fast);
 }
 
 .ranking-item:hover .ranking-name {
-    color: var(--color-cyan, #4dc9e6);
+    color: var(--cyan);
 }
 
 .ranking-value {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.8rem;
-    color: var(--color-text-muted, #a09a8e);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    margin-left: 8px;
 }
 
 .ranking-track {
-    height: 4px;
-    background: rgba(240, 236, 224, 0.05);
+    height: 3px;
+    background: var(--border-subtle);
     border-radius: 2px;
     overflow: hidden;
 }
@@ -207,12 +235,10 @@
     transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Rankings */
 .ranking-fill.cyan {
-    background-color: var(--color-cyan, #4dc9e6);
+    background-color: var(--cyan);
 }
 
 .ranking-fill.amber {
-    background-color: var(--color-amber, #e8a430);
+    background-color: var(--amber);
 }
-

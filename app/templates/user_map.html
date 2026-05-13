@@ -10,28 +10,31 @@
 {% block content %}
 <div class="container">
   <header class="user-map-header">
-    <p class="eyebrow"
-      style="text-transform: uppercase; letter-spacing: 0.2em; color: var(--text-muted); font-family: var(--font-mono); font-size: 0.8rem;">
-      Visualización Personalizada</p>
+    <span class="nd-eyebrow">Visualización Personalizada</span>
     <h1>Tu Universo Sonoro</h1>
-    <p class="sub" style="font-family: var(--font-mono); color: var(--text-primary); opacity: 0.8;">Sube un CSV con tus
-      temas para ver cómo se distribuyen en el mapa de Needle Drop.</p>
+    <p>Sube un CSV con tus temas para ver cómo se distribuyen en el mapa de Needle Drop.</p>
   </header>
 
   <div class="upload-box">
     <form action="{{ url_for('main.user_map') }}" method="POST" enctype="multipart/form-data">
-      <div class="hint-text"
-        style="color: var(--text-muted); font-family: var(--font-mono); font-size: 0.85rem; margin-bottom: 1.5rem;">El
-        archivo debe contener columnas de "Album" y "Artist".</div>
-      <label for="file-upload" class="upload-btn">Seleccionar CSV</label>
-      <input id="file-upload" type="file" name="file" accept=".csv">
-      <button type="submit" class="nd-btn nd-btn--primary" style="margin-top: 1rem;">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
-          <path d="M8,1 L8,11 M4,7 L8,11 L12,7 M1,15 L15,15" />
-        </svg>
-        Actualizar Universo
-      </button>
-
+      <p>El archivo debe contener columnas de <strong>"Album"</strong> y <strong>"Artist"</strong>.</p>
+      
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 24px;">
+        <label for="file-upload" class="upload-btn">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" style="width:14px;height:14px;opacity:0.8;">
+            <path d="M2,6 L8,1 L14,6 M8,1 L8,11 M1,15 L15,15" />
+          </svg>
+          Seleccionar CSV
+        </label>
+        <input id="file-upload" type="file" name="file" accept=".csv">
+        
+        <button type="submit" class="nd-btn nd-btn--primary">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+            <path d="M8,1 L8,11 M4,7 L8,11 L12,7 M1,15 L15,15" />
+          </svg>
+          Actualizar Universo
+        </button>
+      </div>
     </form>
   </div>
 

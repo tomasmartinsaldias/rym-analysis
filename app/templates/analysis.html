@@ -59,10 +59,10 @@
               <h3 class="chart-title">Volumen por Género</h3>
               <div class="ranking-list">
                 {% if rankings.genres_count %}
-                  {% set max_count = rankings.genres_count[0].count %}
-                  {% for item in rankings.genres_count %}
-                    {{ ranking_bar(item.name, item.count, max_count, 'cyan', url_for('main.data', genre=item.name)) }}
-                  {% endfor %}
+                {% set max_count = rankings.genres_count[0].count %}
+                {% for item in rankings.genres_count %}
+                {{ ranking_bar(item.name, item.count, max_count, 'cyan', url_for('main.data', genre=item.name)) }}
+                {% endfor %}
                 {% endif %}
               </div>
             </div>
@@ -72,10 +72,10 @@
               <h3 class="chart-title">Calidad Percibida</h3>
               <div class="ranking-list">
                 {% if rankings.genres_rating %}
-                  {% set max_rating = 5.0 %}
-                  {% for item in rankings.genres_rating %}
-                    {{ ranking_bar(item.name, item.avg, max_rating, 'amber', url_for('main.data', genre=item.name)) }}
-                  {% endfor %}
+                {% set max_rating = 5.0 %}
+                {% for item in rankings.genres_rating %}
+                {{ ranking_bar(item.name, item.avg, max_rating, 'amber', url_for('main.data', genre=item.name)) }}
+                {% endfor %}
                 {% endif %}
               </div>
             </div>
@@ -91,10 +91,10 @@
               <h3 class="chart-title">Liderazgo de Sellos</h3>
               <div class="ranking-list">
                 {% if rankings.labels_count %}
-                  {% set max_count = rankings.labels_count[0].count %}
-                  {% for item in rankings.labels_count %}
-                    {{ ranking_bar(item.name, item.count, max_count, 'cyan', url_for('main.data', label=item.name)) }}
-                  {% endfor %}
+                {% set max_count = rankings.labels_count[0].count %}
+                {% for item in rankings.labels_count %}
+                {{ ranking_bar(item.name, item.count, max_count, 'cyan', url_for('main.data', label=item.name)) }}
+                {% endfor %}
                 {% endif %}
               </div>
             </div>
@@ -104,10 +104,10 @@
               <h3 class="chart-title">Promedio de Excelencia</h3>
               <div class="ranking-list">
                 {% if rankings.labels_rating %}
-                  {% set max_rating = 5.0 %}
-                  {% for item in rankings.labels_rating %}
-                    {{ ranking_bar(item.name, item.avg, max_rating, 'amber', url_for('main.data', label=item.name)) }}
-                  {% endfor %}
+                {% set max_rating = 5.0 %}
+                {% for item in rankings.labels_rating %}
+                {{ ranking_bar(item.name, item.avg, max_rating, 'amber', url_for('main.data', label=item.name)) }}
+                {% endfor %}
                 {% endif %}
               </div>
             </div>
@@ -123,10 +123,10 @@
               <h3 class="chart-title">Presencia Dominante</h3>
               <div class="ranking-list">
                 {% if rankings.artists_count %}
-                  {% set max_count = rankings.artists_count[0].count %}
-                  {% for item in rankings.artists_count %}
-                    {{ ranking_bar(item.name, item.count, max_count, 'cyan', url_for('main.data', q=item.name)) }}
-                  {% endfor %}
+                {% set max_count = rankings.artists_count[0].count %}
+                {% for item in rankings.artists_count %}
+                {{ ranking_bar(item.name, item.count, max_count, 'cyan', url_for('main.data', q=item.name)) }}
+                {% endfor %}
                 {% endif %}
               </div>
             </div>
@@ -142,10 +142,10 @@
               <h3 class="chart-title">Macro-Clusters (Galaxias)</h3>
               <div class="ranking-list">
                 {% if rankings.mega_count %}
-                  {% set max_m = rankings.mega_count[0].count %}
-                  {% for item in rankings.mega_count %}
-                    {{ ranking_bar(item.name, item.count, max_m, "cyan") }}
-                  {% endfor %}
+                {% set max_m = rankings.mega_count[0].count %}
+                {% for item in rankings.mega_count %}
+                {{ ranking_bar(item.name, item.count, max_m, "cyan") }}
+                {% endfor %}
                 {% endif %}
               </div>
             </div>
@@ -155,9 +155,9 @@
               <h3 class="chart-title">Top Galaxias por Rating</h3>
               <div class="ranking-list">
                 {% if rankings.mega_rating %}
-                  {% for item in rankings.mega_rating %}
-                    {{ ranking_bar(item.name, item.avg, 5.0, "amber") }}
-                  {% endfor %}
+                {% for item in rankings.mega_rating %}
+                {{ ranking_bar(item.name, item.avg, 5.0, "amber") }}
+                {% endfor %}
                 {% endif %}
               </div>
             </div>
@@ -176,10 +176,10 @@
               <h3 class="chart-title">Micro-Clusters (Vibes)</h3>
               <div class="ranking-list">
                 {% if rankings.clusters_count %}
-                  {% set max_c = rankings.clusters_count[0].count %}
-                  {% for item in rankings.clusters_count %}
-                    {{ ranking_bar(item.name, item.count, max_c, "cyan") }}
-                  {% endfor %}
+                {% set max_c = rankings.clusters_count[0].count %}
+                {% for item in rankings.clusters_count %}
+                {{ ranking_bar(item.name, item.count, max_c, "cyan") }}
+                {% endfor %}
                 {% endif %}
               </div>
             </div>
@@ -189,9 +189,9 @@
               <h3 class="chart-title">Top Vibes por Rating</h3>
               <div class="ranking-list">
                 {% if rankings.clusters_rating %}
-                  {% for item in rankings.clusters_rating %}
-                    {{ ranking_bar(item.name, item.avg, 5.0, "amber") }}
-                  {% endfor %}
+                {% for item in rankings.clusters_rating %}
+                {{ ranking_bar(item.name, item.avg, 5.0, "amber") }}
+                {% endfor %}
                 {% endif %}
               </div>
             </div>

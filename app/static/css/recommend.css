@@ -1,23 +1,32 @@
-/* ---- Estética Vinyl in the Void - Recommend Page ---- */
+/* =========================================================
+   recommend.css — Estilos específicos de /recommend
+   Identidad: "Vinyl in the Void" (hereda tokens de main.css)
+   ========================================================= */
+
 .recommend-container {
     max-width: 1400px;
     margin: 0 auto;
     padding: 0 clamp(16px, 5vw, 64px);
 }
 
+
+/* ---------------------------------------------------------
+   1. HERO SECTION
+   --------------------------------------------------------- */
 .hero-section {
-    padding: 2.5rem 0 1.5rem;
+    padding: 40px 0 24px;
     border-bottom: 1px solid var(--border-subtle);
-    margin-bottom: 2rem;
+    margin-bottom: 32px;
 }
 
 .hero-section h1 {
     font-family: var(--font-display);
     font-style: italic;
-    font-size: clamp(2rem, 4vw, 3rem);
+    font-size: clamp(26px, 4vw, 42px);
+    font-weight: 400;
     color: var(--text-primary);
     line-height: 1.1;
-    margin-bottom: 0.5rem;
+    margin-bottom: 8px;
 }
 
 .hero-section h1 em {
@@ -27,25 +36,33 @@
 .hero-section p {
     color: var(--text-secondary);
     font-family: var(--font-mono);
-    font-size: 0.85rem;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.04em;
 }
 
-/* Formulario Minimalista */
+
+/* ---------------------------------------------------------
+   2. FORMULARIO SEMILLA
+   --------------------------------------------------------- */
 .form-card {
     max-width: 600px;
-    margin: 0 0 3rem 0;
+    margin: 0 0 40px 0;
 }
 
 .seed-input-group {
     display: flex;
     gap: 0;
     align-items: stretch;
-    border: 1px solid var(--border-amber);
+    border: 1px solid var(--amber-border);
     border-radius: var(--r-md);
     overflow: hidden;
     background: rgba(8, 10, 18, 0.82);
+    transition: border-color var(--t-fast), box-shadow var(--t-fast);
+}
+
+.seed-input-group:focus-within {
+    border-color: var(--amber);
+    box-shadow: 0 0 0 3px rgba(232, 164, 48, 0.1);
 }
 
 .seed-input-group input {
@@ -53,9 +70,9 @@
     background: transparent;
     border: none;
     color: var(--text-primary);
-    padding: 1rem 1.25rem;
+    padding: 12px 16px;
     font-family: var(--font-mono);
-    font-size: 14px;
+    font-size: 13px;
     min-width: 0;
     outline: none;
 }
@@ -71,27 +88,33 @@
     border-left: 1px solid var(--amber-border);
     color: var(--amber);
     font-family: var(--font-mono);
-    font-size: 14px;
-    padding: 0 1.5rem;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 0 20px;
     cursor: pointer;
     transition: background var(--t-fast);
     text-transform: uppercase;
     letter-spacing: 0.1em;
+    white-space: nowrap;
 }
 
 .btn-recommend:hover {
     background: rgba(232, 164, 48, 0.25);
 }
 
-/* Seed Profile Card */
+
+/* ---------------------------------------------------------
+   3. SEED PROFILE CARD
+   --------------------------------------------------------- */
 .seed-profile-card {
     display: flex;
-    gap: 1.5rem;
+    gap: 24px;
     background: var(--bg-card);
-    border: 1px solid var(--border-amber);
+    border: 1px solid var(--amber-border);
+    border-radius: var(--r-lg);
     box-shadow: 0 0 20px rgba(232, 164, 48, 0.05);
-    padding: 1.5rem;
-    margin-bottom: 2rem;
+    padding: 24px;
+    margin-bottom: 32px;
     align-items: center;
 }
 
@@ -100,7 +123,10 @@
     height: 140px;
     flex-shrink: 0;
     position: relative;
-    background: #111;
+    background: var(--bg-surface);
+    border-radius: var(--r-md);
+    overflow: hidden;
+    border: 1px solid var(--border-subtle);
 }
 
 .seed-cover img {
@@ -112,18 +138,19 @@
 .seed-cover .cover-fallback {
     position: absolute;
     inset: 0;
-    font-size: 3rem;
+    font-size: 48px;
 }
 
 .seed-info {
     flex: 1;
+    min-width: 0;
 }
 
 .seed-header {
     display: flex;
-    gap: 1rem;
+    gap: 10px;
     align-items: center;
-    margin-bottom: 0.5rem;
+    margin-bottom: 8px;
 }
 
 .seed-badge {
@@ -131,17 +158,19 @@
     font-size: 10px;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    background: rgba(232, 164, 48, 0.15);
+    background: var(--amber-dim);
     color: var(--amber);
-    padding: 2px 6px;
-    border-radius: 2px;
+    padding: 2px 8px;
+    border-radius: var(--r-sm);
+    border: 1px solid var(--amber-border);
 }
 
 .seed-info h3 {
     font-family: var(--font-display);
-    font-size: 1.8rem;
+    font-size: 28px;
+    font-weight: 400;
     color: var(--text-primary);
-    margin-bottom: 0.25rem;
+    margin-bottom: 4px;
     line-height: 1.1;
 }
 
@@ -158,27 +187,27 @@
 .seed-artist {
     font-family: var(--font-mono);
     color: var(--text-secondary);
-    font-size: 0.9rem;
-    margin-bottom: 1rem;
+    font-size: 13px;
+    margin-bottom: 14px;
 }
 
 .seed-galaxy {
     font-family: var(--font-mono);
-    font-size: 0.7rem;
+    font-size: 10px;
     color: var(--cyan);
     text-transform: uppercase;
-    letter-spacing: 0.2em;
-    margin-bottom: 0.75rem;
+    letter-spacing: 0.16em;
+    margin-bottom: 12px;
     border-left: 2px solid var(--cyan-border);
-    padding-left: 8px;
+    padding-left: 10px;
     opacity: 0.85;
 }
 
 .seed-stats {
     display: flex;
-    gap: 2rem;
-    margin-bottom: 1rem;
-    padding-top: 0.75rem;
+    gap: 28px;
+    margin-bottom: 14px;
+    padding-top: 12px;
     border-top: 1px solid var(--border-subtle);
 }
 
@@ -188,22 +217,23 @@
 }
 
 .seed-stats .stat-value {
-    font-size: 1.2rem;
+    font-size: 20px;
 }
 
 .seed-genres {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-bottom: 0.75rem;
+    gap: 6px;
+    margin-bottom: 10px;
 }
 
 .seed-descriptors {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.4rem;
+    gap: 5px;
 }
 
+/* Tags — alineados con nd-tag de main.css */
 .genre-tag,
 .genre-tag-sec,
 .descriptor-tag {
@@ -211,53 +241,49 @@
     cursor: pointer;
     text-decoration: none;
     display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: var(--r-sm);
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
 }
 
 .genre-tag {
     font-family: var(--font-mono);
-    font-size: 0.7rem;
     background: var(--cyan-dim);
     border: 1px solid var(--cyan-border);
     color: var(--cyan);
-    padding: 2px 8px;
-    border-radius: 12px;
 }
 
 .genre-tag-sec {
     font-family: var(--font-mono);
-    font-size: 0.7rem;
     background: rgba(77, 201, 230, 0.06);
     border: 1px solid rgba(77, 201, 230, 0.2);
-    color: rgba(77, 201, 230, 0.5);
-    padding: 2px 8px;
-    border-radius: 12px;
+    color: rgba(77, 201, 230, 0.55);
 }
 
 .genre-tag:hover {
-    background: var(--cyan);
-    color: var(--bg-void);
-    border-color: var(--cyan);
+    background: rgba(77, 201, 230, 0.2);
+    color: var(--cyan);
 }
 
 .genre-tag-sec:hover {
-    background: rgba(77, 201, 230, 0.15);
+    background: rgba(77, 201, 230, 0.12);
     color: var(--cyan);
     border-color: var(--cyan-border);
 }
 
-.descriptor-tag:hover {
-    border-color: var(--text-secondary);
-    background: rgba(255, 255, 255, 0.03);
-}
-
 .descriptor-tag {
     font-family: var(--font-mono);
-    font-size: 0.65rem;
     color: var(--text-secondary);
     border: 1px solid var(--border-subtle);
-    padding: 2px 8px;
-    border-radius: 4px;
-    text-transform: lowercase;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.descriptor-tag:hover {
+    border-color: var(--border-medium);
+    background: rgba(255, 255, 255, 0.07);
 }
 
 @media (max-width: 600px) {
@@ -272,47 +298,52 @@
     }
 }
 
-/* Section Headers */
+
+/* ---------------------------------------------------------
+   4. SECTION TITLES (Resultados, Afinidades, Mapa)
+   --------------------------------------------------------- */
 .section-title {
     font-family: var(--font-display);
-    font-size: 1.5rem;
+    font-style: italic;
+    font-size: 22px;
+    font-weight: 400;
     color: var(--text-primary);
-    margin: 3rem 0 1.5rem;
+    margin: 40px 0 20px;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 14px;
 }
 
 .section-title::before {
     content: "";
     display: block;
-    width: 12px;
-    height: 12px;
+    width: 24px;
+    height: 1px;
     background: var(--amber);
+    flex-shrink: 0;
 }
 
-/* Topsters Grid */
+
+/* ---------------------------------------------------------
+   5. RESULTS GRID (Topsters)
+   --------------------------------------------------------- */
 .results-grid {
     display: grid;
-    grid-template-columns: repeat(4, 180px);
-    /* 4 columnas de tamaño fijo */
-    justify-content: center;
-    /* Centrar la cuadrícula entera */
+    grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
     gap: 4px;
-    /* Grilla densa */
     background: var(--bg-void);
-    margin-bottom: 3rem;
+    margin-bottom: 40px;
 }
 
 @media (max-width: 800px) {
     .results-grid {
-        grid-template-columns: repeat(3, 160px);
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     }
 }
 
-@media (max-width: 550px) {
+@media (max-width: 480px) {
     .results-grid {
-        grid-template-columns: repeat(2, 150px);
+        grid-template-columns: repeat(2, 1fr);
     }
 }
 
@@ -329,6 +360,8 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+    position: relative;
+    z-index: 1;
     transition: transform 0.4s ease;
 }
 
@@ -340,30 +373,25 @@
     justify-content: center;
     font-family: var(--font-display);
     font-style: italic;
-    font-size: 4rem;
+    font-size: 56px;
     color: rgba(255, 255, 255, 0.05);
-    background: #111;
+    background: var(--bg-card);
     z-index: 0;
 }
 
-.album-card img {
-    position: relative;
-    z-index: 1;
-}
-
-/* Overlay on Hover */
+/* Hover overlay */
 .album-overlay {
     position: absolute;
     inset: 0;
     background: rgba(8, 10, 18, 0.92);
     backdrop-filter: blur(4px);
     z-index: 2;
-    padding: 0.75rem;
+    padding: 12px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: opacity var(--t-normal);
 }
 
 .album-card:hover .album-overlay {
@@ -378,39 +406,39 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    gap: 10px;
+    gap: 8px;
 }
 
 .rank-badge {
     font-family: var(--font-display);
     font-style: italic;
-    font-size: 1.5rem;
+    font-size: 24px;
     color: rgba(255, 255, 255, 0.15);
     line-height: 1;
 }
 
 .cluster-badge {
     font-family: var(--font-mono);
-    font-size: 7px;
+    font-size: 9px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    background: rgba(77, 201, 230, 0.12);
+    background: var(--cyan-dim);
     color: var(--cyan);
-    padding: 2px 6px;
-    border-radius: 2px;
-    border: 1px solid rgba(77, 201, 230, 0.3);
+    padding: 2px 7px;
+    border-radius: var(--r-sm);
+    border: 1px solid var(--cyan-border);
     text-align: right;
-    line-height: 1.2;
+    line-height: 1.3;
     max-width: 75%;
 }
 
 .galaxy-label {
     font-family: var(--font-mono);
-    font-size: 8px;
+    font-size: 9px;
     color: var(--amber);
     text-transform: uppercase;
     letter-spacing: 0.12em;
-    margin-bottom: 0.5rem;
+    margin-bottom: 6px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -421,10 +449,11 @@
 
 .overlay-body h5 {
     font-family: var(--font-display);
-    font-size: 0.95rem;
+    font-size: 14px;
+    font-weight: 400;
     color: var(--text-primary);
-    line-height: 1.1;
-    margin-bottom: 0.25rem;
+    line-height: 1.2;
+    margin-bottom: 4px;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -433,17 +462,17 @@
 
 .overlay-body .artist {
     font-family: var(--font-mono);
-    font-size: 0.7rem;
+    font-size: 10px;
     color: var(--text-secondary);
-    margin-bottom: 0.5rem;
+    margin-bottom: 8px;
 }
 
 .overlay-stats {
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    padding-top: 0.4rem;
+    gap: 5px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: 6px;
 }
 
 .stat-item {
@@ -454,84 +483,87 @@
 
 .stat-label {
     font-family: var(--font-mono);
-    font-size: 8px;
+    font-size: 9px;
     color: var(--text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.06em;
 }
 
 .stat-value {
     font-family: var(--font-display);
-    font-size: 0.95rem;
+    font-size: 14px;
     color: var(--amber);
 }
 
-@media (max-width: 550px) {
+@media (max-width: 480px) {
     .album-overlay {
-        padding: 0.5rem;
+        padding: 8px;
     }
 
     .overlay-body h5 {
-        font-size: 0.8rem;
+        font-size: 12px;
     }
 
     .overlay-body .artist {
-        font-size: 0.6rem;
-        margin-bottom: 0.3rem;
-    }
-
-    .overlay-stats {
-        gap: 0.25rem;
-        padding-top: 0.25rem;
-    }
-
-    .stat-value {
-        font-size: 0.85rem;
+        font-size: 9px;
+        margin-bottom: 5px;
     }
 
     .rank-badge {
-        font-size: 1.2rem;
+        font-size: 18px;
+    }
+
+    .stat-value {
+        font-size: 12px;
     }
 }
 
-/* CSS Affinities Charts */
+
+/* ---------------------------------------------------------
+   6. AFFINITY CHARTS (CSS bars)
+   --------------------------------------------------------- */
 .affinity-charts {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
+    gap: 24px;
     align-items: start;
-    margin-bottom: 4rem;
+    margin-bottom: 48px;
 }
 
 .css-chart {
     background: var(--bg-card);
-    padding: 1.5rem;
+    padding: 20px 24px;
     border: 1px solid var(--border-subtle);
-    border-radius: var(--r-md);
+    border-radius: var(--r-lg);
+    transition: border-color var(--t-normal);
+}
+
+.css-chart:hover {
+    border-color: var(--cyan-border);
 }
 
 .css-chart h3 {
     font-family: var(--font-mono);
-    font-size: 0.85rem;
+    font-size: 10px;
     text-transform: uppercase;
     letter-spacing: 0.15em;
-    color: var(--text-secondary);
-    margin-bottom: 1.5rem;
+    color: var(--text-muted);
+    margin-bottom: 20px;
     border-bottom: 1px solid var(--border-subtle);
-    padding-bottom: 0.75rem;
+    padding-bottom: 10px;
 }
 
 .bar-row {
     display: flex;
     align-items: center;
-    margin-bottom: 0.75rem;
-    gap: 1rem;
+    margin-bottom: 10px;
+    gap: 12px;
 }
 
 .bar-label {
     width: 140px;
     font-family: var(--font-mono);
-    font-size: 0.75rem;
+    font-size: 11px;
     color: var(--text-secondary);
     text-align: right;
     white-space: nowrap;
@@ -548,18 +580,16 @@
 
 .bar-track {
     flex: 1;
-    height: 6px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 3px;
+    height: 3px;
+    background: var(--border-subtle);
+    border-radius: 2px;
     overflow: hidden;
-    display: flex;
-    align-items: center;
 }
 
 .bar-fill {
     height: 100%;
     background: var(--cyan);
-    border-radius: 3px;
+    border-radius: 2px;
 }
 
 .bar-fill.amber {
@@ -567,22 +597,29 @@
 }
 
 .bar-value {
-    width: 30px;
+    width: 32px;
     font-family: var(--font-mono);
-    font-size: 0.75rem;
+    font-size: 10px;
     color: var(--text-muted);
+    text-align: right;
 }
 
-/* Scatter container */
+
+/* ---------------------------------------------------------
+   7. SCATTER / UMAP CONTAINER
+   --------------------------------------------------------- */
 .scatter-container {
     background: var(--bg-void);
-    height: 600px;
-    margin-bottom: 4rem;
+    height: 520px;
+    margin-bottom: 48px;
     border: 1px solid var(--border-subtle);
+    border-radius: var(--r-lg);
+    overflow: hidden;
 }
 
 .no-data {
-    padding: 3rem 0;
+    padding: 40px 0;
     color: var(--text-muted);
     font-family: var(--font-mono);
+    font-size: 12px;
 }

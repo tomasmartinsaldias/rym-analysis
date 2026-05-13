@@ -17,8 +17,15 @@
     margin-bottom: 28px;
     transition: color var(--t-fast);
   }
-  .album-back:hover { color: var(--amber); }
-  .album-back svg { width: 14px; height: 14px; }
+
+  .album-back:hover {
+    color: var(--amber);
+  }
+
+  .album-back svg {
+    width: 14px;
+    height: 14px;
+  }
 
   /* Hero row: cover + info side by side */
   .album-hero {
@@ -28,11 +35,13 @@
     align-items: start;
     margin-bottom: 40px;
   }
+
   @media (max-width: 700px) {
     .album-hero {
       grid-template-columns: 1fr;
       gap: 24px;
     }
+
     .album-hero__cover {
       max-width: 260px;
     }
@@ -48,6 +57,7 @@
     background: var(--bg-surface);
     position: relative;
   }
+
   .album-hero__cover-fallback {
     width: 100%;
     height: 100%;
@@ -57,7 +67,7 @@
     font-family: var(--font-display);
     font-style: italic;
     font-size: 64px;
-    color: rgba(240,236,224,0.06);
+    color: rgba(240, 236, 224, 0.06);
     letter-spacing: -2px;
     user-select: none;
   }
@@ -70,6 +80,7 @@
     color: var(--cyan);
     margin-bottom: 10px;
   }
+
   .album-hero__title {
     font-family: var(--font-display);
     font-size: clamp(24px, 3.5vw, 38px);
@@ -78,11 +89,13 @@
     color: var(--text-primary);
     margin-bottom: 6px;
   }
+
   .album-hero__artist {
     font-size: 14px;
     color: var(--text-secondary);
     margin-bottom: 6px;
   }
+
   .album-hero__year {
     font-size: 11px;
     color: var(--text-muted);
@@ -96,6 +109,7 @@
     gap: 8px;
     margin-bottom: 20px;
   }
+
   .album-rating__num {
     font-family: var(--font-display);
     font-size: 52px;
@@ -103,6 +117,7 @@
     line-height: 1;
     color: var(--amber);
   }
+
   .album-rating__denom {
     font-size: 18px;
     color: var(--text-muted);
@@ -118,12 +133,14 @@
     padding-bottom: 24px;
     border-bottom: 1px solid var(--border-subtle);
   }
+
   .album-stat__num {
     font-family: var(--font-display);
     font-size: 18px;
     color: var(--text-primary);
     line-height: 1;
   }
+
   .album-stat__label {
     font-size: 9px;
     letter-spacing: 0.12em;
@@ -136,6 +153,7 @@
   .album-section {
     margin-bottom: 32px;
   }
+
   .album-section__label {
     font-size: 9px;
     letter-spacing: 0.16em;
@@ -149,6 +167,7 @@
     max-width: 340px;
     margin: 0 auto;
   }
+
   .album-radar .js-plotly-plot,
   .album-radar .plot-container.plotly,
   .album-radar .svg-container {
@@ -171,11 +190,13 @@
     font-size: 11px;
     color: var(--text-muted);
   }
+
   .album-label strong {
     color: var(--text-secondary);
     font-weight: 400;
     transition: color var(--t-fast);
   }
+
   .album-label a:hover strong {
     color: var(--amber);
   }
@@ -195,6 +216,7 @@
     gap: 28px;
     align-items: start;
   }
+
   @media (max-width: 700px) {
     .album-details-grid {
       grid-template-columns: 1fr;
@@ -214,44 +236,48 @@
     gap: 8px;
     flex-wrap: wrap;
   }
+
   .cluster-badge {
     font-size: 10px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     padding: 4px 10px;
-    border-radius: 100px;
+    border-radius: var(--r-sm);
     font-family: var(--font-display);
     border: 1px solid transparent;
   }
+
   .galaxy-badge {
     background: rgba(77, 201, 230, 0.1);
     color: var(--cyan);
     border-color: rgba(77, 201, 230, 0.2);
   }
+
   .micro-badge {
     background: rgba(232, 164, 48, 0.1);
     color: var(--amber);
     border-color: rgba(232, 164, 48, 0.2);
   }
 
-  .mb-16 { margin-bottom: 16px; }
-  .mt-16 { margin-top: 16px; }
-
   /* Map card specific */
   .album-card--map {
-    grid-column: span 2; /* Take full width of the grid */
+    grid-column: span 2;
+    /* Take full width of the grid */
   }
+
   @media (max-width: 700px) {
     .album-card--map {
       grid-column: span 1;
     }
   }
+
   .album-scatter {
     height: 400px;
     background: var(--bg-void);
     border-radius: var(--r-md);
     margin-top: 10px;
   }
+
   .album-scatter .js-plotly-plot,
   .album-scatter .plot-container.plotly,
   .album-scatter .svg-container {

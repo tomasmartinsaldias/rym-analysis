@@ -1,54 +1,79 @@
-  /* ── Estilos Dashboard ── */
-  :root {
-      --bg-card: rgba(240, 236, 224, 0.02);
-      --border-subtle: rgba(240, 236, 224, 0.06);
-      --text-muted: #a09a8e;
-      --text-primary: #f0ece0;
-      --amber: #e8a430;
-      --cyan: #4dc9e6;
-      --font-display: 'Playfair Display', serif;
-      --font-mono: 'DM Mono', monospace;
-  }
+  /* ── Estilos User Map — hereda tokens de main.css ──────── */
+  /* NOTA: NO redefinir :root aquí. Los tokens viven en main.css */
 
   .user-map-header {
-      padding: 6rem 0 3rem;
-      text-align: center;
+      padding: 40px 0 24px;
+      text-align: left;
+  }
+
+  .user-map-header .nd-eyebrow {
+      display: block;
+      margin-bottom: 10px;
   }
 
   .user-map-header h1 {
       font-family: var(--font-display);
       font-style: italic;
-      font-size: 3.5rem;
+      font-size: clamp(24px, 3vw, 36px);
+      font-weight: 400;
       color: var(--amber);
-      margin-bottom: 1rem;
+      margin-bottom: 8px;
+      line-height: 1.1;
+  }
+
+  .user-map-header p {
+      font-size: 12px;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
   }
 
   .upload-box {
-      background: rgba(240, 236, 224, 0.03);
-      border: 2px dashed var(--amber);
-      border-radius: 8px;
-      padding: 3rem;
+      background: var(--bg-card);
+      border: 1px solid var(--amber-border);
+      border-radius: var(--r-lg);
+      padding: 40px 32px;
       text-align: center;
       max-width: 600px;
-      margin: 0 auto 4rem;
+      margin: 0 auto 48px;
+      transition: border-color var(--t-normal);
+  }
+
+  .upload-box:hover {
+      border-color: var(--amber);
   }
 
   .upload-box input[type="file"] {
       display: none;
   }
 
+  .upload-box p {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+  }
+
+  /* Botón de upload — usa el sistema nd-btn */
   .upload-btn {
-      background: var(--cyan);
-      color: #080a12;
-      border: none;
-      padding: 0.8rem 2rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: var(--amber-dim);
+      border: 1px solid var(--amber-border);
+      border-radius: var(--r-md);
+      color: var(--amber);
       font-family: var(--font-mono);
-      text-transform: uppercase;
+      font-size: 11px;
+      font-weight: 500;
       letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 9px 18px;
       cursor: pointer;
-      border-radius: 4px;
-      margin-top: 1rem;
-      display: inline-block;
+      transition: all var(--t-fast);
+  }
+
+  .upload-btn:hover {
+      background: rgba(232, 164, 48, 0.25);
+      border-color: var(--amber);
   }
 
   .map-container {
@@ -58,7 +83,7 @@
       min-height: 500px;
       position: relative;
       overflow: hidden;
-      margin-bottom: 4rem;
+      margin-bottom: 48px;
   }
 
   /* Dashboard Grid */
@@ -76,7 +101,8 @@
   .dash-title {
       font-family: var(--font-display);
       font-style: italic;
-      font-size: 24px;
+      font-size: 22px;
+      font-weight: 400;
       color: var(--text-primary);
   }
 
@@ -96,19 +122,25 @@
       grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
       gap: 1px;
       background: var(--border-subtle);
-      border-radius: 8px;
+      border-radius: var(--r-md);
       overflow: hidden;
       margin-bottom: 20px;
   }
 
   .stat-cell {
-      background: rgba(8, 10, 18, 0.4);
-      padding: 15px;
+      background: var(--bg-surface);
+      padding: 14px 18px;
+      transition: background var(--t-fast);
+  }
+
+  .stat-cell:hover {
+      background: var(--bg-card);
   }
 
   .stat-cell__num {
       font-family: var(--font-display);
       font-size: 22px;
+      font-weight: 400;
       color: var(--text-primary);
       line-height: 1;
       margin-bottom: 4px;
@@ -128,7 +160,7 @@
   .dash-grid {
       display: grid;
       grid-template-columns: repeat(12, 1fr);
-      gap: 15px;
+      gap: 10px;
   }
 
   .dash-col-4 {
@@ -138,11 +170,13 @@
   .dash-widget {
       background: var(--bg-card);
       border: 1px solid var(--border-subtle);
-      border-radius: 8px;
-      padding: 15px;
+      border-radius: var(--r-lg);
+      padding: 8px 12px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 4px;
+      overflow: hidden;
+      min-height: 0;
   }
 
   .widget-label {
@@ -150,7 +184,7 @@
       letter-spacing: 0.16em;
       text-transform: uppercase;
       color: var(--text-muted);
-      margin-bottom: 10px;
+      flex-shrink: 0;
   }
 
   /* Lists */
@@ -162,18 +196,29 @@
   .top-item {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 6px 0;
+      gap: 8px;
+      padding: 2px 0;
       border-bottom: 1px solid var(--border-subtle);
       text-decoration: none;
+      transition: background var(--t-fast);
+  }
+
+  .top-item:last-child {
+      border-bottom: none;
+  }
+
+  .top-item:hover .top-item__title {
+      color: var(--amber);
   }
 
   .top-item__rank {
       font-family: var(--font-display);
-      font-size: 14px;
+      font-size: 13px;
       color: var(--text-muted);
       font-style: italic;
-      min-width: 20px;
+      min-width: 16px;
+      text-align: right;
+      flex-shrink: 0;
   }
 
   .top-item__info {
@@ -182,55 +227,62 @@
   }
 
   .top-item__title {
-      font-family: var(--font-mono);
       font-size: 12px;
       color: var(--text-primary);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      transition: color var(--t-fast);
+      line-height: 1.3;
   }
 
   .top-item__artist {
-      font-family: var(--font-mono);
       font-size: 10px;
       color: var(--text-muted);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      margin-top: 1px;
   }
 
   .top-item__rating {
       font-family: var(--font-display);
-      font-size: 15px;
+      font-size: 14px;
       color: var(--amber);
+      flex-shrink: 0;
   }
 
+  /* Genre bars */
   .genre-bar {
-      margin-bottom: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 6px;
   }
 
   .genre-bar__header {
       display: flex;
       justify-content: space-between;
-      font-family: var(--font-mono);
-      font-size: 11px;
-      margin-bottom: 4px;
+      align-items: baseline;
   }
 
   .genre-bar__name {
-      color: var(--text-primary);
+      font-size: 11px;
+      color: var(--text-secondary);
+      white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      white-space: nowrap;
   }
 
   .genre-bar__count {
+      font-size: 10px;
       color: var(--text-muted);
+      flex-shrink: 0;
       margin-left: 8px;
   }
 
   .genre-bar__track {
-      height: 4px;
+      height: 3px;
       background: var(--border-subtle);
       border-radius: 2px;
       overflow: hidden;
@@ -239,18 +291,20 @@
   .genre-bar__fill {
       height: 100%;
       background: var(--cyan);
-      transition: width 1s ease;
+      border-radius: 2px;
+      transition: width 0.9s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   .dash-charts-stack {
       display: flex;
       flex-direction: column;
-      gap: 15px;
+      gap: 10px;
   }
 
   .chart-container {
       width: 100%;
-      height: 140px;
+      flex: 1;
+      min-height: 0;
   }
 
   @media (max-width: 900px) {
