@@ -8,7 +8,7 @@ from app.analysis import (
     get_user_collection_map_html
 )
 
-from app.utils import resolve_album_id
+from app.utils import resolve_album_id, get_cover_url
 import concurrent.futures
 
 main_bp = Blueprint('main', __name__)
@@ -94,20 +94,7 @@ def album_detail(album_id):
     if current_app.recommender_data is not None:
         radar_chart_html = make_radar_chart(album.id)
         
-    cover_url = None
-    try:
-        term = urllib.parse.quote(f"{album.title} {album.artist}")
-        url = f"https://itunes.apple.com/search?term={term}&entity=album&limit=1"
-        response = requests.get(url, timeout=2)
-        if response.status_code == 200:
-            data = response.json()
-            if data.get('results') and data['results'][0].get('artworkUrl100'):
-                cover_url = data['results'][0]['artworkUrl100'].replace('100x100bb', '500x500bb')
-    except Exception:
-        pass
-        
-    if not cover_url and album.mbid:
-        cover_url = f"https://coverartarchive.org/release-group/{album.mbid}/front"
+    cover_url = get_cover_url(album)
     
     # Obtener géneros separados (Primarios vs Secundarios)
     from app.models import album_genres, Genre
@@ -345,7 +332,8 @@ def analysis():
     from app.analysis import (
         chart_rating_by_year, chart_albums_by_year, chart_rating_by_decade,
         chart_rym_rating_vs_listeners, chart_rym_rating_vs_playcount,
-        chart_mega_cluster_playcount_boxplot, get_rankings_data
+        chart_playcount_vs_listeners, chart_rym_vs_lastfm,
+        chart_mega_cluster_playcount_boxplot, get_rankings_data, get_hall_of_fame_data
     )
 
     return render_template('analysis.html',
@@ -356,9 +344,12 @@ def analysis():
         chart_rating_decade=chart_rating_by_decade(),
         chart_rym_listeners=chart_rym_rating_vs_listeners(),
         chart_rym_playcount=chart_rym_rating_vs_playcount(),
+        chart_playcount_listeners=chart_playcount_vs_listeners(),
+        chart_snob_index=chart_rym_vs_lastfm(),
         chart_mega_boxplot=chart_mega_cluster_playcount_boxplot(),
         # Rankings (Data Cruda para CSS Bars)
         rankings=get_rankings_data(),
+        hall_of_fame=get_hall_of_fame_data()
     )
 
 @main_bp.route('/user-map', methods=['GET', 'POST'])
@@ -482,17 +473,7 @@ def recommend_page():
         affinities = get_affinities(results)
         
         def fetch_cover(res):
-            try:
-                term = urllib.parse.quote(f"{res['title']} {res['artist']}")
-                url = f"https://itunes.apple.com/search?term={term}&entity=album&limit=1"
-                resp = requests.get(url, timeout=1.5)
-                if resp.status_code == 200:
-                    data = resp.json()
-                    if data.get('results') and data['results'][0].get('artworkUrl100'):
-                        res['cover_url'] = data['results'][0]['artworkUrl100'].replace('100x100bb', '500x500bb')
-                        return
-            except Exception: pass
-            res['cover_url'] = None
+            res['cover_url'] = get_cover_url(res)
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
             executor.map(fetch_cover, results)
@@ -502,11 +483,7 @@ def recommend_page():
         seed_cluster = 'N/A'
         
         if seed_album_obj:
-            seed_mock = {'title': seed_album_obj.title, 'artist': seed_album_obj.artist}
-            fetch_cover(seed_mock)
-            seed_cover_url = seed_mock.get('cover_url')
-            if not seed_cover_url and seed_album_obj.mbid:
-                seed_cover_url = f"https://coverartarchive.org/release-group/{seed_album_obj.mbid}/front"
+            seed_cover_url = get_cover_url(seed_album_obj)
                 
             data_pkl = current_app.recommender_data
             try:

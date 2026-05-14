@@ -19,6 +19,19 @@
 </a>
 {% endmacro %}
 
+{% macro hall_item(title, artist, subtext, url, icon='disc') %}
+<a href="{{ url }}" class="hall-item">
+  <div class="hall-icon">
+    <i class="fas fa-{{ icon }}"></i>
+  </div>
+  <div class="hall-info">
+    <span class="hall-title">{{ title }}</span>
+    <span class="hall-artist">{{ artist }}</span>
+  </div>
+  <div class="hall-metric">{{ subtext }}</div>
+</a>
+{% endmacro %}
+
 {% block content %}
 <div class="container">
   <!-- Header Editorial -->
@@ -47,6 +60,9 @@
 
     <input type="radio" name="analysis-tabs" id="tab-correlations" class="nd-tabs__input">
     <label for="tab-correlations" class="nd-tabs__label">06. Correlaciones</label>
+
+    <input type="radio" name="analysis-tabs" id="tab-hall" class="nd-tabs__input">
+    <label for="tab-hall" class="nd-tabs__label">07. Hall of Fame</label>
 
     <!-- Contenido de las Pestañas -->
     <div class="tab-content-container">
@@ -239,6 +255,80 @@
               {{ chart_rym_playcount | safe }}
             </div>
           </div>
+          <div class="col-12 mt-4">
+            <div class="chart-card">
+              <h3 class="chart-title">Reproducciones vs Oyentes (Correlación Last.fm)</h3>
+              {{ chart_playcount_listeners | safe }}
+            </div>
+          </div>
+          <div class="col-12 mt-4">
+            <div class="chart-card">
+              <h3 class="chart-title">Índice de Snobismo (RYM vs Last.fm)</h3>
+              <p class="chart-subtitle">Votos en RYM vs Oyentes en Last.fm (Escala Logarítmica). Arriba a la izquierda:
+                Los Favoritos de la Crítica.</p>
+              {{ chart_snob_index | safe }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HALL OF FAME -->
+      <div class="tab-pane" id="hall">
+        <div class="row">
+
+          <div class="col-lg-6">
+            <div class="chart-card">
+              <h3 class="chart-title"><span class="text-amber">★</span> Favoritos de RYM</h3>
+              <p class="chart-subtitle">Favoritos de la comunidad. Alto ratio de votos RYM por cada oyente.</p>
+              <div class="hall-list">
+                {% for a in hall_of_fame.darlings %}
+                {{ hall_item(a.title, a.artist, (a.daring_ratio | round(2) | string) + ' ratio',
+                url_for('main.album_detail', album_id=a.id), icon='crown') }}
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-6">
+            <div class="chart-card">
+              <h3 class="chart-title">Obras de Culto</h3>
+              <p class="chart-subtitle">Obras maestras (Rating > 4.0) con el menor alcance en Last.fm.</p>
+              <div class="hall-list">
+                {% for a in hall_of_fame.gold %}
+                {{ hall_item(a.title, a.artist, a.rating | string, url_for('main.album_detail', album_id=a.id),
+                icon='gem') }}
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-6">
+            <div class="chart-card">
+              <h3 class="chart-title"> Discos Provocadores</h3>
+              <p class="chart-subtitle">Los discos que más invitan a la reseña y al debate (Ratio Review/Votos).</p>
+              <div class="hall-list">
+                {% for a in hall_of_fame.provocadores %}
+                {{ hall_item(a.title, a.artist, (a.provoc_ratio * 100) | round(1) | string + '% conv.',
+                url_for('main.album_detail', album_id=a.id), icon='comment-alt') }}
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-6">
+            <div class="chart-card">
+              <h3 class="chart-title">Los Inevitables</h3>
+              <p class="chart-subtitle">Discos ultra-populares que no terminan de convencer a los críticos (Rating <
+                  3.1).</p>
+                  <div class="hall-list">
+                    {% for a in hall_of_fame.inevitable %}
+                    {{ hall_item(a.title, a.artist, (a.listeners / 1000) | round | int | string + 'K oyentes',
+                    url_for('main.album_detail', album_id=a.id), icon='broadcast-tower') }}
+                    {% endfor %}
+                  </div>
+            </div>
+          </div>
+
         </div>
       </div>
 

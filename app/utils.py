@@ -1,3 +1,5 @@
+import requests
+import urllib.parse
 import pandas as pd
 from datetime import datetime
 from app import db
@@ -132,4 +134,69 @@ def resolve_album_id(text):
     if album:
         return album.id
     
-    return None
+    return None
+
+def get_cover_url(album):
+    """
+    Consigue la URL de la portada de un álbum de forma robusta.
+    1. Intenta iTunes con búsqueda refinada y validación de título.
+    2. Si no hay match claro, intenta MusicBrainz (CAA) si el MBID existe.
+    3. Si falla, intenta iTunes de nuevo con una búsqueda más laxa.
+    """
+    if not album:
+        return None
+
+    # Puede recibir un objeto Album o un diccionario (del recomendador)
+    title = getattr(album, 'title', album.get('title') if isinstance(album, dict) else "")
+    artist = getattr(album, 'artist', album.get('artist') if isinstance(album, dict) else "")
+    mbid = getattr(album, 'mbid', album.get('mbid') if isinstance(album, dict) else None)
+
+    if not title or not artist:
+        return None
+
+    # Limpiar título para mejor matching (ej: quitar "(remaster)", etc)
+    clean_title = title.split(' (')[0].split(' [')[0].strip()
+
+    # --- INTENTO 1: iTunes con Validación Estricta ---
+    try:
+        # Probamos "Artista Título" que suele dar mejores resultados en el buscador de iTunes
+        term = urllib.parse.quote(f"{artist} {clean_title}")
+        url = f"https://itunes.apple.com/search?term={term}&entity=album&limit=5"
+        resp = requests.get(url, timeout=2)
+        if resp.status_code == 200:
+            results = resp.json().get('results', [])
+            for res in results:
+                itunes_title = res.get('collectionName', '').lower()
+                itunes_artist = res.get('artistName', '').lower()
+                
+                # Validación: El título debe coincidir casi exactamente
+                if clean_title.lower() == itunes_title or \
+                   (clean_title.lower() in itunes_title and artist.lower() in itunes_artist):
+                    return res['artworkUrl100'].replace('100x100bb', '500x500bb')
+    except Exception:
+        pass
+
+    # --- INTENTO 2: MusicBrainz / Cover Art Archive (Fallback si iTunes falló o no fue preciso) ---
+    if mbid:
+        caa_url = f"https://coverartarchive.org/release-group/{mbid}/front"
+        try:
+            # Verificamos que la imagen exista (el usuario mencionó errores previos con MBID)
+            check = requests.head(caa_url, allow_redirects=True, timeout=1.5)
+            if check.status_code == 200:
+                return caa_url
+        except Exception:
+            pass
+
+    # --- INTENTO 3: iTunes laxo (último recurso) ---
+    try:
+        term = urllib.parse.quote(f"{title} {artist}")
+        url = f"https://itunes.apple.com/search?term={term}&entity=album&limit=1"
+        resp = requests.get(url, timeout=1.5)
+        if resp.status_code == 200:
+            data = resp.json()
+            if data.get('results'):
+                return data['results'][0]['artworkUrl100'].replace('100x100bb', '500x500bb')
+    except Exception:
+        pass
+
+    return None

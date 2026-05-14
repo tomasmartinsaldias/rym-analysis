@@ -41,7 +41,8 @@ _LAYOUT_SCATTER = dict(
     showlegend=True,
     legend=dict(
         orientation="h", yanchor="top", y=-0.2, xanchor="center", x=0.5,
-        font=dict(size=10, family='DM Mono, monospace')
+        font=dict(size=10, family='DM Mono, monospace'),
+        itemsizing='constant'
     ),
     autosize=True,
     margin=dict(t=30, b=0, l=0, r=0),
@@ -208,6 +209,83 @@ def chart_rym_rating_vs_playcount():
     fig.update_xaxes(showgrid=True, gridcolor='rgba(255,255,255,0.05)')
     return _fig_to_html(fig)
 
+def chart_playcount_vs_listeners():
+    res = db.session.query(Album.lastfm_listeners, Album.lastfm_playcount, Album.title, Album.artist).all()
+    df = pd.DataFrame(res, columns=['Listeners', 'Playcount', 'Title', 'Artist'])
+    df = df.dropna(subset=['Listeners', 'Playcount'])
+    
+    # Usar escala logarítmica si hay mucha dispersión, pero el usuario mandó captura con escala lineal
+    # Vamos a usar escala lineal como en su captura
+    fig = px.scatter(df, x='Listeners', y='Playcount', 
+                     hover_data=['Title', 'Artist'], 
+                     color_discrete_sequence=[COLOR_CIAN], opacity=0.4, height=450,
+                     render_mode='webgl')
+    
+    fig.update_layout(**_get_dark_layout())
+    fig.update_layout(title=None)
+    fig.update_xaxes(showgrid=True, gridcolor='rgba(255,255,255,0.05)', title="Oyentes (Last.fm)")
+    fig.update_yaxes(showgrid=True, gridcolor='rgba(255,255,255,0.05)', title="Reproducciones (Last.fm)")
+    return _fig_to_html(fig)
+
+def chart_rym_vs_lastfm():
+    res = db.session.query(Album.rating_count, Album.lastfm_listeners, Album.title, Album.artist, Album.avg_rating).all()
+    df = pd.DataFrame(res, columns=['RYM_Votes', 'Listeners', 'Title', 'Artist', 'Rating'])
+    df = df.dropna(subset=['RYM_Votes', 'Listeners'])
+    
+    # Filtro de calidad sugerido por el usuario
+    df = df[df['Listeners'] >= 1000]
+    
+    # Calcular ratio para colorear (opcional)
+    df['ratio'] = df['RYM_Votes'] / (df['Listeners'] + 1)
+    
+    fig = px.scatter(df, x='Listeners', y='RYM_Votes', 
+                     log_x=True, log_y=True,
+                     hover_data=['Title', 'Artist', 'Rating'], 
+                     color_discrete_sequence=[COLOR_AMBAR], opacity=0.4, height=500,
+                     render_mode='webgl')
+    
+    fig.update_layout(**_get_dark_layout())
+    fig.update_layout(title=None)
+    fig.update_xaxes(showgrid=True, gridcolor='rgba(255,255,255,0.05)', title="Oyentes Last.fm (Log)")
+    fig.update_yaxes(showgrid=True, gridcolor='rgba(255,255,255,0.05)', title="Votos RYM (Log)")
+    return _fig_to_html(fig)
+
+def get_hall_of_fame_data():
+    """Genera rankings especiales para el Hall of Fame."""
+    res = db.session.query(Album.id, Album.title, Album.artist, Album.avg_rating, 
+                           Album.rating_count, Album.review_count, Album.lastfm_listeners).all()
+    df = pd.DataFrame(res, columns=['id', 'title', 'artist', 'rating', 'votes', 'reviews', 'listeners'])
+    df = df.dropna(subset=['votes', 'listeners'])
+    
+    # Filtro de calidad sugerido por el usuario
+    df = df[df['listeners'] >= 1000]
+    
+    data = {}
+    
+    # 1. RYM Darlings (Favoritos de la Crítica)
+    # Mayor ratio votos RYM / Oyentes
+    df['daring_ratio'] = df['votes'] / (df['listeners'] + 1)
+    darlings = df.sort_values('daring_ratio', ascending=False).head(10)
+    data['darlings'] = darlings.to_dict('records')
+    
+    # 2. Underground Gold (Tesoros Ocultos)
+    # Rating >= 4.0 con menor cantidad de oyentes
+    gold = df[df['rating'] >= 4.0].sort_values('listeners', ascending=True).head(10)
+    data['gold'] = gold.to_dict('records')
+    
+    # 3. Provocadores (Engagement)
+    # Mayor ratio reviews / votos
+    df['provoc_ratio'] = df['reviews'] / (df['votes'] + 1)
+    provocadores = df.sort_values('provoc_ratio', ascending=False).head(10)
+    data['provocadores'] = provocadores.to_dict('records')
+    
+    # 4. Los Inevitables (Popular pero "Cuestionable" en RYM)
+    # Mayor cantidad de oyentes con rating < 3.1
+    inevitable = df[df['rating'] < 3.1].sort_values('listeners', ascending=False).head(10)
+    data['inevitable'] = inevitable.to_dict('records')
+    
+    return data
+
 def chart_mega_cluster_playcount_boxplot():
     rec_data = get_data()
     if rec_data is None: return ""
@@ -289,23 +367,23 @@ def get_scatter_html(seed_id=None, recommended_ids=None, highlighted_id=None, sh
     coords, clusters, info, album_ids, mega_cl = data['tsne_coords'], data['cluster_labels'], data['album_info'], data['album_ids'], data['mega_clusters']
     id_to_idx = {aid: i for i, aid in enumerate(album_ids)}
     df = pd.DataFrame({'x': coords[:, 0], 'y': coords[:, 1], 'galaxy': mega_cl, 'title': info['title'], 'artist': info['artist'], 'genres': info['genres'], 'role': 'Otros', 'cluster': [f"C{c}: {CLUSTER_NAMES.get(int(c), 'Otros')}" if c != -1 else "Otros" for c in clusters]})
-    if seed_id and seed_id in id_to_idx: df.loc[id_to_idx[seed_id], 'role'] = '⭐ Semilla'
+    if seed_id and seed_id in id_to_idx: df.loc[id_to_idx[seed_id], 'role'] = 'Semilla'
     if recommended_ids:
         for rid in recommended_ids:
-            if rid in id_to_idx and df.loc[id_to_idx[rid], 'role'] != '⭐ Semilla': df.loc[id_to_idx[rid], 'role'] = '🎯 Recomendado'
-    if highlighted_id and highlighted_id in id_to_idx: df.loc[id_to_idx[highlighted_id], 'role'] = '🔍 Buscado'
+            if rid in id_to_idx and df.loc[id_to_idx[rid], 'role'] != 'Semilla': df.loc[id_to_idx[rid], 'role'] = 'Recomendado'
+    if highlighted_id and highlighted_id in id_to_idx: df.loc[id_to_idx[highlighted_id], 'role'] = 'Buscado'
     has_h = bool(seed_id or recommended_ids or highlighted_id)
     fig = px.scatter(df[df['role'] == 'Otros'] if has_h else df, x='x', y='y', color='galaxy', color_discrete_map=MEGA_CLUSTER_COLORS, custom_data=['title', 'artist', 'genres', 'cluster', 'galaxy'], opacity=0.35 if has_h else 0.75, render_mode='webgl', labels={'galaxy': ''})
     fig.update_traces(hovertemplate='<b>%{customdata[0]}</b><br>%{customdata[1]}<br><span style="color:#e8a430">%{customdata[4]}</span> > %{customdata[3]}<extra></extra>')
     if recommended_ids:
-        recs = df[df['role'] == '🎯 Recomendado']
-        fig.add_trace(go.Scattergl(x=recs['x'], y=recs['y'], mode='markers', marker=dict(size=12, color='red', symbol='diamond', line=dict(width=1, color='white')), name='🎯 Recomendados', customdata=recs[['title', 'artist']].values, hovertemplate='<b>%{customdata[0]}</b><br>%{customdata[1]}<br><span style="color:#ff6b6b;">🎯 Recomendado</span><extra></extra>'))
+        recs = df[df['role'] == 'Recomendado']
+        fig.add_trace(go.Scattergl(x=recs['x'], y=recs['y'], mode='markers', marker=dict(size=10, color='red', symbol='diamond', line=dict(width=1, color='white')), name='Recomendados', customdata=recs[['title', 'artist']].values, hovertemplate='<b>%{customdata[0]}</b><br>%{customdata[1]}<br><span style="color:#ff6b6b;">Recomendado</span><extra></extra>'))
     if seed_id:
-        seeds = df[df['role'] == '⭐ Semilla']
-        fig.add_trace(go.Scattergl(x=seeds['x'], y=seeds['y'], mode='markers', marker=dict(size=18, color='gold', symbol='star', line=dict(width=2, color='white')), name='⭐ Semilla', customdata=seeds[['artist', 'cluster', 'title']].values, hovertemplate='<b>%{customdata[2]}</b><br>%{customdata[0]}<br><span style="color:gold;">⭐ Semilla</span><extra></extra>'))
+        seeds = df[df['role'] == 'Semilla']
+        fig.add_trace(go.Scattergl(x=seeds['x'], y=seeds['y'], mode='markers', marker=dict(size=14, color='gold', symbol='star', line=dict(width=1.5, color='white')), name='Semilla', customdata=seeds[['artist', 'cluster', 'title']].values, hovertemplate='<b>%{customdata[2]}</b><br>%{customdata[0]}<br><span style="color:gold;">Semilla</span><extra></extra>'))
     if highlighted_id:
-        h = df[df['role'] == '🔍 Buscado']
-        fig.add_trace(go.Scattergl(x=h['x'], y=h['y'], mode='markers', marker=dict(size=12, color='white', symbol='circle', line=dict(width=3, color='#4dc9e6')), name='🔍 Buscado', customdata=h[['artist', 'cluster', 'title']].values, hovertemplate='<b>%{customdata[2]}</b><br>%{customdata[0]}<br><span style="color:#4dc9e6;">🔍 Buscado</span><extra></extra>'))
+        h = df[df['role'] == 'Buscado']
+        fig.add_trace(go.Scattergl(x=h['x'], y=h['y'], mode='markers', marker=dict(size=12, color='white', symbol='circle', line=dict(width=3, color='#4dc9e6')), name='Buscado', customdata=h[['artist', 'cluster', 'title']].values, hovertemplate='<b>%{customdata[2]}</b><br>%{customdata[0]}<br><span style="color:#4dc9e6;">Buscado</span><extra></extra>'))
     
     fig.update_layout(**_LAYOUT_SCATTER)
     if not show_legend:

@@ -108,25 +108,41 @@
    --------------------------------------------------------- */
 .seed-profile-card {
     display: flex;
-    gap: 24px;
+    gap: 32px;
     background: var(--bg-card);
-    border: 1px solid var(--amber-border);
-    border-radius: var(--r-lg);
-    box-shadow: 0 0 20px rgba(232, 164, 48, 0.05);
-    padding: 24px;
-    margin-bottom: 32px;
-    align-items: center;
+    border: 1px solid var(--border-amber);
+    border-radius: var(--r-xl);
+    box-shadow:
+        0 10px 40px rgba(0, 0, 0, 0.4),
+        0 0 0 1px var(--amber-border);
+    padding: 32px;
+    margin-bottom: 40px;
+    align-items: flex-start;
+    position: relative;
+    overflow: hidden;
+}
+
+.seed-profile-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle at top right, rgba(232, 164, 48, 0.08), transparent 70%);
+    pointer-events: none;
 }
 
 .seed-cover {
-    width: 140px;
-    height: 140px;
+    width: 180px;
+    height: 180px;
     flex-shrink: 0;
     position: relative;
     background: var(--bg-surface);
     border-radius: var(--r-md);
     overflow: hidden;
-    border: 1px solid var(--border-subtle);
+    border: 1px solid var(--border-medium);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
 }
 
 .seed-cover img {
@@ -135,80 +151,93 @@
     object-fit: cover;
 }
 
-.seed-cover .cover-fallback {
-    position: absolute;
-    inset: 0;
-    font-size: 48px;
-}
-
 .seed-info {
     flex: 1;
     min-width: 0;
 }
 
-.seed-header {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    margin-bottom: 8px;
+.seed-badge-row {
+    margin-bottom: 14px;
 }
 
 .seed-badge {
     font-family: var(--font-mono);
     font-size: 10px;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.12em;
     background: var(--amber-dim);
     color: var(--amber);
-    padding: 2px 8px;
+    padding: 3px 10px;
     border-radius: var(--r-sm);
     border: 1px solid var(--amber-border);
 }
 
-.seed-info h3 {
+.seed-title {
     font-family: var(--font-display);
-    font-size: 28px;
+    font-size: clamp(32px, 5vw, 42px);
     font-weight: 400;
     color: var(--text-primary);
-    margin-bottom: 4px;
-    line-height: 1.1;
+    margin-bottom: 6px;
+    line-height: 1.05;
 }
 
-.seed-info h3 a {
+.seed-title a {
     color: inherit;
     text-decoration: none;
     transition: color var(--t-fast);
 }
 
-.seed-info h3 a:hover {
+.seed-title a:hover {
     color: var(--amber);
 }
 
 .seed-artist {
     font-family: var(--font-mono);
     color: var(--text-secondary);
-    font-size: 13px;
-    margin-bottom: 14px;
+    font-size: 15px;
+    margin-bottom: 24px;
+    letter-spacing: 0.02em;
 }
 
-.seed-galaxy {
-    font-family: var(--font-mono);
-    font-size: 10px;
+.seed-meta-grid {
+    display: flex;
+    gap: 40px;
+    margin-bottom: 24px;
+    padding: 16px 0;
+    border-top: 1px solid var(--border-subtle);
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.meta-box {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.vibe-badge-lg,
+.galaxy-value-lg {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 20px;
+    line-height: 1.1;
+    letter-spacing: 0;
+}
+
+.vibe-badge-lg {
     color: var(--cyan);
-    text-transform: uppercase;
-    letter-spacing: 0.16em;
-    margin-bottom: 12px;
-    border-left: 2px solid var(--cyan-border);
-    padding-left: 10px;
-    opacity: 0.85;
+}
+
+.galaxy-value-lg {
+    color: var(--amber);
+    font-weight: 400;
+    /* Normal weight for Playfair */
+    opacity: 1;
 }
 
 .seed-stats {
     display: flex;
-    gap: 28px;
-    margin-bottom: 14px;
-    padding-top: 12px;
-    border-top: 1px solid var(--border-subtle);
+    gap: 40px;
+    margin-bottom: 24px;
 }
 
 .seed-stats .stat-item {
@@ -286,15 +315,27 @@
     background: rgba(255, 255, 255, 0.07);
 }
 
-@media (max-width: 600px) {
+@media (max-width: 650px) {
     .seed-profile-card {
         flex-direction: column;
-        align-items: flex-start;
+        gap: 24px;
+        padding: 24px;
     }
 
     .seed-cover {
-        width: 100px;
-        height: 100px;
+        width: 100%;
+        max-width: 240px;
+        height: auto;
+        aspect-ratio: 1/1;
+    }
+
+    .seed-title {
+        font-size: 28px;
+    }
+
+    .seed-meta-grid {
+        gap: 20px;
+        flex-wrap: wrap;
     }
 }
 

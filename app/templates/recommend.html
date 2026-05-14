@@ -47,13 +47,25 @@
             {% endif %}
         </div>
         <div class="seed-info">
-            <div class="seed-header">
+            <div class="seed-badge-row">
                 <span class="seed-badge">⭐ Semilla</span>
-                <span class="cluster-badge">{{ seed_cluster }}</span>
             </div>
-            <div class="seed-galaxy">{{ seed_mega }}</div>
-            <h3><a href="{{ url_for('main.album_detail', album_id=seed_album.id) }}">{{ seed_album.title }}</a></h3>
+
+            <h3 class="seed-title">
+                <a href="{{ url_for('main.album_detail', album_id=seed_album.id) }}">{{ seed_album.title }}</a>
+            </h3>
             <p class="seed-artist">{{ seed_album.artist }}</p>
+
+            <div class="seed-meta-grid">
+                <div class="meta-box">
+                    <span class="nd-label-xs">Vibe</span>
+                    <span class="vibe-badge-lg">{{ seed_cluster }}</span>
+                </div>
+                <div class="meta-box">
+                    <span class="nd-label-xs">Galaxia</span>
+                    <span class="galaxy-value-lg">{{ seed_mega }}</span>
+                </div>
+            </div>
 
             <div class="seed-stats">
                 <div class="stat-item">

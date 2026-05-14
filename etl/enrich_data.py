@@ -1,9 +1,12 @@
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from app import create_app, db
 from app.utils import process_csv_to_db
 from app.models import Album
 from sqlalchemy import func
 import time
-import os
 import json
 import pylast
 import musicbrainzngs
@@ -177,7 +180,7 @@ if __name__ == '__main__':
         
         print("Leyendo lista de álbumes desde el CSV...")
         try:
-            df = pd.read_csv('rym_clean1.csv')
+            df = pd.read_csv(os.path.join('data', 'rym_clean1.csv'))
             # Enriquecemos el criterio de unicidad incluyendo la fecha
             df_unique = df[['release_name', 'artist_name', 'release_date']].drop_duplicates()
 

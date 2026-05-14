@@ -1,19 +1,14 @@
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
+import sys
 import os
-import re
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-db = SQLAlchemy()
+from app import create_app, db
+from app.models import Album
+from sqlalchemy import func
 
 def check():
-    app = Flask(__name__)
-    db_path = os.path.join(os.getcwd(), 'instance', 'database.db')
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    db.init_app(app)
-
+    app = create_app()
     with app.app_context():
-        from app.models import Album
         
         all_artists = db.session.query(Album.artist).distinct().all()
         
