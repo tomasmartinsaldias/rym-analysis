@@ -1,9 +1,14 @@
 import requests
 import urllib.parse
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
-from app.recommender import (get_album_list, recommend, get_scatter_html,
-    get_filtered_scatter_html, get_affinities,
-    make_ratings_chart, make_listeners_chart, make_radar_chart)
+from app.recommender import get_album_list, recommend, CLUSTER_NAMES
+from app.analysis import (
+    get_scatter_html, get_filtered_scatter_html, get_affinities,
+    make_ratings_chart, make_listeners_chart, make_radar_chart,
+    get_user_collection_map_html
+)
+
+from app.utils import resolve_album_id, get_cover_url
 import concurrent.futures
 
 main_bp = Blueprint('main', __name__)
@@ -25,7 +30,7 @@ def index():
     
     if recommender_available:
         if q:
-            resolved_id = _resolve_album_id(q)
+            resolved_id = resolve_album_id(q)
             found = Album.query.get(resolved_id) if resolved_id else None
             
         highlight = album_id if album_id else (found.id if found else None)
@@ -43,7 +48,7 @@ def index():
     else:
         # Fallback if recommender not built
         if q:
-            resolved_id = _resolve_album_id(q)
+            resolved_id = resolve_album_id(q)
             found = Album.query.get(resolved_id) if resolved_id else None
         stats = {
             'album_count': Album.query.count(),
@@ -89,25 +94,45 @@ def album_detail(album_id):
     if current_app.recommender_data is not None:
         radar_chart_html = make_radar_chart(album.id)
         
-    cover_url = None
-    try:
-        term = urllib.parse.quote(f"{album.title} {album.artist}")
-        url = f"https://itunes.apple.com/search?term={term}&entity=album&limit=1"
-        response = requests.get(url, timeout=2)
-        if response.status_code == 200:
-            data = response.json()
-            if data.get('results') and data['results'][0].get('artworkUrl100'):
-                cover_url = data['results'][0]['artworkUrl100'].replace('100x100bb', '500x500bb')
-    except Exception:
-        pass
-        
-    if not cover_url and album.mbid:
-        cover_url = f"https://coverartarchive.org/release-group/{album.mbid}/front"
+    cover_url = get_cover_url(album)
     
+    # Obtener géneros separados (Primarios vs Secundarios)
+    from app.models import album_genres, Genre
+    from app import db
+    genres_data = db.session.query(Genre.name, album_genres.c.is_primary)\
+        .join(album_genres, Genre.id == album_genres.c.genre_id)\
+        .filter(album_genres.c.album_id == album.id).all()
+        
+    primary_genres = [g[0] for g in genres_data if g[1]]
+    secondary_genres = [g[0] for g in genres_data if not g[1]]
+    
+    cluster_id = None
+    cluster_name = None
+    mega_cluster = None
+    scatter_html = None
+    if current_app.recommender_data is not None:
+        data_pkl = current_app.recommender_data
+        try:
+            idx = list(data_pkl['album_ids']).index(album.id)
+            cluster_id = int(data_pkl['cluster_labels'][idx])
+            cluster_name = CLUSTER_NAMES.get(cluster_id, 'Otros') if cluster_id != -1 else 'Otros'
+            mega_cluster = data_pkl['mega_clusters'][idx]
+            
+            # Generar mapa resaltado (puntos borrosos + álbum actual) sin leyenda
+            scatter_html = get_scatter_html(highlighted_id=album.id, show_legend=False)
+        except ValueError:
+            pass
+
     return render_template('album_detail.html', 
                            album=album, 
                            radar_chart_html=radar_chart_html,
                            cover_url=cover_url,
+                           primary_genres=primary_genres,
+                           secondary_genres=secondary_genres,
+                           cluster_id=cluster_id,
+                           cluster_name=cluster_name,
+                           mega_cluster=mega_cluster,
+                           scatter_html=scatter_html,
                            page_title=album.title)
 
 @main_bp.route('/data')
@@ -145,15 +170,16 @@ def data():
         listeners_max = None
 
     sel_cluster  = request.args.get('cluster',      type=int)
+    sel_mega     = request.args.get('mega',         '').strip()
     sel_label    = request.args.get('label', '').strip()
-    sort         = request.args.get('sort',  'rating')
+    sort         = request.args.get('sort',  'rating_count')
     order        = request.args.get('order', 'desc')
     page         = request.args.get('page',  1, type=int)
 
     # Validar
     valid_sorts = {'rating', 'rating_count', 'listeners', 'playcount', 'year', 'title'}
     if sort not in valid_sorts:
-        sort = 'rating'
+        sort = 'rating_count'
     if order not in {'asc', 'desc'}:
         order = 'desc'
     if genre_mode not in {'and', 'or'}:
@@ -198,16 +224,22 @@ def data():
         qry = qry.filter(Album.lastfm_listeners <= listeners_max)
 
     # Filtro de cluster (requiere el pkl)
-    if sel_cluster is not None and current_app.recommender_data is not None:
+    if (sel_cluster is not None or sel_mega) and current_app.recommender_data is not None:
         pkl      = current_app.recommender_data
         ids_pkl  = pkl['album_ids']
         labels   = pkl['cluster_labels']
-        ids_in_cluster = {aid for aid, lbl in zip(ids_pkl, labels)
-                          if lbl == sel_cluster}
+        mega_cls = pkl['mega_clusters']
+        
+        if sel_cluster is not None:
+            ids_in_cluster = {aid for aid, lbl in zip(ids_pkl, labels)
+                              if lbl == sel_cluster}
+        else: # sel_mega
+            ids_in_cluster = {aid for aid, mcl in zip(ids_pkl, mega_cls)
+                              if mcl == sel_mega}
+            
         if ids_in_cluster:
             qry = qry.filter(Album.id.in_(ids_in_cluster))
         else:
-            # Cluster sin resultados → filtro imposible
             qry = qry.filter(db.false())
 
     # Filtro de sello
@@ -245,9 +277,11 @@ def data():
     all_descriptors = Descriptor.query.filter(Descriptor.name != '...').order_by(Descriptor.name).all()
 
     all_clusters = []
+    all_mega = []
     if current_app.recommender_data is not None:
         raw_labels   = current_app.recommender_data['cluster_labels']
         all_clusters = sorted({int(c) for c in raw_labels if c != -1})
+        all_mega = sorted({str(m) for m in current_app.recommender_data['mega_clusters'] if m != "Otros"})
         
     all_labels = [row[0] for row in db.session.query(Album.label).filter(Album.label.isnot(None)).distinct().order_by(Album.label).all() if row[0].strip()]
 
@@ -258,7 +292,7 @@ def data():
     has_filters = bool(q or sel_genres or sel_descs
                        or rating_min is not None or rating_max is not None
                        or listeners_min is not None or listeners_max is not None
-                       or sel_cluster is not None or sel_label)
+                       or sel_cluster is not None or sel_mega or sel_label)
 
     return render_template('data.html',
         page_title='Explorador de Álbumes',
@@ -271,6 +305,8 @@ def data():
         all_genres=all_genres,
         all_descriptors=all_descriptors,
         all_clusters=all_clusters,
+        all_mega=all_mega,
+        cluster_names=CLUSTER_NAMES,
         all_labels=all_labels,
         search_suggestions=search_suggestions,
         # Valores actuales de filtros
@@ -284,6 +320,7 @@ def data():
         listeners_min=listeners_min,
         listeners_max=listeners_max,
         sel_cluster=sel_cluster,
+        sel_mega=sel_mega,
         sel_label=sel_label,
         sort=sort,
         order=order,
@@ -292,7 +329,122 @@ def data():
 
 @main_bp.route('/analysis')
 def analysis():
-    return "Aquí se mostrarán los gráficos y análisis."
+    from app.analysis import (
+        chart_rating_by_year, chart_albums_by_year, chart_rating_by_decade,
+        chart_rym_rating_vs_listeners, chart_rym_rating_vs_playcount,
+        chart_playcount_vs_listeners, chart_rym_vs_lastfm,
+        chart_mega_cluster_playcount_boxplot, get_rankings_data, get_hall_of_fame_data
+    )
+
+    return render_template('analysis.html',
+        plotly_required=True,
+        # Temporal
+        chart_rating_year=chart_rating_by_year(),
+        chart_albums_year=chart_albums_by_year(),
+        chart_rating_decade=chart_rating_by_decade(),
+        chart_rym_listeners=chart_rym_rating_vs_listeners(),
+        chart_rym_playcount=chart_rym_rating_vs_playcount(),
+        chart_playcount_listeners=chart_playcount_vs_listeners(),
+        chart_snob_index=chart_rym_vs_lastfm(),
+        chart_mega_boxplot=chart_mega_cluster_playcount_boxplot(),
+        # Rankings (Data Cruda para CSS Bars)
+        rankings=get_rankings_data(),
+        hall_of_fame=get_hall_of_fame_data()
+    )
+
+@main_bp.route('/user-map', methods=['GET', 'POST'])
+def user_map():
+    from app.models import Album
+    import pandas as pd
+
+    from sqlalchemy import func
+
+    user_map_html = None
+    album_counts = {}
+    stats = None
+    matched_albums = []
+    top_albums = []
+    top_genres = []
+    ratings_chart_html = None
+    listeners_chart_html = None
+
+    if request.method == 'POST':
+        file = request.files.get('file')
+        if file and file.filename.endswith('.csv'):
+            try:
+                df_user = pd.read_csv(file)
+                col_album = next((c for c in df_user.columns if 'album' in c.lower()), None)
+                col_artist = next((c for c in df_user.columns if 'artist' in c.lower()), None)
+
+                if col_album and col_artist:
+                    counts = df_user.groupby([col_album, col_artist]).size().reset_index(name='songs')
+                    
+                    matched_albums = []
+                    for _, row in counts.iterrows():
+                        album_obj = Album.query.filter(
+                            func.lower(Album.title) == func.lower(str(row[col_album])),
+                            func.lower(Album.artist) == func.lower(str(row[col_artist]))
+                        ).first()
+                        if album_obj:
+                            album_counts[album_obj.id] = int(row['songs'])
+                            matched_albums.append(album_obj)
+                    
+                    user_map_html = get_user_collection_map_html(album_counts)
+                    
+                    if matched_albums:
+                        # DATA PARA DASHBOARD (IDÉNTICA A INDEX.HTML)
+                        m_df = pd.DataFrame([{
+                            'rating': a.avg_rating,
+                            'listeners': a.lastfm_listeners,
+                            'rating_count': a.rating_count,
+                            'genres': a.genres,
+                            'title': a.title,
+                            'artist': a.artist,
+                            'id': a.id
+                        } for a in matched_albums])
+
+                        # Stats globales de la colección
+                        all_genres = []
+                        for g_list in m_df['genres']:
+                            all_genres.extend([g.name for g in g_list])
+                        
+                        top_genres_data = pd.Series(all_genres).value_counts().head(10).reset_index()
+                        top_genres_data.columns = ['name', 'count']
+
+                        stats = {
+                            'album_count': len(matched_albums),
+                            'avg_rating': m_df['rating'].mean(),
+                            'genre_count': len(set(all_genres)),
+                            'cluster_count': len(m_df), # En colección propia, clusters = albums mostrados
+                            'avg_listeners': f"{int(m_df['listeners'].mean()/1000)}K" if not m_df.empty else "0K",
+                            'total_ratings': f"{round(m_df['rating_count'].sum()/1000000, 1)}M" if not m_df.empty else "0M"
+                        }
+
+                        # Preparar listas
+                        top_albums = m_df.sort_values('rating', ascending=False).head(10).to_dict('records')
+                        top_genres = top_genres_data.to_dict('records')
+
+                        # Gráficos usando helper centralizado
+                        from app.analysis import make_histogram_html, COLOR_AMBAR, COLOR_CIAN
+
+                        ratings_chart_html = make_histogram_html(m_df, 'rating', COLOR_AMBAR)
+                        listeners_chart_html = make_histogram_html(m_df, 'listeners', COLOR_CIAN)
+
+                    flash(f"¡Universo actualizado! Se identificaron {len(album_counts)} álbumes.")
+                else:
+                    flash("No se encontraron columnas de 'Album' o 'Artist' en el CSV.", "error")
+            except Exception as e:
+                flash(f"Error al procesar el CSV: {str(e)}", "error")
+
+    return render_template('user_map.html', 
+                           user_map_html=user_map_html, 
+                           stats=stats,
+                           top_albums=top_albums if matched_albums else [],
+                           top_genres=top_genres if matched_albums else [],
+                           ratings_chart_html=ratings_chart_html if matched_albums else None,
+                           listeners_chart_html=listeners_chart_html if matched_albums else None,
+                           plotly_required=True,
+                           page_title="Mi Mapa Musical")
 
 @main_bp.route('/recommend', methods=['GET', 'POST'])
 def recommend_page():
@@ -305,7 +457,7 @@ def recommend_page():
     if recommender_available:
         if request.method == 'POST':
             seed_text = request.form.get('seed_text', '').strip()
-            seed_id = _resolve_album_id(seed_text)
+            seed_id = resolve_album_id(seed_text)
         elif request.method == 'GET':
             album_id = request.args.get('album_id', type=int)
             if album_id:
@@ -321,20 +473,36 @@ def recommend_page():
         affinities = get_affinities(results)
         
         def fetch_cover(res):
-            try:
-                term = urllib.parse.quote(f"{res['title']} {res['artist']}")
-                url = f"https://itunes.apple.com/search?term={term}&entity=album&limit=1"
-                resp = requests.get(url, timeout=1.5)
-                if resp.status_code == 200:
-                    data = resp.json()
-                    if data.get('results') and data['results'][0].get('artworkUrl100'):
-                        res['cover_url'] = data['results'][0]['artworkUrl100'].replace('100x100bb', '500x500bb')
-                        return
-            except Exception: pass
-            res['cover_url'] = None
+            res['cover_url'] = get_cover_url(res)
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
             executor.map(fetch_cover, results)
+            
+        seed_album_obj = Album.query.get(seed_id)
+        seed_cover_url = None
+        seed_cluster = 'N/A'
+        
+        if seed_album_obj:
+            seed_cover_url = get_cover_url(seed_album_obj)
+                
+            data_pkl = current_app.recommender_data
+            try:
+                idx = list(data_pkl['album_ids']).index(seed_id)
+                cluster_lbl = data_pkl['cluster_labels'][idx]
+                seed_cluster = CLUSTER_NAMES.get(int(cluster_lbl), 'Otros') if cluster_lbl != -1 else 'Otros'
+                seed_mega = data_pkl['mega_clusters'][idx]
+            except ValueError:
+                seed_mega = 'Otros'
+                pass
+            
+            # Géneros separados para la tarjeta semilla
+            from app.models import album_genres as ag_table, Genre
+            from app import db as _db
+            genres_data = _db.session.query(Genre.name, ag_table.c.is_primary)\
+                .join(ag_table, Genre.id == ag_table.c.genre_id)\
+                .filter(ag_table.c.album_id == seed_id).all()
+            seed_primary_genres = [g[0] for g in genres_data if g[1]]
+            seed_secondary_genres = [g[0] for g in genres_data if not g[1]]
         
         return render_template('recommend.html',
                              page_title='Recomendaciones — RYM Analysis',
@@ -343,7 +511,13 @@ def recommend_page():
                              results=results,
                              scatter_html=scatter_html,
                              affinities=affinities,
-                             seed_text=seed_text)
+                             seed_text=seed_text,
+                             seed_album=seed_album_obj,
+                             seed_cover_url=seed_cover_url,
+                             seed_cluster=seed_cluster,
+                             seed_mega=seed_mega,
+                             seed_primary_genres=seed_primary_genres,
+                             seed_secondary_genres=seed_secondary_genres)
     
     return render_template('recommend.html',
                          page_title='Recomendador — RYM Analysis',
@@ -351,26 +525,3 @@ def recommend_page():
                          albums_list=get_album_list() if recommender_available else [],
                          results=None)
 
-def _resolve_album_id(text):
-    """
-    Resuelve un texto de búsqueda a un album ID.
-    """
-    from app.models import Album
-    if not text: return None
-    
-    if ' — ' in text:
-        parts = text.split(' — ', 1)
-        title_part = parts[0].strip()
-        artist_part = parts[1].strip()
-        if artist_part and artist_part[-1] == ')' and '(' in artist_part:
-            artist_part = artist_part[:artist_part.rfind('(')].strip()
-        album = Album.query.filter(Album.title.ilike(title_part), Album.artist.ilike(artist_part)).first()
-        if album: return album.id
-    
-    album = Album.query.filter(Album.title.ilike(f'%{text}%')).first()
-    if album: return album.id
-    
-    album = Album.query.filter(Album.artist.ilike(f'%{text}%')).first()
-    if album: return album.id
-    
-    return None

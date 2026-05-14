@@ -1,0 +1,103 @@
+"""
+app/recommender/constants.py
+────────────────────────────
+Definición de la jerarquía de clusters (Galaxias) y paleta de colores.
+Actualizado según la nueva estructura de 45 clusters (20D).
+"""
+
+# Mapeo de Cluster ID -> Nombre de la Galaxia (Mega Cluster)
+MEGA_CLUSTER_MAP = {
+    # 1. Rock Alternativo e Indie
+    13: "Rock Alternativo e Indie", 37: "Rock Alternativo e Indie", 36: "Rock Alternativo e Indie", 
+    42: "Rock Alternativo e Indie", 41: "Rock Alternativo e Indie", 16: "Rock Alternativo e Indie",
+    
+    # 2. Hip Hop y R&B
+    5: "Hip Hop y R&B", 6: "Hip Hop y R&B", 7: "Hip Hop y R&B", 8: "Hip Hop y R&B", 
+    9: "Hip Hop y R&B", 40: "Hip Hop y R&B", 43: "Hip Hop y R&B",
+    
+    # 3. Metal y Hardcore
+    29: "Metal y Hardcore", 11: "Metal y Hardcore", 3: "Metal y Hardcore", 10: "Metal y Hardcore", 
+    15: "Metal y Hardcore", 14: "Metal y Hardcore", 4: "Metal y Hardcore", 12: "Metal y Hardcore",
+    
+    # 4. Rock Clásico y Progresivo
+    28: "Rock Clásico y Progresivo", 20: "Rock Clásico y Progresivo", 21: "Rock Clásico y Progresivo", 
+    22: "Rock Clásico y Progresivo", 27: "Rock Clásico y Progresivo", 23: "Rock Clásico y Progresivo",
+    
+    # 5. Cantautor y Folk
+    30: "Cantautor y Folk", 35: "Cantautor y Folk", 34: "Cantautor y Folk",
+    
+    # 6. Electrónica, Pop y Sintetizadores
+    38: "Electrónica, Pop y Sintetizadores", 44: "Electrónica, Pop y Sintetizadores", 
+    39: "Electrónica, Pop y Sintetizadores", 31: "Electrónica, Pop y Sintetizadores", 
+    32: "Electrónica, Pop y Sintetizadores",
+    
+    # 7. Jazz y Música Instrumental
+    2: "Jazz y Música Instrumental", 1: "Jazz y Música Instrumental", 
+    33: "Jazz y Música Instrumental", 26: "Jazz y Música Instrumental",
+    
+    # 8. Experimental y Post-Punk
+    18: "Experimental y Post-Punk", 19: "Experimental y Post-Punk", 0: "Experimental y Post-Punk", 
+    17: "Experimental y Post-Punk", 24: "Experimental y Post-Punk", 25: "Experimental y Post-Punk"
+}
+
+# Paleta de colores para las Galaxias (Estética Cinematic/Deep Space)
+MEGA_CLUSTER_COLORS = {
+    "Rock Alternativo e Indie": "#f9ca24",         # Yellow
+    "Hip Hop y R&B": "#f0932b",                    # Orange
+    "Metal y Hardcore": "#eb4d4b",                 # Red
+    "Rock Clásico y Progresivo": "#ffbe76",        # Topaz
+    "Cantautor y Folk": "#6ab04c",                 # Green
+    "Electrónica, Pop y Sintetizadores": "#e056fd", # Purple
+    "Jazz y Música Instrumental": "#4834d4",       # Deep Blue
+    "Experimental y Post-Punk": "#686de0",         # Exodus Blue
+    "Otros": "#535c68"
+}
+
+# Nombres descriptivos para los Micro Clusters (se muestran en tooltips)
+CLUSTER_NAMES = {
+    0: "Post-Rock y Experimental",
+    1: "Jazz Fusion y Vanguardia",
+    2: "Jazz Clásico (Bop/Modal)",
+    3: "Metal Alternativo y Nu Metal",
+    4: "Stoner y Metal Industrial",
+    5: "Trap y Pop Rap",
+    6: "Rap Clásico y Gangsta",
+    7: "Jazz Rap y Conscious Hip Hop",
+    8: "Rap de Mensaje y West Coast",
+    9: "Hip Hop Experimental",
+    10: "Black Metal y Metal Melódico",
+    11: "Thrash y Groove Metal",
+    12: "Punk y Pop Punk",
+    13: "Rock Alternativo",
+    14: "Metal Progresivo y Técnico",
+    15: "Death Metal",
+    16: "Post-Hardcore y Math Rock",
+    17: "Noise Rock",
+    18: "Post-Punk y Art Punk",
+    19: "Rock Gótico y Oscuro",
+    20: "Rock Progresivo",
+    21: "Rock Sinfónico",
+    22: "Rock Psicodélico Clásico",
+    23: "Pop Rock Clásico",
+    24: "Art Rock Experimental",
+    25: "Industrial y Avant-Folk",
+    26: "Ambient y Música de Cine",
+    27: "Blues Rock y Garage",
+    28: "Hard Rock y Glam",
+    29: "Heavy Metal Clásico",
+    30: "Cantautor y Folk Acústico",
+    31: "Electrónica de Baile",
+    32: "IDM y Trip Hop",
+    33: "Soul, Funk y Jazz Vocal",
+    34: "Folk Rock y Country Rock",
+    35: "Folk Contemporáneo y Americana",
+    36: "Indie Pop y Jangle Pop",
+    37: "Indie Rock y Lo-Fi",
+    38: "Synthpop y New Wave",
+    39: "Art Pop",
+    40: "Neo-Soul y R&B Moderno",
+    41: "Psicodelia Moderna",
+    42: "Dream Pop y Shoegaze",
+    43: "R&B y Pop Comercial",
+    44: "Electropop"
+}

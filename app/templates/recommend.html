@@ -7,124 +7,187 @@
 
 {% block content %}
 <div class="recommend-container">
-<!-- Hero -->
-<section class="hero-section">
-    <h1>El motor de <em>Similitud</em></h1>
-    <p>Recomendaciones basadas en descriptores, géneros y popularidad</p>
-</section>
+    <!-- Hero -->
+    <section class="hero-section">
+        <h1>The <em>Lost</em> and <em>Found</em></h1>
+        <p>Recomendaciones basadas en descriptores, géneros, popularidad y rating</p>
+    </section>
 
-{% if not recommender_available %}
-<div class="no-data">
-    <p>[!] Recomendador no disponible. Ejecutá `python build_recommender.py`</p>
-</div>
-{% else %}
+    {% if not recommender_available %}
+    <div class="no-data">
+        <p>[!] Recomendador no disponible. Ejecutá `python build_recommender.py`</p>
+    </div>
+    {% else %}
 
-<!-- Formulario Semilla -->
-<div class="form-card">
-    <form method="POST" action="{{ url_for('main.recommend_page') }}">
-        <div class="seed-input-group">
-            <input type="text" name="seed_text" list="albums-list"
-                   placeholder="Ingresá un álbum semilla..." autocomplete="off" required
-                   value="{{ seed_text | default('') }}">
-            <button type="submit" class="btn-recommend">Analizar</button>
-        </div>
-        <datalist id="albums-list">
-            {% for album in albums_list %}
-            <option value="{{ album.title }} — {{ album.artist }}{% if album.release_year %} ({{ album.release_year }}){% endif %}">
-            {% endfor %}
-        </datalist>
-    </form>
-</div>
-
-<!-- ========== RESULTADOS ========== -->
-{% if results %}
-
-<h2 class="section-title">Resultados</h2>
-<div class="results-grid">
-    {% for album in results %}
-    <a class="album-card" href="{{ url_for('main.album_detail', album_id=album.album_id) }}">
-        <div class="cover-fallback">{{ album.title[:2] }}</div>
-        
-        {% if album.cover_url %}
-            <img src="{{ album.cover_url }}" alt="Portada de {{ album.title }}" loading="lazy">
-        {% elif album.mbid %}
-            <img src="https://coverartarchive.org/release-group/{{ album.mbid }}/front" alt="Portada de {{ album.title }}" loading="lazy">
-        {% endif %}
-        
-        <div class="album-overlay">
-            <div class="overlay-header">
-                <span class="rank-badge">#{{ loop.index }}</span>
-                <span class="cluster-badge">Cluster {{ album.cluster }}</span>
+    <!-- Formulario Semilla -->
+    <div class="form-card">
+        <form method="POST" action="{{ url_for('main.recommend_page') }}">
+            <div class="seed-input-group">
+                <input type="text" name="seed_text" list="albums-list" placeholder="Ingresá un álbum semilla..."
+                    autocomplete="off" required value="{{ seed_text | default('') }}">
+                <button type="submit" class="btn-recommend">Analizar</button>
             </div>
-            
-            <div class="overlay-body">
-                <h5 title="{{ album.title }}">{{ album.title }}</h5>
-                <div class="artist">{{ album.artist }}</div>
-                
-                <div class="overlay-stats">
-                    <div class="stat-item">
-                        <span class="stat-label">Rating</span>
-                        <span class="stat-value">{{ "%.2f"|format(album.avg_rating) }}</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Afinidad</span>
-                        <span class="stat-value">{{ "%.0f"|format(album.score * 100) }}%</span>
+            <datalist id="albums-list">
+                {% for album in albums_list %}
+                <option
+                    value="{{ album.title }} — {{ album.artist }}{% if album.release_year %} ({{ album.release_year }}){% endif %}">
+                    {% endfor %}
+            </datalist>
+        </form>
+    </div>
+
+    <!-- ========== SEMILLA ========== -->
+    {% if seed_album %}
+    <div class="seed-profile-card">
+        <div class="seed-cover">
+            {% if seed_cover_url %}
+            <img src="{{ seed_cover_url }}" alt="Portada de {{ seed_album.title }}">
+            {% else %}
+            <div class="cover-fallback">{{ seed_album.title[:2] }}</div>
+            {% endif %}
+        </div>
+        <div class="seed-info">
+            <div class="seed-badge-row">
+                <span class="seed-badge">⭐ Semilla</span>
+            </div>
+
+            <h3 class="seed-title">
+                <a href="{{ url_for('main.album_detail', album_id=seed_album.id) }}">{{ seed_album.title }}</a>
+            </h3>
+            <p class="seed-artist">{{ seed_album.artist }}</p>
+
+            <div class="seed-meta-grid">
+                <div class="meta-box">
+                    <span class="nd-label-xs">Vibe</span>
+                    <span class="vibe-badge-lg">{{ seed_cluster }}</span>
+                </div>
+                <div class="meta-box">
+                    <span class="nd-label-xs">Galaxia</span>
+                    <span class="galaxy-value-lg">{{ seed_mega }}</span>
+                </div>
+            </div>
+
+            <div class="seed-stats">
+                <div class="stat-item">
+                    <span class="stat-label">Rating</span>
+                    <span class="stat-value">{{ "%.2f"|format(seed_album.avg_rating) }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Oyentes</span>
+                    <span class="stat-value">{{ "{:,}".format(seed_album.lastfm_listeners) }}</span>
+                </div>
+            </div>
+
+            <div class="seed-genres">
+                {% for g in seed_primary_genres[:4] %}
+                <a href="{{ url_for('main.data', genre=g) }}" class="genre-tag">{{ g }}</a>
+                {% endfor %}
+                {% for g in seed_secondary_genres[:3] %}
+                <a href="{{ url_for('main.data', genre=g) }}" class="genre-tag genre-tag-sec">{{ g }}</a>
+                {% endfor %}
+            </div>
+            <div class="seed-descriptors">
+                {% for d in seed_album.descriptors[:6] %}
+                <a href="{{ url_for('main.data', descriptor=d.name) }}" class="descriptor-tag">{{ d.name }}</a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ========== RESULTADOS ========== -->
+    {% if results %}
+
+    <h2 class="section-title">Resultados</h2>
+    <div class="results-grid">
+        {% for album in results %}
+        <a class="album-card" href="{{ url_for('main.album_detail', album_id=album.album_id) }}">
+            <div class="cover-fallback">{{ album.title[:2] }}</div>
+
+            {% if album.cover_url %}
+            <img src="{{ album.cover_url }}" alt="Portada de {{ album.title }}" loading="lazy">
+            {% elif album.mbid %}
+            <img src="https://coverartarchive.org/release-group/{{ album.mbid }}/front"
+                alt="Portada de {{ album.title }}" loading="lazy">
+            {% endif %}
+
+            <div class="album-overlay">
+                <div class="overlay-header">
+                    <span class="rank-badge">#{{ loop.index }}</span>
+                    <span class="cluster-badge">{{ album.cluster }}</span>
+                </div>
+
+                <div class="overlay-body">
+                    <div class="galaxy-label">{{ album.mega_cluster }}</div>
+                    <h5 title="{{ album.title }}">{{ album.title }}</h5>
+                    <div class="artist">{{ album.artist }}</div>
+
+                    <div class="overlay-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Rating</span>
+                            <span class="stat-value">{{ "%.2f"|format(album.avg_rating) }}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Afinidad</span>
+                            <span class="stat-value">{{ "%.0f"|format(album.score * 100) }}%</span>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </a>
-    {% endfor %}
-</div>
-
-<!-- CSS Affinities -->
-{% if affinities %}
-<h2 class="section-title">Afinidades del Perfil</h2>
-<div class="affinity-charts">
-    
-    {% if affinities.genres %}
-    <div class="css-chart">
-        <h3>Géneros Dominantes</h3>
-        {% for item in affinities.genres %}
-        <div class="bar-row">
-            <div class="bar-label" title="{{ item.name }}">{{ item.name }}</div>
-            <div class="bar-track">
-                <div class="bar-fill" style="width: {{ item.pct }}%;"></div>
-            </div>
-            <div class="bar-value">{{ item.count }}</div>
-        </div>
+        </a>
         {% endfor %}
+    </div>
+
+    <!-- CSS Affinities -->
+    {% if affinities %}
+    <h2 class="section-title">Afinidades del Perfil</h2>
+    <div class="affinity-charts">
+
+        {% if affinities.genres %}
+        <div class="css-chart">
+            <h3>Géneros Dominantes</h3>
+            {% for item in affinities.genres %}
+            <div class="bar-row">
+                <a href="{{ url_for('main.data', genre=item.name) }}" class="bar-label" title="{{ item.name }}">{{
+                    item.name }}</a>
+                <div class="bar-track">
+                    <div class="bar-fill" style="width: {{ item.pct }}%;"></div>
+                </div>
+                <div class="bar-value">{{ item.count }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if affinities.descriptors %}
+        <div class="css-chart">
+            <h3>Descriptores</h3>
+            {% for item in affinities.descriptors %}
+            <div class="bar-row">
+                <a href="{{ url_for('main.data', descriptor=item.name) }}" class="bar-label" title="{{ item.name }}">{{
+                    item.name }}</a>
+                <div class="bar-track">
+                    <div class="bar-fill amber" style="width: {{ item.pct }}%;"></div>
+                </div>
+                <div class="bar-value">{{ item.count }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
     </div>
     {% endif %}
 
-    {% if affinities.descriptors %}
-    <div class="css-chart">
-        <h3>Descriptores</h3>
-        {% for item in affinities.descriptors %}
-        <div class="bar-row">
-            <div class="bar-label" title="{{ item.name }}">{{ item.name }}</div>
-            <div class="bar-track">
-                <div class="bar-fill amber" style="width: {{ item.pct }}%;"></div>
-            </div>
-            <div class="bar-value">{{ item.count }}</div>
-        </div>
-        {% endfor %}
+    <!-- Scatter 2D -->
+    {% if scatter_html %}
+    <h2 class="section-title">Mapa de Clusters</h2>
+    <div class="scatter-container">
+        {{ scatter_html | safe }}
     </div>
     {% endif %}
 
-</div>
-{% endif %}
-
-<!-- Scatter 2D -->
-{% if scatter_html %}
-<h2 class="section-title">Mapa de Clusters</h2>
-<div class="scatter-container">
-    {{ scatter_html | safe }}
-</div>
-{% endif %}
-
-{% endif %} {# end if results #}
-{% endif %} {# end if recommender_available #}
+    {% endif %} {# end if results #}
+    {% endif %} {# end if recommender_available #}
 
 </div> <!-- /.recommend-container -->
 {% endblock %}

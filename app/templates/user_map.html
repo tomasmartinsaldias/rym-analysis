@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% set plotly_required = true %}
+
+{% block title %}Mi Mapa Musical{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user_map.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <header class="user-map-header">
+    <span class="nd-eyebrow">Visualización Personalizada</span>
+    <h1>Tu Universo Sonoro</h1>
+    <p>Sube un CSV con tus temas para ver cómo se distribuyen en el mapa de Needle Drop.</p>
+  </header>
+
+  <div class="upload-box">
+    <form action="{{ url_for('main.user_map') }}" method="POST" enctype="multipart/form-data">
+      <p>El archivo debe contener columnas de <strong>"Album"</strong> y <strong>"Artist"</strong>.</p>
+      
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 24px;">
+        <label for="file-upload" class="upload-btn">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" style="width:14px;height:14px;opacity:0.8;">
+            <path d="M2,6 L8,1 L14,6 M8,1 L8,11 M1,15 L15,15" />
+          </svg>
+          Seleccionar CSV
+        </label>
+        <input id="file-upload" type="file" name="file" accept=".csv">
+        
+        <button type="submit" class="nd-btn nd-btn--primary">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+            <path d="M8,1 L8,11 M4,7 L8,11 L12,7 M1,15 L15,15" />
+          </svg>
+          Actualizar Universo
+        </button>
+      </div>
+    </form>
+  </div>
+
+  {% if user_map_html %}
+  <!-- EL MAPA -->
+  <div class="map-container">
+    {{ user_map_html | safe }}
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="dashboard">
+    <div class="dash-header">
+      <div class="dash-title">En <em>números</em></div>
+      <div class="dash-subtitle">Estadísticas de tu Colección</div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-cell">
+        <div class="stat-cell__num">{{ stats.album_count }}</div>
+        <div class="stat-cell__label">Álbumes</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-cell__num amber">{{ '%.2f' | format(stats.avg_rating | float) }}</div>
+        <div class="stat-cell__label">Rating promedio</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-cell__num">{{ stats.genre_count }}</div>
+        <div class="stat-cell__label">Géneros únicos</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-cell__num">{{ stats.cluster_count }}</div>
+        <div class="stat-cell__label">Álbumes Únicos</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-cell__num">{{ stats.avg_listeners }}</div>
+        <div class="stat-cell__label">Oyentes prom.</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-cell__num">{{ stats.total_ratings }}</div>
+        <div class="stat-cell__label">Ratings totales</div>
+      </div>
+    </div>
+
+    <div class="dash-grid">
+      <!-- Col 1 -->
+      <div class="dash-widget dash-col-4">
+        <div class="widget-label">Top álbumes por rating</div>
+        <div class="top-list">
+          {% for album in top_albums %}
+          <div class="top-item">
+            <span class="top-item__rank">{{ loop.index }}</span>
+            <div class="top-item__info">
+              <div class="top-item__title">{{ album.title }}</div>
+              <div class="top-item__artist">{{ album.artist }}</div>
+            </div>
+            <span class="top-item__rating">{{ '%.2f' | format(album.rating | float) }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Col 2 -->
+      <div class="dash-widget dash-col-4">
+        <div class="widget-label">Géneros más frecuentes</div>
+        <div class="genre-bars">
+          {% if top_genres %}
+          {% set max_count = top_genres[0].count %}
+          {% for g in top_genres %}
+          <div class="genre-bar">
+            <div class="genre-bar__header">
+              <span class="genre-bar__name">{{ g.name }}</span>
+              <span class="genre-bar__count">{{ g.count }}</span>
+            </div>
+            <div class="genre-bar__track">
+              {% set width_pct = (g.count / max_count * 100) | round | int %}
+              <div class="genre-bar__fill w-{{ width_pct }}"></div>
+            </div>
+          </div>
+          {% endfor %}
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Col 3 -->
+      <div class="dash-col-4 dash-charts-stack">
+        <div class="dash-widget">
+          <div class="widget-label">Distribución de ratings</div>
+          <div class="chart-container">{{ ratings_chart_html | safe }}</div>
+        </div>
+        <div class="dash-widget">
+          <div class="widget-label">Distribución de oyentes</div>
+          <div class="chart-container">{{ listeners_chart_html | safe }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

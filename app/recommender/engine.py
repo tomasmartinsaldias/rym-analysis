@@ -8,9 +8,39 @@ Expone:
   recommend(seed_id, top_n, min_rating) → list[dict]
 """
 
+import os
+import joblib
 import math
 import numpy as np
-from .loader import get_data
+from .constants import MEGA_CLUSTER_MAP, CLUSTER_NAMES
+
+_data = None
+
+def load_recommender_data():
+    """Carga el .pkl pre-computado. Retorna el dict o None si no existe."""
+    global _data
+    pkl_path = os.path.join('instance', 'recommender_data.pkl')
+    if os.path.exists(pkl_path):
+        _data = joblib.load(pkl_path)
+        
+        # Enriquecer con Mega Clusters si no están en el PKL
+        if _data and 'mega_clusters' not in _data:
+            labels = _data['cluster_labels']
+            _data['mega_clusters'] = [MEGA_CLUSTER_MAP.get(int(c), "Otros") for c in labels]
+            
+        print(f"[OK] Recommender data loaded: {len(_data['album_ids'])} albums")
+        return _data
+    else:
+        print("[WARN] recommender_data.pkl no encontrado. Ejecuta: python build_recommender.py")
+        return None
+
+def get_data():
+    """Retorna los datos cargados, o intenta cargarlos si aún no lo fueron."""
+    global _data
+    if _data is None:
+        load_recommender_data()
+    return _data
+
 
 
 def get_album_list():
@@ -61,9 +91,13 @@ def recommend(seed_id, top_n=20, min_rating=None):
     seed_artist = artists[seed_idx]
 
     p_log    = np.array([math.log1p(l or 0) for l in album_info['lastfm_listeners']])
-    alpha    = 0.4
+    alpha    = 0.1  # Peso de la diferencia de popularidad
+    beta     = 0.4  # Peso de la diferencia de rating
     cluster_s = clusters[seed_idx]
+    mega_cls = data['mega_clusters']
+    mega_s = mega_cls[seed_idx]
     p_log_s  = p_log[seed_idx]
+    rating_s = ratings[seed_idx]
 
     candidates = []
     for c_idx in range(len(album_ids)):
@@ -74,18 +108,31 @@ def recommend(seed_id, top_n=20, min_rating=None):
 
         cos_sim   = similarity_cache[seed_idx, c_idx]
         cluster_c = clusters[c_idx]
-        bonus     = 1.05 if (cluster_s == cluster_c and cluster_s != -1) else 1.0
+        mega_c    = mega_cls[c_idx]
+        
+        # Bonos por jerarquía
+        bonus = 1.0
+        if cluster_s == cluster_c and cluster_s != -1:
+            bonus = 1.20 # Bonus fuerte por mismo micro-cluster
+        elif mega_s == mega_c and mega_s != "Otros":
+            bonus = 1.05 # Bonus ligero por misma galaxia (macro)
+        
         delta_log_pop = abs(p_log_s - p_log[c_idx])
-        final_score   = cos_sim * bonus * (1.0 - alpha * delta_log_pop)
+        delta_rating  = abs(rating_s - ratings[c_idx])
+        
+        # Penalizamos usando decaimiento exponencial (más estable y suave)
+        pop_penalty    = np.exp(-alpha * delta_log_pop)
+        rating_penalty = np.exp(-beta * delta_rating)
+        final_score    = cos_sim * bonus * pop_penalty * rating_penalty
 
-        candidates.append((c_idx, final_score, cos_sim, delta_log_pop))
+        candidates.append((c_idx, final_score, cos_sim, delta_log_pop, delta_rating))
 
     candidates.sort(key=lambda x: x[1], reverse=True)
 
     final_results = []
     used_artists  = {seed_artist}
 
-    for c_idx, f_score, cos_sim, delta_log_pop in candidates:
+    for c_idx, f_score, cos_sim, delta_log_pop, delta_rating in candidates:
         if len(final_results) >= top_n:
             break
         artist_c = artists[c_idx]
@@ -96,6 +143,7 @@ def recommend(seed_id, top_n=20, min_rating=None):
                 'score': f_score, 
                 'cos_sim': cos_sim,
                 'cluster': clusters[c_idx],
+                'mega': mega_cls[c_idx],
                 'is_wildcard': False
             })
 
@@ -113,7 +161,8 @@ def recommend(seed_id, top_n=20, min_rating=None):
             'lastfm_listeners': row['lastfm_listeners'],
             'score':           round(float(item['score']), 4),
             'cos_sim':         round(float(item['cos_sim']), 4),
-            'cluster':         int(item['cluster']) if item['cluster'] != -1 else 'Otros',
+            'cluster':         CLUSTER_NAMES.get(int(item['cluster']), 'Otros') if item['cluster'] != -1 else 'Otros',
+            'mega_cluster':    item['mega'],
             'is_wildcard':     item['is_wildcard'],
         })
 

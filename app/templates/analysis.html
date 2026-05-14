@@ -1,0 +1,342 @@
+{% extends "base.html" %}
+
+{% block title %}Exploración Estática{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/analysis.css') }}">
+{% endblock %}
+
+{# MACRO PARA BARRAS DE RANKING #}
+{% macro ranking_bar(name, value, max_val, color_class, url) %}
+<a href="{{ url }}" class="ranking-item">
+  <div class="ranking-header">
+    <span class="ranking-name">{{ name }}</span>
+    <span class="ranking-value">{{ value }}</span>
+  </div>
+  <div class="ranking-track">
+    <div class="ranking-fill {{ color_class }}" style="width: {{ (value / max_val * 100) | round | int }}%"></div>
+  </div>
+</a>
+{% endmacro %}
+
+{% macro hall_item(title, artist, subtext, url, icon='disc') %}
+<a href="{{ url }}" class="hall-item">
+  <div class="hall-icon">
+    <i class="fas fa-{{ icon }}"></i>
+  </div>
+  <div class="hall-info">
+    <span class="hall-title">{{ title }}</span>
+    <span class="hall-artist">{{ artist }}</span>
+  </div>
+  <div class="hall-metric">{{ subtext }}</div>
+</a>
+{% endmacro %}
+
+{% block content %}
+<div class="container">
+  <!-- Header Editorial -->
+  <header class="analysis-header">
+    <p>Observatorio de Datos</p>
+    <h1>Exploración Estática</h1>
+    <p>Patrones, tendencias y correlaciones en el universo sonoro</p>
+  </header>
+
+  <!-- Pestañas CSS-Only (Sin JavaScript) -->
+  <div class="nd-tabs">
+    <input type="radio" name="analysis-tabs" id="tab-genres" checked class="nd-tabs__input">
+    <label for="tab-genres" class="nd-tabs__label">01. Géneros</label>
+
+    <input type="radio" name="analysis-tabs" id="tab-labels" class="nd-tabs__input">
+    <label for="tab-labels" class="nd-tabs__label">02. Sellos</label>
+
+    <input type="radio" name="analysis-tabs" id="tab-artists" class="nd-tabs__input">
+    <label for="tab-artists" class="nd-tabs__label">03. Artistas</label>
+
+    <input type="radio" name="analysis-tabs" id="tab-clusters" class="nd-tabs__input">
+    <label for="tab-clusters" class="nd-tabs__label">04. Vibes</label>
+
+    <input type="radio" name="analysis-tabs" id="tab-temporal" class="nd-tabs__input">
+    <label for="tab-temporal" class="nd-tabs__label">05. Temporal</label>
+
+    <input type="radio" name="analysis-tabs" id="tab-correlations" class="nd-tabs__input">
+    <label for="tab-correlations" class="nd-tabs__label">06. Correlaciones</label>
+
+    <input type="radio" name="analysis-tabs" id="tab-hall" class="nd-tabs__input">
+    <label for="tab-hall" class="nd-tabs__label">07. Hall of Fame</label>
+
+    <!-- Contenido de las Pestañas -->
+    <div class="tab-content-container">
+
+      <!-- GÉNEROS -->
+      <div class="tab-pane" id="genres">
+        <div class="row">
+          <div class="col-lg-6">
+            <div class="chart-card">
+              <h3 class="chart-title">Volumen por Género</h3>
+              <div class="ranking-list">
+                {% if rankings.genres_count %}
+                {% set max_count = rankings.genres_count[0].count %}
+                {% for item in rankings.genres_count %}
+                {{ ranking_bar(item.name, item.count, max_count, 'cyan', url_for('main.data', genre=item.name)) }}
+                {% endfor %}
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <div class="chart-card">
+              <h3 class="chart-title">Calidad Percibida</h3>
+              <div class="ranking-list">
+                {% if rankings.genres_rating %}
+                {% set max_rating = 5.0 %}
+                {% for item in rankings.genres_rating %}
+                {{ ranking_bar(item.name, item.avg, max_rating, 'amber', url_for('main.data', genre=item.name)) }}
+                {% endfor %}
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LABELS -->
+      <div class="tab-pane" id="labels">
+        <div class="row">
+          <div class="col-lg-7">
+            <div class="chart-card">
+              <h3 class="chart-title">Liderazgo de Sellos</h3>
+              <div class="ranking-list">
+                {% if rankings.labels_count %}
+                {% set max_count = rankings.labels_count[0].count %}
+                {% for item in rankings.labels_count %}
+                {{ ranking_bar(item.name, item.count, max_count, 'cyan', url_for('main.data', label=item.name)) }}
+                {% endfor %}
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-5">
+            <div class="chart-card">
+              <h3 class="chart-title">Promedio de Excelencia</h3>
+              <div class="ranking-list">
+                {% if rankings.labels_rating %}
+                {% set max_rating = 5.0 %}
+                {% for item in rankings.labels_rating %}
+                {{ ranking_bar(item.name, item.avg, max_rating, 'amber', url_for('main.data', label=item.name)) }}
+                {% endfor %}
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ARTISTAS -->
+      <div class="tab-pane" id="artists">
+        <div class="row">
+          <div class="col-12">
+            <div class="chart-card">
+              <h3 class="chart-title">Presencia Dominante</h3>
+              <div class="ranking-list">
+                {% if rankings.artists_count %}
+                {% set max_count = rankings.artists_count[0].count %}
+                {% for item in rankings.artists_count %}
+                {{ ranking_bar(item.name, item.count, max_count, 'cyan', url_for('main.data', q=item.name)) }}
+                {% endfor %}
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CLUSTERS (VIBES & GALAXIAS) -->
+      <div class="tab-pane" id="clusters">
+        <div class="row">
+          <div class="col-lg-6">
+            <div class="chart-card">
+              <h3 class="chart-title">Macro-Clusters (Galaxias)</h3>
+              <div class="ranking-list">
+                {% if rankings.mega_count %}
+                {% set max_m = rankings.mega_count[0].count %}
+                {% for item in rankings.mega_count %}
+                {{ ranking_bar(item.name, item.count, max_m, "cyan") }}
+                {% endfor %}
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <div class="chart-card">
+              <h3 class="chart-title">Top Galaxias por Rating</h3>
+              <div class="ranking-list">
+                {% if rankings.mega_rating %}
+                {% for item in rankings.mega_rating %}
+                {{ ranking_bar(item.name, item.avg, 5.0, "amber") }}
+                {% endfor %}
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- Boxplot en el medio -->
+          <div class="col-12 mt-4 mb-4">
+            <div class="chart-card">
+              <h3 class="chart-title">Popularidad por Galaxia (Distribución de Reproducciones)</h3>
+              {{ chart_mega_boxplot | safe }}
+            </div>
+          </div>
+
+          <div class="col-lg-6">
+            <div class="chart-card">
+              <h3 class="chart-title">Micro-Clusters (Vibes)</h3>
+              <div class="ranking-list">
+                {% if rankings.clusters_count %}
+                {% set max_c = rankings.clusters_count[0].count %}
+                {% for item in rankings.clusters_count %}
+                {{ ranking_bar(item.name, item.count, max_c, "cyan") }}
+                {% endfor %}
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <div class="chart-card">
+              <h3 class="chart-title">Top Vibes por Rating</h3>
+              <div class="ranking-list">
+                {% if rankings.clusters_rating %}
+                {% for item in rankings.clusters_rating %}
+                {{ ranking_bar(item.name, item.avg, 5.0, "amber") }}
+                {% endfor %}
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- TEMPORAL -->
+      <div class="tab-pane" id="temporal">
+        <div class="row">
+          <div class="col-12">
+            <div class="chart-card">
+              <h3 class="chart-title">Ratings a través del tiempo</h3>
+              {{ chart_rating_year | safe }}
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <div class="chart-card">
+              <h3 class="chart-title">Densidad de Lanzamientos</h3>
+              {{ chart_albums_year | safe }}
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <div class="chart-card">
+              <h3 class="chart-title">Consistencia por Década</h3>
+              {{ chart_rating_decade | safe }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CORRELACIONES -->
+      <div class="tab-pane" id="correlations">
+        <div class="row">
+          <div class="col-lg-6">
+            <div class="chart-card">
+              <h3 class="chart-title">Calidad vs Popularidad</h3>
+              {{ chart_rym_listeners | safe }}
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <div class="chart-card">
+              <h3 class="chart-title">Rating vs Reproducciones</h3>
+              {{ chart_rym_playcount | safe }}
+            </div>
+          </div>
+          <div class="col-12 mt-4">
+            <div class="chart-card">
+              <h3 class="chart-title">Reproducciones vs Oyentes (Correlación Last.fm)</h3>
+              {{ chart_playcount_listeners | safe }}
+            </div>
+          </div>
+          <div class="col-12 mt-4">
+            <div class="chart-card">
+              <h3 class="chart-title">Índice de Snobismo (RYM vs Last.fm)</h3>
+              <p class="chart-subtitle">Votos en RYM vs Oyentes en Last.fm (Escala Logarítmica). Arriba a la izquierda:
+                Los Favoritos de la Crítica.</p>
+              {{ chart_snob_index | safe }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HALL OF FAME -->
+      <div class="tab-pane" id="hall">
+        <div class="row">
+
+          <div class="col-lg-6">
+            <div class="chart-card">
+              <h3 class="chart-title"><span class="text-amber">★</span> Favoritos de RYM</h3>
+              <p class="chart-subtitle">Favoritos de la comunidad. Alto ratio de votos RYM por cada oyente.</p>
+              <div class="hall-list">
+                {% for a in hall_of_fame.darlings %}
+                {{ hall_item(a.title, a.artist, (a.daring_ratio | round(2) | string) + ' ratio',
+                url_for('main.album_detail', album_id=a.id), icon='crown') }}
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-6">
+            <div class="chart-card">
+              <h3 class="chart-title">Obras de Culto</h3>
+              <p class="chart-subtitle">Obras maestras (Rating > 4.0) con el menor alcance en Last.fm.</p>
+              <div class="hall-list">
+                {% for a in hall_of_fame.gold %}
+                {{ hall_item(a.title, a.artist, a.rating | string, url_for('main.album_detail', album_id=a.id),
+                icon='gem') }}
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-6">
+            <div class="chart-card">
+              <h3 class="chart-title"> Discos Provocadores</h3>
+              <p class="chart-subtitle">Los discos que más invitan a la reseña y al debate (Ratio Review/Votos).</p>
+              <div class="hall-list">
+                {% for a in hall_of_fame.provocadores %}
+                {{ hall_item(a.title, a.artist, (a.provoc_ratio * 100) | round(1) | string + '% conv.',
+                url_for('main.album_detail', album_id=a.id), icon='comment-alt') }}
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-6">
+            <div class="chart-card">
+              <h3 class="chart-title">Los Inevitables</h3>
+              <p class="chart-subtitle">Discos ultra-populares que no terminan de convencer a los críticos (Rating <
+                  3.1).</p>
+                  <div class="hall-list">
+                    {% for a in hall_of_fame.inevitable %}
+                    {{ hall_item(a.title, a.artist, (a.listeners / 1000) | round | int | string + 'K oyentes',
+                    url_for('main.album_detail', album_id=a.id), icon='broadcast-tower') }}
+                    {% endfor %}
+                  </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- No JS required for tabs -->
+{% endblock %}

@@ -1,0 +1,336 @@
+/* =========================================================
+   analysis.css — Estilos específicos de /analysis
+   Identidad: "Vinyl in the Void" (hereda tokens de main.css)
+   Bootstrap se usa sólo para el grid de columnas (.row / .col-*)
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   1. HEADER EDITORIAL
+   --------------------------------------------------------- */
+.analysis-header {
+    padding: 40px 0 24px;
+    border-bottom: 1px solid var(--border-subtle);
+    margin-bottom: 24px;
+    text-align: left;
+}
+
+.analysis-header__eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    margin-bottom: 8px;
+}
+
+.analysis-header h1 {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: clamp(28px, 3.5vw, 40px);
+    font-weight: 400;
+    color: var(--amber);
+    line-height: 1.1;
+    margin-bottom: 6px;
+}
+
+.analysis-header p {
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    font-size: 12px;
+}
+
+
+/* ---------------------------------------------------------
+   2. PESTAÑAS CSS-ONLY
+   --------------------------------------------------------- */
+.nd-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 0;
+    border-bottom: 1px solid var(--border-subtle);
+    margin-bottom: 0;
+}
+
+.nd-tabs__input {
+    display: none;
+}
+
+.nd-tabs__label {
+    display: inline-block;
+    padding: 12px 20px;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color var(--t-normal);
+    position: relative;
+    white-space: nowrap;
+}
+
+.nd-tabs__label:after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: var(--amber);
+    transition: width var(--t-normal);
+}
+
+.nd-tabs__input:checked + .nd-tabs__label {
+    color: var(--amber);
+}
+
+.nd-tabs__input:checked + .nd-tabs__label:after {
+    width: 100%;
+}
+
+.tab-content-container {
+    width: 100%;
+    margin-top: 32px;
+    position: relative;
+}
+
+.tab-pane {
+    position: absolute;
+    left: -9999px;
+    width: 100%;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Mostrar panel correspondiente al radio seleccionado */
+#tab-genres:checked   ~ .tab-content-container #genres,
+#tab-labels:checked   ~ .tab-content-container #labels,
+#tab-artists:checked  ~ .tab-content-container #artists,
+#tab-clusters:checked ~ .tab-content-container #clusters,
+#tab-temporal:checked ~ .tab-content-container #temporal,
+#tab-correlations:checked ~ .tab-content-container #correlations,
+#tab-hall:checked ~ .tab-content-container #hall {
+    position: relative;
+    left: 0;
+    opacity: 1;
+    pointer-events: auto;
+    display: block;
+}
+
+.tab-pane {
+    animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+
+/* ---------------------------------------------------------
+   3. CHART CARDS
+   --------------------------------------------------------- */
+.chart-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--r-lg);
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    transition: border-color var(--t-normal);
+    overflow: hidden;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.chart-card:hover {
+    border-color: var(--cyan-border);
+}
+
+.chart-title {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--text-primary);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    line-height: 1.2;
+}
+
+.chart-subtitle {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: -12px;
+    margin-bottom: 24px;
+    line-height: 1.4;
+    max-width: 90%;
+}
+
+.chart-title::before {
+    content: '';
+    display: block;
+    width: 24px;
+    height: 1px;
+    background: var(--amber);
+    flex-shrink: 0;
+}
+
+
+/* ---------------------------------------------------------
+   4. RANKING BARS
+   --------------------------------------------------------- */
+.ranking-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ranking-item {
+    display: block;
+    text-decoration: none;
+    padding: 2px 0;
+    transition: transform var(--t-fast);
+}
+
+.ranking-item:hover {
+    transform: translateX(4px);
+}
+
+.ranking-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 6px;
+}
+
+.ranking-name {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 75%;
+    transition: color var(--t-fast);
+}
+
+.ranking-item:hover .ranking-name {
+    color: var(--cyan);
+}
+
+.ranking-value {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    margin-left: 8px;
+}
+
+.ranking-track {
+    height: 3px;
+    background: var(--border-subtle);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.ranking-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ranking-fill.cyan {
+    background-color: var(--cyan);
+}
+
+.ranking-fill.amber {
+    background-color: var(--amber);
+}
+
+/* ---------------------------------------------------------
+   5. HALL OF FAME ITEMS
+   --------------------------------------------------------- */
+.hall-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.hall-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    padding: 4px 10px;
+    background: rgba(240, 236, 224, 0.02);
+    border: 1px solid transparent;
+    border-radius: var(--r-md);
+    transition: all var(--t-normal);
+}
+
+.hall-item:hover {
+    background: rgba(240, 236, 224, 0.05);
+    border-color: var(--border-subtle);
+    transform: translateX(4px);
+}
+
+.hall-icon {
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-body);
+    border: 1px solid var(--border-subtle);
+    border-radius: 50%;
+    color: var(--amber);
+    font-size: 11px;
+    flex-shrink: 0;
+}
+
+.hall-item:hover .hall-icon {
+    border-color: var(--cyan);
+    color: var(--cyan);
+}
+
+.hall-info {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.hall-title {
+    font-family: var(--font-display);
+    font-size: 14px;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.hall-artist {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+}
+
+.hall-metric {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--amber);
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.text-amber { color: var(--amber); }
+.text-cyan { color: var(--cyan); }
