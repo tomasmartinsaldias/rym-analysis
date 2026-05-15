@@ -79,6 +79,8 @@ body {
   background-color: var(--bg-void);
   color: var(--text-primary);
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   /* Grain texture overlay */
@@ -109,6 +111,7 @@ img {
 }
 
 main {
+  flex: 1;
   animation: pageReveal 0.45s ease forwards;
 }
 

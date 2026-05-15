@@ -30,12 +30,12 @@ LAYOUT_SCATTER = dict(
     plot_bgcolor='rgba(0,0,0,0)',
     showlegend=True,
     legend=dict(
-        orientation="h", yanchor="top", y=-0.2, xanchor="center", x=0.5,
+        orientation="h", yanchor="top", y=-0.12, xanchor="center", x=0.5,
         font=dict(size=10, family='DM Mono, monospace'),
         itemsizing='constant'
     ),
     autosize=True,
-    margin=dict(t=30, b=0, l=0, r=0),
+    margin=dict(t=30, b=10, l=10, r=10),
     hoverlabel=dict(
         bgcolor='rgba(8,10,18,0.95)',
         bordercolor='rgba(232,164,48,0.6)',

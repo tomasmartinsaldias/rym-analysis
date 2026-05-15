@@ -43,15 +43,17 @@ cluster=sel_cluster, mega=sel_mega, label=sel_label, sort=sort, order=order, pag
   PANEL DE FILTROS (izquierda)
   ════════════════════════════════════════════════════════ #}
   <aside class="data-filters" id="data-filters-panel">
+    <input type="checkbox" id="filtersToggle" class="data-filters__toggle-check">
 
     <div class="data-filters__header">
-      <span class="data-filters__title">
+      <label for="filtersToggle" class="data-filters__toggle-label">
         <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"
           aria-hidden="true">
           <polygon points="1,1 15,1 9,8 9,15 7,15 7,8" />
         </svg>
         Filtros
-      </span>
+        <span class="data-filters__toggle-arrow"></span>
+      </label>
       {% if has_filters %}
       <a href="{{ url_for('main.data') }}" class="data-filters__clear">Limpiar</a>
       {% endif %}
