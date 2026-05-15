@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% set plotly_required = true %}
+{% set hide_footer = true %}
 
 {% block title %}Explorar{% endblock %}
 
@@ -35,7 +36,7 @@
 
         <div class="eyebrow">5,000 álbumes · RYM × Last.fm</div>
         <div class="headline">
-          El canon según<br> <em>Rate Your Music</em>
+          Un observatorio de<br><em>Rate Your Music<em>
         </div>
         <div class="sub">Cada punto es un álbum. Cada cluster, una vibe.</div>
 
@@ -216,6 +217,15 @@
         </div>{# /dash-charts-stack #}
 
       </div>{# /dash-grid #}
+
+      <footer class="nd-footer" style="margin-top: auto; padding: 40px 0 10px 0; width: 100%;">
+        <span class="nd-footer__brand">Needle Drop</span>
+        <span class="nd-footer__meta">
+          RYM × Last.fm × MusicBrainz &nbsp;·&nbsp;
+          {{ albums_count | default('~5,000') }} álbumes
+        </span>
+      </footer>
+
     </div>{# /dashboard #}
   </div>{# /snap-section 2 #}
 
