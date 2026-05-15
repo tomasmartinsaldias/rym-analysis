@@ -64,6 +64,7 @@
         <div class="phase-header">
             {% if gs.phase == 'calibration' %}Fase de Calibración
             {% elif gs.phase == 'reduction' %}Fase de Reducción
+            {% elif gs.phase == 'investigation' %}Fase de Investigación
             {% elif gs.phase == 'identification' %}Fase de Identificación
             {% elif gs.phase == 'triangulation' %}Fase de Triangulación
             {% elif gs.phase == 'interference' %}Fase de Interferencia
@@ -83,20 +84,27 @@
             {% endif %}
         </div>
 
-        <div class="observatory-view observatory-view--flex">
-            <div class="scanline"></div>
-            {% if triangulation_svg %}
-                <form action="{{ url_for('game.triangulate') }}" method="POST" class="triangulation-form">
-                    <input type="image" src="data:image/svg+xml;base64,{{ triangulation_svg }}" 
-                           name="coords" width="800" height="800" 
-                           class="triangulation-map-input"
-                           alt="Mapa de Triangulación">
-                </form>
-            {% elif map_html %}
-                <div class="observatory-view--full">
-                    {{ map_html | safe }}
-                </div>
+        <div class="{% if gs.phase == 'investigation' %}game-layout--investigation{% endif %}">
+            
+            {% if gs.phase == 'investigation' %}
+                {% include 'investigation_panel.html' %}
             {% endif %}
+
+            <div class="observatory-view observatory-view--flex">
+                <div class="scanline"></div>
+                {% if triangulation_svg %}
+                    <form action="{{ url_for('game.triangulate') }}" method="POST" class="triangulation-form">
+                        <input type="image" src="data:image/svg+xml;base64,{{ triangulation_svg }}" 
+                               name="coords" width="800" height="800" 
+                               class="triangulation-map-input"
+                               alt="Mapa de Triangulación">
+                    </form>
+                {% elif map_html %}
+                    <div class="observatory-view--full">
+                        {{ map_html | safe }}
+                    </div>
+                {% endif %}
+            </div>
         </div>
         {% if triangulation_svg %}
             <p class="text-center u-text-cyan u-text-small triangulation-hint">
@@ -107,22 +115,32 @@
         {% if question %}
         <div class="question-box">
             {% if gs.phase == 'interference' %}
-                <div class="interference-warning">SEÑAL DISTORSIONADA - TIEMPO DE RECUPERACIÓN: 5s</div>
-                <div class="timer-container">
-                    <div class="timer-progress"></div>
-                </div>
-                <div class="question-text">{{ question.text }}</div>
+                <input type="checkbox" id="start-interference" class="u-hidden-logic">
                 
-                <form id="interference-form" action="{{ url_for('game.answer') }}" method="POST">
-                    <input type="hidden" name="q_type" value="interference">
-                    <div class="interference-grid" id="interference-container">
-                        {% for opt in question.options %}
-                            <button type="submit" name="answer" value="{{ opt.val }}" class="interference-card">
-                                <img src="{{ opt.cover }}" class="interference-img" alt="?">
-                            </button>
-                        {% endfor %}
+                <div class="interference-overlay">
+                    <div class="interference-warning">⚠️ SEÑAL DISTORSIONADA DETECTADA</div>
+                    <p class="u-text-muted">Los datos se están degradando. Tienes 5 segundos para identificar la carátula antes de que la distorsión sea total.</p>
+                    <label for="start-interference" class="nd-btn nd-btn--primary u-margin-top-20">INICIAR RECUPERACIÓN</label>
+                </div>
+
+                <div class="interference-active-content">
+                    <div class="interference-warning">RECUPERANDO SEÑAL - TIEMPO RESTANTE: 5s</div>
+                    <div class="timer-container">
+                        <div class="timer-progress"></div>
                     </div>
-                </form>
+                    <div class="question-text">{{ question.text }}</div>
+                    
+                    <form id="interference-form" action="{{ url_for('game.answer') }}" method="POST">
+                        <input type="hidden" name="q_type" value="interference">
+                        <div class="interference-grid" id="interference-container">
+                            {% for opt in question.options %}
+                                <button type="submit" name="answer" value="{{ opt.val }}" class="interference-card">
+                                    <img src="{{ opt.cover }}" class="interference-img" alt="?">
+                                </button>
+                            {% endfor %}
+                        </div>
+                    </form>
+                </div>
             {% else %}
                 <div class="question-text">{{ question.text }}</div>
                 <form action="{{ url_for('game.answer') }}" method="POST">

@@ -1,0 +1,125 @@
+<div class="investigation-panel">
+    <div class="panel-header">
+        <h3>DASHBOARD DE INVESTIGACIÓN</h3>
+        <span class="candidate-count">
+            {% if gs.level < 6 %}
+            <span class="radar-status radar-status--on">RADAR: ON</span>
+            {% else %}
+            <span class="radar-status radar-status--off">RADAR: OFF</span>
+            {% endif %}
+            Candidatos: <span id="cand-count">{{ gs.get_candidate_ids()|length }}</span>
+        </span>
+    </div>
+
+    <form id="investigation-form" action="{{ url_for('game.investigate') }}" method="POST">
+        <div class="panel-scroll-area">
+            <!-- Selector de Lógica Granular (resumido en texto) -->
+            <p class="u-text-tiny u-text-muted u-margin-bottom-15">[ CONFIGURACIÓN DE ESCANEO ACTIVA ]</p>
+        <div class="filter-group">
+            <label>Intervalo Temporal (Año)</label>
+            <div class="range-inputs">
+                <input type="number" name="year_min" value="{{ current_filters.year_min or investigation_meta.year.min }}" min="{{ investigation_meta.year.min }}" max="{{ investigation_meta.year.max }}">
+                <span>—</span>
+                <input type="number" name="year_max" value="{{ current_filters.year_max or investigation_meta.year.max }}" min="{{ investigation_meta.year.min }}" max="{{ investigation_meta.year.max }}">
+            </div>
+        </div>
+
+        <!-- Rating -->
+        <div class="filter-group">
+            <label>Recepción Crítica (Rating)</label>
+            <div class="range-inputs">
+                <input type="number" name="rating_min" value="{{ current_filters.rating_min or investigation_meta.rating.min }}" step="0.01" min="0" max="5">
+                <span>—</span>
+                <input type="number" name="rating_max" value="{{ current_filters.rating_max or investigation_meta.rating.max }}" step="0.01" min="0" max="5">
+            </div>
+        </div>
+
+        <!-- Listeners -->
+        <div class="filter-group">
+            <label>Alcance de Señal (Listeners)</label>
+            <div class="range-inputs">
+                <input type="number" name="listeners_min" value="{{ current_filters.listeners_min or investigation_meta.listeners.min }}">
+                <span>—</span>
+                <input type="number" name="listeners_max" value="{{ current_filters.listeners_max or investigation_meta.listeners.max }}">
+            </div>
+        </div>
+
+        <!-- Géneros Multi-select -->
+        <div class="filter-group">
+            <div class="filter-header-logic">
+                <label>Espectro de Género</label>
+                <div class="mini-logic-toggle">
+                    <label><input type="radio" name="genre_logic" value="AND" {% if current_filters.genre_logic != 'OR' %}checked{% endif %}> AND</label>
+                    <label><input type="radio" name="genre_logic" value="OR" {% if current_filters.genre_logic == 'OR' %}checked{% endif %}> OR</label>
+                </div>
+            </div>
+            <div class="scroll-checklist">
+                {% for genre in investigation_meta.genres %}
+                <label class="check-item">
+                    <input type="checkbox" name="genres" value="{{ genre }}" 
+                           {% if current_filters.genre_list and genre in current_filters.genre_list %}checked{% endif %}> 
+                    {{ genre }}
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Descriptores Multi-select -->
+        <div class="filter-group">
+            <div class="filter-header-logic">
+                <label>Atmósfera (Descriptores)</label>
+                <div class="mini-logic-toggle">
+                    <label><input type="radio" name="desc_logic" value="AND" {% if current_filters.desc_logic != 'OR' %}checked{% endif %}> AND</label>
+                    <label><input type="radio" name="desc_logic" value="OR" {% if current_filters.desc_logic == 'OR' %}checked{% endif %}> OR</label>
+                </div>
+            </div>
+            <div class="scroll-checklist">
+                {% for desc in investigation_meta.descriptors %}
+                <label class="check-item">
+                    <input type="checkbox" name="descriptors" value="{{ desc }}"
+                           {% if current_filters.descriptor_list and desc in current_filters.descriptor_list %}checked{% endif %}> 
+                    {{ desc }}
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Clusters -->
+        <div class="filter-group">
+            <div class="filter-header-logic">
+                <label>Galaxias / Vibes</label>
+            </div>
+            <div class="scroll-checklist">
+                {% for cluster in investigation_meta.clusters %}
+                <label class="check-item">
+                    <input type="checkbox" name="clusters" value="{{ cluster.id }}"
+                           {% if current_filters.cluster_list and cluster.id|string in current_filters.cluster_list %}checked{% endif %}> 
+                    {{ cluster.name }}
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+        </div> <!-- Fin panel-scroll-area -->
+
+        <div class="panel-actions">
+            <button type="submit" class="nd-btn nd-btn--primary">EJECUTAR ESCANEO (-{{ COST_SCAN }} pts)</button>
+            <a href="{{ url_for('game.finish_investigation') }}" class="nd-btn nd-btn--confirm">FIJAR OBJETIVO</a>
+        </div>
+    </form>
+    
+    {% with messages = get_flashed_messages(category_filter=["investigation_error"]) %}
+      {% if messages %}
+        <div class="scan-feedback scan-feedback--error" style="display:block;">
+          {{ messages[0] }}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% with messages = get_flashed_messages(category_filter=["investigation_success"]) %}
+      {% if messages %}
+        <div class="scan-feedback scan-feedback--success" style="display:block;">
+          {{ messages[0] }}
+        </div>
+      {% endif %}
+    {% endwith %}
+</div>

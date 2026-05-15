@@ -22,7 +22,7 @@ class GameSession:
             return
 
         self.level = level
-        pool_size = min(100 + (level - 1) * 200, 3000)
+        pool_size = min(100 + (level - 1) * 200, 5000)
         popular_df = data['album_info'].sort_values('lastfm_listeners', ascending=False).head(pool_size)
         
         self.target_id = int(random.choice(popular_df['id'].tolist()))
@@ -49,24 +49,80 @@ class GameSession:
         df['cluster'] = data['cluster_labels']
         mask_final = df['id'].notnull()
         
+        # Extraer modos de lógica granulares
+        genre_logic = 'AND'
+        desc_logic = 'AND'
+        cluster_logic = 'OR' # Por defecto clusters es OR (Galaxias)
+        
+        for f in self.filters:
+            if f[0] == 'genre_logic': genre_logic = f[1]
+            if f[0] == 'desc_logic': desc_logic = f[1]
+            if f[0] == 'cluster_logic': cluster_logic = f[1]
+
         for f_type, val, was_correct in self.filters:
+            selection = None
+            if f_type in ['logic_mode', 'genre_logic', 'desc_logic', 'cluster_logic']: continue
+            
             if f_type == 'decade':
                 v = int(val)
                 selection = (df['release_year'] // 10 * 10) == v
+            elif f_type == 'year_range':
+                parts = val.split(':')
+                if parts[0] == 'range': parts = parts[1:]
+                low, high = map(int, parts)
+                selection = (df['release_year'] >= low) & (df['release_year'] <= high)
             elif f_type == 'genre':
                 selection = df['genres'].astype(str).str.contains(val, case=False, na=False)
+            elif f_type == 'genre_list':
+                genres = val.split(',')
+                if genre_logic == 'AND':
+                    selection = df['genres'].apply(lambda x: all(g.lower() in str(x).lower() for g in genres))
+                else:
+                    selection = df['genres'].apply(lambda x: any(g.lower() in str(x).lower() for g in genres))
             elif f_type == 'listeners_range':
-                low, high = map(float, val.split(':')[1:])
-                selection = (df['lastfm_listeners'].fillna(0) >= low) & (df['lastfm_listeners'].fillna(0) < high)
+                parts = val.split(':')
+                if parts[0] == 'range': parts = parts[1:]
+                low, high = map(float, parts)
+                selection = (df['lastfm_listeners'].fillna(0) >= low) & (df['lastfm_listeners'].fillna(0) <= high)
             elif f_type == 'rating_range':
-                low, high = map(float, val.split(':')[1:])
-                selection = (df['avg_rating'].fillna(0) >= low) & (df['avg_rating'] < high)
+                parts = val.split(':')
+                if parts[0] == 'range': parts = parts[1:]
+                low, high = map(float, parts)
+                selection = (df['avg_rating'].fillna(0) >= low) & (df['avg_rating'] <= high)
             elif f_type == 'obsession_range':
-                low, high = map(float, val.split(':')[1:])
+                parts = val.split(':')
+                if parts[0] == 'range': parts = parts[1:]
+                low, high = map(float, parts)
                 ratio = df['lastfm_playcount'] / df['lastfm_listeners'].replace(0, 1)
-                selection = (ratio >= low) & (ratio < high)
+                selection = (ratio >= low) & (ratio <= high)
             elif f_type == 'descriptors':
                 selection = df['descriptors'].astype(str).str.contains(val, case=False, na=False)
+            elif f_type == 'descriptor_list':
+                descs = val.split(',')
+                if desc_logic == 'AND':
+                    selection = df['descriptors'].apply(lambda x: all(d.lower() in str(x).lower() for d in descs))
+                else:
+                    selection = df['descriptors'].apply(lambda x: any(d.lower() in str(x).lower() for d in descs))
+            elif f_type == 'cluster':
+                selection = df['cluster'] == int(val)
+            elif f_type == 'cluster_list':
+                parts = val.split(',')
+                try:
+                    # Intentar como IDs numéricos (micro-clusters)
+                    clusters_int = [int(c) for c in parts if c.isdigit()]
+                    if clusters_int:
+                        if cluster_logic == 'AND':
+                            selection = df['cluster'].isin(clusters_int)
+                        else:
+                            selection = df['cluster'].isin(clusters_int)
+                    else:
+                        # Si no son números, son nombres de Macro Galaxias
+                        df['mega_cluster'] = data['mega_clusters']
+                        # Galaxias siempre es OR (un album no puede estar en dos sitios)
+                        selection = df['mega_cluster'].isin(parts)
+                except:
+                    df['mega_cluster'] = data['mega_clusters']
+                    selection = df['mega_cluster'].isin(parts)
             elif f_type == 'intruder':
                 if not was_correct: continue
                 target_row = df[df['id'] == self.target_id].iloc[0]
@@ -95,6 +151,92 @@ class GameSession:
                 mask_final &= ~selection
         
         return df.loc[mask_final, 'id'].tolist()
+
+    def check_signal_loss(self, filters_to_test):
+        """Checks if the target album would be lost with the given set of filters."""
+        data = get_data()
+        df = data['album_info']
+        df['cluster'] = data['cluster_labels']
+        album_ids = data['album_ids']
+        target_row = df[df['id'] == self.target_id].iloc[0]
+        target = Album.query.get(self.target_id)
+        
+        # Extraer modos de lógica granulares
+        genre_logic = 'AND'
+        desc_logic = 'AND'
+        cluster_logic = 'OR'
+        for f in self.filters:
+            if f[0] == 'genre_logic': genre_logic = f[1]
+            if f[0] == 'desc_logic': desc_logic = f[1]
+            if f[0] == 'cluster_logic': cluster_logic = f[1]
+        
+        # También chequear si vienen en los nuevos filtros
+        for ft, fv in filters_to_test:
+            if ft == 'genre_logic': genre_logic = fv
+            if ft == 'desc_logic': desc_logic = fv
+            if ft == 'cluster_logic': cluster_logic = fv
+
+        for f_type, val in filters_to_test:
+            if f_type in ['logic_mode', 'genre_logic', 'desc_logic', 'cluster_logic']: continue
+            match = False
+            if f_type == 'year_range':
+                try:
+                    parts = val.split(':')
+                    if parts[0] == 'range': parts = parts[1:]
+                    low, high = map(int, parts)
+                    match = low <= target_row['release_year'] <= high
+                except: match = True
+            elif f_type == 'rating_range':
+                try:
+                    parts = val.split(':')
+                    if parts[0] == 'range': parts = parts[1:]
+                    low, high = map(float, parts)
+                    match = low <= (target_row['avg_rating'] or 0) <= high
+                except: match = True
+            elif f_type == 'listeners_range':
+                try:
+                    parts = val.split(':')
+                    if parts[0] == 'range': parts = parts[1:]
+                    low, high = map(float, parts)
+                    match = low <= (target_row['lastfm_listeners'] or 0) <= high
+                except: match = True
+            elif f_type == 'genre_list':
+                genres = val.split(',')
+                target_genres = [g.name.lower() for g in target.genres]
+                if genre_logic == 'AND':
+                    if not all(g.lower() in target_genres for g in genres): return True
+                else:
+                    if not any(g.lower() in target_genres for g in genres): return True
+                match = True
+            elif f_type == 'descriptor_list':
+                descs = val.split(',')
+                target_descs = [d.name.lower() for d in target.descriptors]
+                if desc_logic == 'AND':
+                    if not all(d.lower() in target_descs for d in descs): return True
+                else:
+                    if not any(d.lower() in target_descs for d in descs): return True
+                match = True
+            elif f_type == 'cluster_list':
+                parts = val.split(',')
+                try:
+                    # Caso 1: Micro Clusters numéricos
+                    clusters_int = [int(c) for c in parts if c.isdigit()]
+                    if clusters_int:
+                        match = int(target_row['cluster']) in clusters_int
+                    else:
+                        # Caso 2: Macro Galaxias por nombre (Siempre OR)
+                        idx = album_ids.index(self.target_id)
+                        target_mega = str(data['mega_clusters'][idx]).strip().lower()
+                        parts_clean = [p.strip().lower() for p in parts]
+                        match = target_mega in parts_clean
+                except:
+                    match = True
+            else:
+                match = True 
+            
+            if not match:
+                return True # Lost!
+        return False # Safe
 
 def generate_question(gs, target):
     data = get_data()
@@ -240,6 +382,39 @@ def generate_question(gs, target):
         }
     return None
 
+def get_investigation_metadata():
+    """Returns ranges and options for the manual investigation panel."""
+    data = get_data()
+    info = data['album_info']
+    
+    # Ranges
+    years = info['release_year'].dropna().unique()
+    ratings = info['avg_rating'].dropna().unique()
+    listeners = info['lastfm_listeners'].dropna().unique()
+    
+    # Categories
+    from app.models import Genre, Descriptor
+    all_genres = [g.name for g in Genre.query.order_by(Genre.name).all()]
+    from sqlalchemy import func
+    all_descriptors = [d.name for d in Descriptor.query
+                       .join(Descriptor.albums)
+                       .group_by(Descriptor.id)
+                       .order_by(func.count(Album.id).desc())
+                       .limit(40).all()]
+    all_descriptors.sort() # Ordenar alfabéticamente para el usuario, pero solo los top 40
+    
+    from app.services.recommender.constants import MEGA_CLUSTER_COLORS
+    clusters = [{'id': k, 'name': k} for k in MEGA_CLUSTER_COLORS.keys() if k != 'Otros']
+    
+    return {
+        'year': {'min': int(min(years)), 'max': int(max(years))},
+        'rating': {'min': float(min(ratings)), 'max': float(max(ratings))},
+        'listeners': {'min': int(min(listeners)), 'max': int(max(listeners))},
+        'genres': all_genres,
+        'descriptors': all_descriptors,
+        'clusters': clusters
+    }
+
 def generate_descriptors_question(target):
     if not target.descriptors:
         return None
@@ -319,8 +494,8 @@ def process_answer(gs, target, ans, q_type):
         gs.round_score += bonus
     
     if q_type != 'identity':
-        pts = 100 if is_correct else -50
-        gs.last_feedback = "CORRECTO (+100)" if is_correct else "INCORRECTO (-50)"
+        pts = 0 # Las preguntas ya no dan puntos, solo filtran datos
+        gs.last_feedback = "FILTRO APLICADO" if is_correct else "FALLO DE FILTRADO"
         gs.score += pts
         gs.round_score += pts
 
@@ -345,7 +520,7 @@ def calculate_final_score(gs, target, click_x, click_y):
     user_y = max_y - (click_y / 800.0) * (max_y - min_y)
     
     dist = math.sqrt((user_x - target_coords[0])**2 + (user_y - target_coords[1])**2)
-    max_dist = (max_x - min_x) / 4.0
+    max_dist = (max_x - min_x) / 2.0 # Más generoso (antes era / 4.0)
     base_score = max(0, 1000 * (1 - (dist / max_dist)))
     
     user_p = np.array([[user_x, user_y]])
