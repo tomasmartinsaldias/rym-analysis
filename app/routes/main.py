@@ -1,12 +1,13 @@
 import requests
 import urllib.parse
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
-from app.recommender import get_album_list, recommend, CLUSTER_NAMES
-from app.analysis import (
-    get_scatter_html, get_filtered_scatter_html, get_affinities,
+from app.services.recommender import get_album_list, recommend, CLUSTER_NAMES
+from app.visualizations.dashboard_viz import (
+    get_scatter_html, get_filtered_scatter_html,
     make_ratings_chart, make_listeners_chart, make_radar_chart,
-    get_user_collection_map_html
+    get_user_collection_map_html, make_histogram_html
 )
+from app.services.analysis_service import get_affinities, get_rankings_data, get_hall_of_fame_data
 
 from app.utils import resolve_album_id, get_cover_url
 import concurrent.futures
@@ -329,12 +330,13 @@ def data():
 
 @main_bp.route('/analysis')
 def analysis():
-    from app.analysis import (
+    from app.visualizations.dashboard_viz import (
         chart_rating_by_year, chart_albums_by_year, chart_rating_by_decade,
         chart_rym_rating_vs_listeners, chart_rym_rating_vs_playcount,
         chart_playcount_vs_listeners, chart_rym_vs_lastfm,
-        chart_mega_cluster_playcount_boxplot, get_rankings_data, get_hall_of_fame_data
+        chart_mega_cluster_playcount_boxplot
     )
+    from app.services.analysis_service import get_rankings_data, get_hall_of_fame_data
 
     return render_template('analysis.html',
         plotly_required=True,
@@ -425,7 +427,7 @@ def user_map():
                         top_genres = top_genres_data.to_dict('records')
 
                         # Gráficos usando helper centralizado
-                        from app.analysis import make_histogram_html, COLOR_AMBAR, COLOR_CIAN
+                        from app.visualizations.common import COLOR_AMBAR, COLOR_CIAN
 
                         ratings_chart_html = make_histogram_html(m_df, 'rating', COLOR_AMBAR)
                         listeners_chart_html = make_histogram_html(m_df, 'listeners', COLOR_CIAN)

@@ -1,0 +1,81 @@
+.intro-container {
+    max-width: 800px;
+    margin: 100px auto;
+    text-align: center;
+    padding: 40px;
+}
+
+.intro-title {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 4rem;
+    color: var(--amber);
+    margin-bottom: 20px;
+}
+
+.intro-subtitle {
+    font-family: 'DM Mono', monospace;
+    color: var(--cyan);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 50px;
+}
+
+.intro-text {
+    font-family: 'DM Mono', monospace;
+    color: #f0ece0;
+    line-height: 1.8;
+    margin-bottom: 50px;
+    font-size: 1.1rem;
+}
+
+.intro-features {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 30px;
+    margin-bottom: 60px;
+    text-align: left;
+}
+
+.feature-item {
+    border: 1px solid rgba(255,255,255,0.05);
+    padding: 20px;
+    background: rgba(255,255,255,0.02);
+}
+
+.feature-item h3 {
+    color: var(--amber);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+.feature-item p {
+    font-size: 0.85rem;
+    margin: 0;
+    opacity: 0.7;
+}
+
+.level-indicator {
+    font-family: 'DM Mono', monospace;
+    color: var(--cyan);
+    margin-bottom: 20px;
+}
+
+.intro-actions {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+}
+
+.nd-btn--large {
+    font-size: 1.2rem;
+    padding: 20px 60px;
+}
+
+.nd-btn--restart {
+    border-color: var(--cyan);
+    color: var(--cyan);
+    font-size: 1.2rem;
+    padding: 20px 40px;
+}

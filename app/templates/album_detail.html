@@ -82,13 +82,13 @@
       {# Clusters / Galaxias #}
       <div class="album-clusters mb-16">
         {% if mega_cluster %}
-        <div style="display: inline-flex; align-items: center; margin-right: 16px;">
+        <div class="cluster-group cluster-group--galaxy">
           <span class="nd-label-xs">Galaxia</span>
           <a href="{{ url_for('main.data', mega=mega_cluster) }}" class="cluster-badge galaxy-badge">{{ mega_cluster }}</a>
         </div>
         {% endif %}
         {% if cluster_name and cluster_id is not none %}
-        <div style="display: inline-flex; align-items: center;">
+        <div class="cluster-group">
           <span class="nd-label-xs">Vibe</span>
           <a href="{{ url_for('main.data', cluster=cluster_id) }}" class="cluster-badge micro-badge">{{ cluster_name }}</a>
         </div>

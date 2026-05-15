@@ -553,3 +553,24 @@
     max-width: 100px;
   }
 }
+
+/* Utility classes for layout overrides */
+.u-flex-2 { flex: 2 !important; }
+.u-flex-1 { flex: 1 !important; }
+
+.u-tag-cyan {
+    border-color: var(--cyan) !important;
+    color: var(--cyan) !important;
+}
+
+.u-text-secondary {
+    color: var(--text-secondary) !important;
+}
+
+.u-text-small {
+    font-size: 0.85em !important;
+}
+
+.u-no-decoration {
+    text-decoration: none !important;
+}

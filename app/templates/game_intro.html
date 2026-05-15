@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Needle Drop Geoguessr{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_intro.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="intro-container">
+    <div class="intro-title">Needle Drop</div>
+    <div class="intro-subtitle">Geoguessr Musical</div>
+
+    <div class="intro-text">
+        Bienvenido al observatorio. Tu misión es identificar un álbum perdido utilizando solo tu oído y tu conocimiento.
+    </div>
+
+    <div class="intro-features">
+        <div class="feature-item">
+            <h3>Calibración</h3>
+            <p>Escucha la señal y define la época y el estilo general.</p>
+        </div>
+        <div class="feature-item">
+            <h3>Reducción</h3>
+            <p>Filtra el mapa estelar usando métricas de popularidad y crítica.</p>
+        </div>
+        <div class="feature-item">
+            <h3>Triangulación</h3>
+            <p>Ubica el álbum físicamente en el mapa de coordenadas UMAP.</p>
+        </div>
+    </div>
+
+    <div class="level-indicator">
+        ESTADO: {% if level > 1 %}NIVEL {{ level }} ALCANZADO{% else %}NUEVA MISIÓN{% endif %}
+    </div>
+
+    <div class="intro-actions">
+        <a href="{{ url_for('game.start') }}" class="nd-btn nd-btn--large">
+            {% if level > 1 %}Continuar Misión{% else %}Iniciar Escaneo{% endif %}
+        </a>
+        {% if level > 1 %}
+        <a href="{{ url_for('game.reset') }}" class="nd-btn nd-btn--restart">
+            Reiniciar
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
