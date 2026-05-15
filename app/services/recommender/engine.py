@@ -24,9 +24,14 @@ def load_recommender_data():
         _data = joblib.load(pkl_path)
         
         # Enriquecer con Mega Clusters si no están en el PKL
-        if _data and 'mega_clusters' not in _data:
+        if _data:
             labels = _data['cluster_labels']
-            _data['mega_clusters'] = [MEGA_CLUSTER_MAP.get(int(c), "Otros") for c in labels]
+            if 'mega_clusters' not in _data:
+                _data['mega_clusters'] = [MEGA_CLUSTER_MAP.get(int(c), "Otros") for c in labels]
+            
+            # Asegurar que el DataFrame album_info tenga la columna cluster
+            if 'cluster' not in _data['album_info'].columns:
+                _data['album_info']['cluster'] = labels
             
         print(f"[OK] Recommender data loaded: {len(_data['album_ids'])} albums")
         return _data
@@ -167,3 +172,17 @@ def recommend(seed_id, top_n=20, min_rating=None):
         })
 
     return results
+
+def get_map_bounds(margin=5):
+    """Retorna los límites (min_x, max_x, min_y, max_y) consistentes para todo el juego."""
+    data = get_data()
+    if data is None: return 0, 100, 0, 100
+    
+    coords = np.array(data['tsne_coords'])
+    # Usar nanmin/nanmax por seguridad
+    min_x = float(np.nanmin(coords[:, 0]) - margin)
+    max_x = float(np.nanmax(coords[:, 0]) + margin)
+    min_y = float(np.nanmin(coords[:, 1]) - margin)
+    max_y = float(np.nanmax(coords[:, 1]) + margin)
+    
+    return min_x, max_x, min_y, max_y

@@ -115,6 +115,16 @@
           Mapa Colección
         </a>
       </li>
+      <li>
+        <a class="nd-nav__link {% if request.endpoint and 'game' in request.endpoint %}active{% endif %}"
+          href="{{ url_for('game.index') }}">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+            <circle cx="8" cy="8" r="7" />
+            <path d="M8,4 L8,12 M4,8 L12,8" />
+          </svg>
+          Juego
+        </a>
+      </li>
     </ul>
 
     {# Hamburger mobile — label vinculado al checkbox, sin JS #}

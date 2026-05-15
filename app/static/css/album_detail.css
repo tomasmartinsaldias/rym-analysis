@@ -284,3 +284,13 @@
     width: 100% !important;
     height: 100% !important;
   }
+
+  /* Utility classes for clusters */
+  .cluster-group {
+      display: inline-flex;
+      align-items: center;
+  }
+
+  .cluster-group--galaxy {
+      margin-right: 16px;
+  }

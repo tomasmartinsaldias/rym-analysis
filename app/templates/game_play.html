@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block title %}Needle Drop Geoguessr{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_play.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="game-container">
+
+    {% if gs.phase == 'result' %}
+        <div class="phase-header {% if gs.level_completed %}phase-header--success{% else %}phase-header--failure{% endif %}">
+            {% if gs.level_completed %}MISIÓN CUMPLIDA{% else %}MISIÓN FALLIDA{% endif %}
+        </div>
+        <div class="step-indicator">
+            {% if gs.level_completed %}
+                Nivel {{ gs.level - 1 }} Superado — Puntuación Final: {{ gs.score }}
+            {% else %}
+                Nivel {{ gs.level }} No Superado — Necesitas 1200 pts en la ronda
+            {% endif %}
+        </div>
+
+        <div class="observatory-view">
+            <div class="scanline"></div>
+            {% if result_map_html %}
+                {{ result_map_html | safe }}
+            {% endif %}
+        </div>
+
+        <div class="result-card">
+            <a href="{{ url_for('main.album_detail', album_id=target.id) }}" target="_blank" class="u-no-decoration">
+                <img src="{{ cover_url or url_for('static', filename='img/default_cover.png') }}" class="result-cover" alt="Portada">
+            </a>
+            <div class="result-info">
+                <a href="{{ url_for('main.album_detail', album_id=target.id) }}" target="_blank" class="u-no-decoration u-color-inherit">
+                    <h2>{{ target.title }}</h2>
+                </a>
+                <div class="artist">{{ target.artist }}</div>
+                <div class="score-display">{{ gs.score }} pts</div>
+                
+                {% if gs.level_completed %}
+                    <p class="u-text-cyan u-text-bold">¡Nivel de dificultad superado! Avanzas al nivel {{ gs.level }}.</p>
+                {% else %}
+                    <p class="u-text-amber u-text-bold">No has alcanzado la precisión necesaria. Reintenta el nivel {{ gs.level }}.</p>
+                {% endif %}
+
+                {% if gs.bonus_info %}
+                    <p class="u-text-muted">{{ gs.bonus_info }}</p>
+                {% endif %}
+                
+                <div class="u-margin-top-30">
+                    {% if gs.level_completed %}
+                        <a href="{{ url_for('game.next_level') }}" class="nd-btn">Siguiente Nivel</a>
+                    {% else %}
+                        <a href="{{ url_for('game.next_level') }}" class="nd-btn nd-btn--retry">Reintentar Nivel</a>
+                    {% endif %}
+                    <a href="{{ url_for('main.index') }}" class="nd-btn nd-btn--abandon">Abandonar</a>
+                </div>
+            </div>
+        </div>
+
+    {% else %}
+        <div class="phase-header">
+            {% if gs.phase == 'calibration' %}Fase de Calibración
+            {% elif gs.phase == 'reduction' %}Fase de Reducción
+            {% elif gs.phase == 'identification' %}Fase de Identificación
+            {% elif gs.phase == 'triangulation' %}Fase de Triangulación
+            {% elif gs.phase == 'interference' %}Fase de Interferencia
+            {% endif %}
+        </div>
+        <div class="step-indicator">
+            Nivel {{ gs.level }} — Paso {{ gs.step }} — Puntuación: {{ gs.score }}
+            {% if gs.cluster_revealed %}
+                <span class="sector-revealed">
+                    SECTOR REVELADO: {{ cluster_name }}
+                </span>
+            {% endif %}
+            {% if gs.last_feedback %}
+                <span class="feedback-badge {% if 'CORRECTO' in gs.last_feedback %}feedback-badge--correct{% else %}feedback-badge--incorrect{% endif %}">
+                    {{ gs.last_feedback }}
+                </span>
+            {% endif %}
+        </div>
+
+        <div class="observatory-view observatory-view--flex">
+            <div class="scanline"></div>
+            {% if triangulation_svg %}
+                <form action="{{ url_for('game.triangulate') }}" method="POST" class="triangulation-form">
+                    <input type="image" src="data:image/svg+xml;base64,{{ triangulation_svg }}" 
+                           name="coords" width="800" height="800" 
+                           class="triangulation-map-input"
+                           alt="Mapa de Triangulación">
+                </form>
+            {% elif map_html %}
+                <div class="observatory-view--full">
+                    {{ map_html | safe }}
+                </div>
+            {% endif %}
+        </div>
+        {% if triangulation_svg %}
+            <p class="text-center u-text-cyan u-text-small triangulation-hint">
+                [ INSTRUMENTO CALIBRADO A 800x800 - HAZ CLIC EN EL OBJETIVO ]
+            </p>
+        {% endif %}
+
+        {% if question %}
+        <div class="question-box">
+            {% if gs.phase == 'interference' %}
+                <div class="interference-warning">SEÑAL DISTORSIONADA - TIEMPO DE RECUPERACIÓN: 5s</div>
+                <div class="timer-container">
+                    <div class="timer-progress"></div>
+                </div>
+                <div class="question-text">{{ question.text }}</div>
+                
+                <form id="interference-form" action="{{ url_for('game.answer') }}" method="POST">
+                    <input type="hidden" name="q_type" value="interference">
+                    <div class="interference-grid" id="interference-container">
+                        {% for opt in question.options %}
+                            <button type="submit" name="answer" value="{{ opt.val }}" class="interference-card">
+                                <img src="{{ opt.cover }}" class="interference-img" alt="?">
+                            </button>
+                        {% endfor %}
+                    </div>
+                </form>
+            {% else %}
+                <div class="question-text">{{ question.text }}</div>
+                <form action="{{ url_for('game.answer') }}" method="POST">
+                    <input type="hidden" name="q_type" value="{{ question.type }}">
+                    
+                    {% if question.type == 'identity' %}
+                        <div class="identity-search-container">
+                            <input type="text" name="answer" list="album-list" placeholder="Escribe el nombre del álbum o artista..." 
+                                   class="nd-input" autocomplete="off" required>
+                            <datalist id="album-list">
+                                {% for opt in question.options %}
+                                    <option value="{{ opt.label }}">
+                                {% endfor %}
+                            </datalist>
+                        </div>
+                        <div class="u-flex u-flex-gap-10 u-margin-top-20">
+                            <button type="submit" class="nd-btn nd-btn--confirm">Confirmar Identificación</button>
+                            <a href="{{ url_for('game.skip_id') }}" class="nd-btn nd-btn--skip">Saltear</a>
+                        </div>
+                    {% else %}
+                        <div class="options-grid {% if question.options[0].cover %}options-grid--covers{% else %}options-grid--binary{% endif %}">
+                            {% for opt in question.options %}
+                                <button type="submit" name="answer" value="{{ opt.val }}" class="nd-btn-opt {% if opt.cover %}nd-btn-opt--cover{% endif %}">
+                                    {% if opt.cover %}
+                                        <div class="cover-wrapper">
+                                            <img src="{{ opt.cover }}" class="cover-img">
+                                        </div>
+                                    {% endif %}
+                                    <div class="label-text">{{ opt.label }}</div>
+                                </button>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </form>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% if gs.phase == 'triangulation' %}
+        <div class="question-box">
+            <div class="question-text">Haz clic en el mapa donde creas que se encuentra el álbum.</div>
+            <p class="u-text-cyan">La señal es débil pero constante. Guíate por la visualización estelar.</p>
+        </div>
+        {% endif %}
+
+        {% if preview_url %}
+        <div class="audio-wrap">
+            <audio controls autoplay class="audio-player">
+                <source src="{{ preview_url }}" type="audio/mpeg">
+                Tu navegador no soporta el elemento de audio.
+            </audio>
+        </div>
+        {% endif %}
+
+    {% endif %}
+
+</div>
+{% endblock %}
