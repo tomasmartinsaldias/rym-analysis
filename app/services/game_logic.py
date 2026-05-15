@@ -332,7 +332,7 @@ def calculate_final_score(gs, target, click_x, click_y):
     all_coords = np.array(data['tsne_coords'])
     album_ids = list(data['album_ids'])
     clusters = data['cluster_labels']
-        from app.services.recommender.constants import CLUSTER_NAMES
+    from app.services.recommender.constants import CLUSTER_NAMES
 
     idx = album_ids.index(target.id)
     target_coords = all_coords[idx]
