@@ -405,8 +405,53 @@ body {
 
 @media (max-width: 900px) {
     #umap-wrap {
-        padding-left: clamp(12px, 3vw, 24px);
-        padding-right: clamp(12px, 3vw, 24px);
+        display: flex;
+        flex-direction: column;
+        padding: 0;
+        overflow-y: auto;
+    }
+
+    #umap-overlay {
+        position: relative;
+        top: 0;
+        left: 0;
+        width: 100%;
+        padding: 40px var(--page-pad) 20px;
+        pointer-events: all;
+        z-index: 10;
+        background: linear-gradient(to bottom, var(--bg-void) 80%, transparent);
+        order: 1;
+    }
+
+    .headline {
+        font-size: clamp(28px, 8vw, 36px);
+        margin-bottom: 12px;
+    }
+
+    #umap-overlay .sub {
+        margin-bottom: 24px;
+        font-size: 14px;
+    }
+
+    .umap-search {
+        width: 100%;
+    }
+
+    #scatter-plot {
+        flex: 1;
+        min-height: 480px;
+        margin-top: -20px; /* Pull up to blend with gradient */
+        order: 2;
+    }
+
+    #umap-hint {
+        position: relative;
+        bottom: auto;
+        margin-top: 20px;
+        margin-bottom: 40px;
+        opacity: 1;
+        animation: none;
+        order: 3;
     }
 
     .dash-col-2,

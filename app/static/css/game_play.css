@@ -741,3 +741,130 @@
     background: rgba(232, 164, 48, 0.1);
     color: var(--amber);
 }
+
+/* ---------------------------------------------------------
+   RESPONSIVE — móvil
+   --------------------------------------------------------- */
+@media (max-width: 900px) {
+    .game-container {
+        padding: 20px 15px;
+    }
+
+    .phase-header {
+        font-size: 1.8rem;
+    }
+
+    .step-indicator {
+        font-size: 0.7rem;
+        letter-spacing: 1px;
+    }
+
+    .game-layout--investigation {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .game-layout--investigation .observatory-view {
+        height: 400px;
+        order: 1;
+    }
+
+    .investigation-panel {
+        height: auto;
+        order: 2;
+        padding: 15px;
+    }
+
+    .panel-scroll-area {
+        max-height: 400px;
+    }
+
+    .observatory-view {
+        height: 45vh;
+    }
+
+    /* Triangulation container scrollable on mobile to keep precision */
+    .observatory-view--flex {
+        justify-content: flex-start;
+        align-items: flex-start;
+    }
+
+    .triangulation-form, .triangulation-map-input {
+        width: 800px !important;
+        height: 800px !important;
+    }
+
+    /* Grids */
+    .options-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .options-grid--covers {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .options-grid--binary {
+        grid-template-columns: 1fr;
+    }
+
+    .interference-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .question-box {
+        padding: 20px;
+    }
+
+    .question-text {
+        font-size: 1rem;
+    }
+
+    /* Results */
+    .result-card {
+        flex-direction: column;
+        padding: 24px;
+        text-align: center;
+        gap: 20px;
+    }
+
+    .result-cover {
+        width: 100%;
+        max-width: 260px;
+        height: auto;
+        aspect-ratio: 1/1;
+    }
+
+    .result-info h2 {
+        font-size: 2rem;
+    }
+
+    .result-info .artist {
+        font-size: 1.1rem;
+    }
+
+    .score-display {
+        font-size: 2.5rem;
+    }
+
+    .u-margin-top-30 {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .nd-btn--abandon {
+        margin-left: 0;
+    }
+
+    .identity-search-container .nd-input {
+        font-size: 0.9rem;
+        padding: 12px;
+    }
+
+    .u-flex {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
