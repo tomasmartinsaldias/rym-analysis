@@ -326,6 +326,7 @@ def process_answer(gs, target, ans, q_type):
 
     gs.filters.append((q_type, ans, is_correct))
     gs.step += 1
+    return is_correct
 
 def calculate_final_score(gs, target, click_x, click_y):
     data = get_data()

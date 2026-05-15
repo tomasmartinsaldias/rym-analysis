@@ -97,7 +97,7 @@ def answer():
     
     if not ans: return redirect(url_for('game.play'))
 
-    process_answer(gs, target, ans, q_type)
+    is_correct = process_answer(gs, target, ans, q_type)
     
     if gs.phase == 'calibration' and gs.step > 3:
         gs.phase = 'reduction'
@@ -112,7 +112,7 @@ def answer():
     elif gs.phase == 'interference':
         gs.phase = 'identification'
         gs.step = 1
-    elif gs.phase == 'identification' and (gs.step > 2 or gs.cluster_revealed):
+    elif gs.phase == 'identification' and (gs.step > 2 or is_correct or gs.cluster_revealed):
         gs.phase = 'triangulation'
         gs.step = 1
     
