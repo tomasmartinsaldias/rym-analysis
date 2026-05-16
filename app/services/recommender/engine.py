@@ -27,11 +27,22 @@ def load_recommender_data():
         if _data:
             labels = _data['cluster_labels']
             if 'mega_clusters' not in _data:
-                _data['mega_clusters'] = [MEGA_CLUSTER_MAP.get(int(c), "Otros") for c in labels]
+                mega_list = []
+                for c in labels:
+                    mega_label = MEGA_CLUSTER_MAP.get(int(c), "Otros")
+                    mega_list.append(mega_label)
+                _data['mega_clusters'] = mega_list
             
             # Asegurar que el DataFrame album_info tenga la columna cluster
             if 'cluster' not in _data['album_info'].columns:
                 _data['album_info']['cluster'] = labels
+            
+            # Precomputar diccionario de IDs para búsquedas O(1) con bucle explícito
+            if 'album_id_to_index' not in _data:
+                id_dict = {}
+                for index, aid in enumerate(_data['album_ids']):
+                    id_dict[aid] = index
+                _data['album_id_to_index'] = id_dict
             
         print(f"[OK] Recommender data loaded: {len(_data['album_ids'])} albums")
         return _data
@@ -85,7 +96,7 @@ def recommend(seed_id, top_n=20, min_rating=None):
     has_descriptors = data['has_descriptors']
     clusters       = data['cluster_labels']
 
-    id_to_idx = {aid: i for i, aid in enumerate(album_ids)}
+    id_to_idx = data.get('album_id_to_index', {})
 
     if seed_id not in id_to_idx:
         return []
@@ -95,7 +106,12 @@ def recommend(seed_id, top_n=20, min_rating=None):
     ratings     = album_info['avg_rating'].values
     seed_artist = artists[seed_idx]
 
-    p_log    = np.array([math.log1p(l or 0) for l in album_info['lastfm_listeners']])
+    listeners_log_list = []
+    for listeners in album_info['lastfm_listeners']:
+        if not listeners:
+            listeners = 0
+        listeners_log_list.append(math.log1p(listeners))
+    p_log = np.array(listeners_log_list)
     alpha    = 0.1  # Peso de la diferencia de popularidad
     beta     = 0.4  # Peso de la diferencia de rating
     cluster_s = clusters[seed_idx]

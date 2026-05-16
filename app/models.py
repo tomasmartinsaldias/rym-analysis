@@ -38,6 +38,23 @@ class Album(db.Model):
     genres = db.relationship('Genre', secondary=album_genres, backref=db.backref('albums', lazy='dynamic'))
     descriptors = db.relationship('Descriptor', secondary=album_descriptors, backref=db.backref('albums', lazy='dynamic'))
 
+    @property
+    def split_genres(self):
+        """Devuelve una tupla (primary_genres, secondary_genres) con los nombres de los géneros."""
+        genres_data = db.session.query(Genre.name, album_genres.c.is_primary)\
+            .join(album_genres, Genre.id == album_genres.c.genre_id)\
+            .filter(album_genres.c.album_id == self.id).all()
+        
+        primary = []
+        secondary = []
+        for genre_name, is_primary in genres_data:
+            if is_primary:
+                primary.append(genre_name)
+            else:
+                secondary.append(genre_name)
+                
+        return primary, secondary
+
 # --- Catálogos ---
 class Genre(db.Model):
     id = db.Column(db.Integer, primary_key=True)
