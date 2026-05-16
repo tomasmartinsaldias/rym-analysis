@@ -111,7 +111,7 @@ img {
 }
 
 main {
-  flex: 1;
+  flex: 1 0 auto;
   animation: pageReveal 0.45s ease forwards;
 }
 
@@ -1193,6 +1193,7 @@ main {
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 60px;
+  flex-shrink: 0;
 }
 
 .nd-footer__brand {

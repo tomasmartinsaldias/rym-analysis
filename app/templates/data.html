@@ -388,7 +388,8 @@ cluster=sel_cluster, mega=sel_mega, label=sel_label, sort=sort, order=order, pag
               {# Sello #}
               <td class="data-table__cell-label">
                 {% if album.label %}
-                <a href="{{ url_for('main.data', label=album.label) }}" class="nd-table__link u-text-secondary u-text-small">
+                <a href="{{ url_for('main.data', label=album.label) }}"
+                  class="nd-table__link u-text-secondary u-text-small">
                   {{ album.label }}
                 </a>
                 {% else %}
@@ -435,7 +436,8 @@ cluster=sel_cluster, mega=sel_mega, label=sel_label, sort=sort, order=order, pag
                     }}</a>
                   {% endfor %}
                   {% if album.genres|length > 2 %}
-                  <a href="{{ url_for('main.album_detail', album_id=album.id) }}" class="nd-tag nd-tag--descriptor u-no-decoration">+{{ album.genres|length - 2 }}</a>
+                  <a href="{{ url_for('main.album_detail', album_id=album.id) }}"
+                    class="nd-tag nd-tag--descriptor u-no-decoration">+{{ album.genres|length - 2 }}</a>
                   {% endif %}
                 </div>
               </td>
@@ -449,7 +451,8 @@ cluster=sel_cluster, mega=sel_mega, label=sel_label, sort=sort, order=order, pag
                     desc.name }}</a>
                   {% endfor %}
                   {% if album.descriptors|length > 2 %}
-                  <a href="{{ url_for('main.album_detail', album_id=album.id) }}" class="nd-tag nd-tag--descriptor u-no-decoration">+{{ album.descriptors|length - 2 }}</a>
+                  <a href="{{ url_for('main.album_detail', album_id=album.id) }}"
+                    class="nd-tag nd-tag--descriptor u-no-decoration">+{{ album.descriptors|length - 2 }}</a>
                   {% endif %}
                 </div>
               </td>

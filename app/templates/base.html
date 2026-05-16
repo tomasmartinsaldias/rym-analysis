@@ -145,6 +145,7 @@
   {# ═══════════════════════════════════════
   FOOTER
   ════════════════════════════════════════ #}
+  {% if not hide_footer %}
   <footer class="nd-footer">
     <span class="nd-footer__brand">Needle Drop</span>
 
@@ -153,6 +154,7 @@
       {{ albums_count | default('~5,000') }} álbumes
     </span>
   </footer>
+  {% endif %}
 
   {% block extra_scripts %}{% endblock %}
 
