@@ -1,6 +1,4 @@
-import requests
-import urllib.parse
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
+from flask import Blueprint, render_template, request, flash, current_app
 from app.services.recommender import get_album_list, recommend, CLUSTER_NAMES
 from app.visualizations.dashboard_viz import (
     get_scatter_html, get_filtered_scatter_html,
@@ -29,11 +27,11 @@ def index():
     selected_album = None
     radar_chart_html = None
     
+    if q:
+        resolved_id = resolve_album_id(q)
+        found = Album.query.get(resolved_id) if resolved_id else None
+
     if recommender_available:
-        if q:
-            resolved_id = resolve_album_id(q)
-            found = Album.query.get(resolved_id) if resolved_id else None
-            
         highlight = album_id if album_id else (found.id if found else None)
         scatter_html = get_scatter_html(highlighted_id=highlight)
         
@@ -48,9 +46,6 @@ def index():
         }
     else:
         # Fallback if recommender not built
-        if q:
-            resolved_id = resolve_album_id(q)
-            found = Album.query.get(resolved_id) if resolved_id else None
         stats = {
             'album_count': Album.query.count(),
             'cluster_count': 0,
@@ -98,14 +93,7 @@ def album_detail(album_id):
     cover_url = get_cover_url(album)
     
     # Obtener géneros separados (Primarios vs Secundarios)
-    from app.models import album_genres, Genre
-    from app import db
-    genres_data = db.session.query(Genre.name, album_genres.c.is_primary)\
-        .join(album_genres, Genre.id == album_genres.c.genre_id)\
-        .filter(album_genres.c.album_id == album.id).all()
-        
-    primary_genres = [g[0] for g in genres_data if g[1]]
-    secondary_genres = [g[0] for g in genres_data if not g[1]]
+    primary_genres, secondary_genres = album.split_genres
     
     cluster_id = None
     cluster_name = None
@@ -114,7 +102,9 @@ def album_detail(album_id):
     if current_app.recommender_data is not None:
         data_pkl = current_app.recommender_data
         try:
-            idx = list(data_pkl['album_ids']).index(album.id)
+            idx = data_pkl.get('album_id_to_index', {}).get(album.id)
+            if idx is None:
+                raise ValueError("Album ID not found in recommender data")
             cluster_id = int(data_pkl['cluster_labels'][idx])
             cluster_name = CLUSTER_NAMES.get(cluster_id, 'Otros') if cluster_id != -1 else 'Otros'
             mega_cluster = data_pkl['mega_clusters'][idx]
@@ -336,7 +326,6 @@ def analysis():
         chart_playcount_vs_listeners, chart_rym_vs_lastfm,
         chart_mega_cluster_playcount_boxplot
     )
-    from app.services.analysis_service import get_rankings_data, get_hall_of_fame_data
 
     return render_template('analysis.html',
         plotly_required=True,
@@ -470,7 +459,9 @@ def recommend_page():
 
     if seed_id and recommender_available:
         results = recommend(seed_id, top_n=12)
-        rec_ids = [r['album_id'] for r in results]
+        rec_ids = []
+        for r in results:
+            rec_ids.append(r['album_id'])
         scatter_html = get_scatter_html(seed_id=seed_id, recommended_ids=rec_ids)
         affinities = get_affinities(results)
         
@@ -489,7 +480,9 @@ def recommend_page():
                 
             data_pkl = current_app.recommender_data
             try:
-                idx = list(data_pkl['album_ids']).index(seed_id)
+                idx = data_pkl.get('album_id_to_index', {}).get(seed_id)
+                if idx is None:
+                    raise ValueError("Album ID not found")
                 cluster_lbl = data_pkl['cluster_labels'][idx]
                 seed_cluster = CLUSTER_NAMES.get(int(cluster_lbl), 'Otros') if cluster_lbl != -1 else 'Otros'
                 seed_mega = data_pkl['mega_clusters'][idx]
@@ -498,13 +491,7 @@ def recommend_page():
                 pass
             
             # Géneros separados para la tarjeta semilla
-            from app.models import album_genres as ag_table, Genre
-            from app import db as _db
-            genres_data = _db.session.query(Genre.name, ag_table.c.is_primary)\
-                .join(ag_table, Genre.id == ag_table.c.genre_id)\
-                .filter(ag_table.c.album_id == seed_id).all()
-            seed_primary_genres = [g[0] for g in genres_data if g[1]]
-            seed_secondary_genres = [g[0] for g in genres_data if not g[1]]
+            seed_primary_genres, seed_secondary_genres = seed_album_obj.split_genres
         
         return render_template('recommend.html',
                              page_title='Recomendaciones — RYM Analysis',
