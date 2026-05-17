@@ -120,15 +120,24 @@ def _generate_micro_cluster_colors():
     for galaxy, micros in galaxy_to_micros.items():
         base_hex = MEGA_CLUSTER_COLORS.get(galaxy, "#535c68")
         r, g, b = hex_to_rgb(base_hex)
-        h, l, s = colorsys.rgb_to_hls(r, g, b)
+        h, s, v = colorsys.rgb_to_hsv(r, g, b)
         
         micros = sorted(micros)
         n = len(micros)
         
         for i, cid in enumerate(micros):
             step = i / max(1, n - 1) if n > 1 else 0.5
-            new_l = 0.40 + step * 0.35
-            new_rgb = colorsys.hls_to_rgb(h, new_l, s)
+            
+            # 1. Modificar H (Matiz): Variación tonal análoga sutil (+/- 0.05) para mayor distinción
+            new_h = (h + 0.1 * (step - 0.5)) % 1.0
+            
+            # 2. Modificar S (Saturación): Asegurar un piso mínimo dinámico para dar vida a tonos pálidos
+            new_s = max(0.65, s * (0.75 + step * 0.25))
+            
+            # 3. Modificar V (Brillo): Acotar a un rango luminoso (0.65 a 0.98) para evitar tonos apagados/sucios
+            new_v = 0.65 + step * 0.33
+            
+            new_rgb = colorsys.hsv_to_rgb(new_h, new_s, new_v)
             micro_colors[cid] = rgb_to_hex(new_rgb)
             
     micro_colors[-1] = "#535c68"
