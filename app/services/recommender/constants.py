@@ -128,14 +128,14 @@ def _generate_micro_cluster_colors():
         for i, cid in enumerate(micros):
             step = i / max(1, n - 1) if n > 1 else 0.5
             
-            # 1. Modificar H (Matiz): Variación tonal análoga sutil (+/- 0.05) para mayor distinción
-            new_h = (h + 0.1 * (step - 0.5)) % 1.0
+            # 1. Modificar H (Matiz): Variación tonal más sutil (+/- 0.025) para no convertir amarillo en naranja
+            new_h = (h + 0.05 * (step - 0.5)) % 1.0
             
-            # 2. Modificar S (Saturación): Asegurar un piso mínimo dinámico para dar vida a tonos pálidos
-            new_s = max(0.65, s * (0.75 + step * 0.25))
+            # 2. Modificar S (Saturación): Variamos desde 0.65 (suave/elegante) hasta 1.0 (puro/vibrante)
+            new_s = max(0.65, s * (0.70 + step * 0.30))
             
-            # 3. Modificar V (Brillo): Acotar a un rango luminoso (0.65 a 0.98) para evitar tonos apagados/sucios
-            new_v = 0.65 + step * 0.33
+            # 3. Modificar V (Brillo): Piso muy alto (0.82 a 1.0) porque el amarillo y lima oscuros se ven marrones/sucios
+            new_v = 0.82 + step * 0.18
             
             new_rgb = colorsys.hsv_to_rgb(new_h, new_s, new_v)
             micro_colors[cid] = rgb_to_hex(new_rgb)
