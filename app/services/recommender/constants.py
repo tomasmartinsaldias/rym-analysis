@@ -45,11 +45,11 @@ MEGA_CLUSTER_COLORS = {
     "Rock Alternativo e Indie": "#f9ca24",         # Yellow
     "Hip Hop y R&B": "#f0932b",                    # Orange
     "Metal y Hardcore": "#eb4d4b",                 # Red
-    "Rock Clásico y Progresivo": "#ffbe76",        # Topaz
+    "Rock Clásico y Progresivo": "#00cec9",        # Cyan/Teal (Distinct from Orange)
     "Cantautor y Folk": "#6ab04c",                 # Green
     "Electrónica, Pop y Sintetizadores": "#e056fd", # Purple
     "Jazz y Música Instrumental": "#4834d4",       # Deep Blue
-    "Experimental y Post-Punk": "#686de0",         # Exodus Blue
+    "Experimental y Post-Punk": "#fd79a8",         # Pink/Magenta (Distinct from Blue)
     "Otros": "#535c68"
 }
 
@@ -101,3 +101,38 @@ CLUSTER_NAMES = {
     43: "R&B y Pop Comercial",
     44: "Electropop"
 }
+
+import colorsys
+
+def _generate_micro_cluster_colors():
+    def hex_to_rgb(hex_color):
+        hex_color = hex_color.lstrip('#')
+        return tuple(int(hex_color[i:i+2], 16) / 255.0 for i in (0, 2, 4))
+
+    def rgb_to_hex(rgb):
+        return f"#{int(rgb[0]*255):02x}{int(rgb[1]*255):02x}{int(rgb[2]*255):02x}"
+
+    galaxy_to_micros = {}
+    for cid, galaxy in MEGA_CLUSTER_MAP.items():
+        galaxy_to_micros.setdefault(galaxy, []).append(cid)
+
+    micro_colors = {}
+    for galaxy, micros in galaxy_to_micros.items():
+        base_hex = MEGA_CLUSTER_COLORS.get(galaxy, "#535c68")
+        r, g, b = hex_to_rgb(base_hex)
+        h, l, s = colorsys.rgb_to_hls(r, g, b)
+        
+        micros = sorted(micros)
+        n = len(micros)
+        
+        for i, cid in enumerate(micros):
+            step = i / max(1, n - 1) if n > 1 else 0.5
+            new_l = 0.40 + step * 0.35
+            new_rgb = colorsys.hls_to_rgb(h, new_l, s)
+            micro_colors[cid] = rgb_to_hex(new_rgb)
+            
+    micro_colors[-1] = "#535c68"
+    return micro_colors
+
+MICRO_CLUSTER_COLORS = _generate_micro_cluster_colors()
+
