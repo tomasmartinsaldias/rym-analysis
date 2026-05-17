@@ -1060,14 +1060,15 @@ main {
   transition: fill 0.2s ease, stroke 0.2s ease !important;
 }
 
-/* Evitar fondo blanco cegador en hover; usar ámbar semitransparente con borde ámbar */
+/* Evitar fondo claro en hover; mantener el fondo oscuro de observatorio y encender únicamente el borde en ámbar */
 .js-plotly-plot .updatemenu-button:hover rect,
 .js-plotly-plot .updatemenu-item:hover rect {
-  fill: rgba(232, 164, 48, 0.2) !important;
+  fill: rgba(8, 10, 18, 0.9) !important;
   stroke: #e8a430 !important;
+  stroke-width: 1.5px !important;
 }
 
-/* En hover o activo (que Plotly rellena con font.color rgb(240, 236, 224) o #f0ece0), el texto se vuelve color ámbar brillante para un contraste perfecto */
+/* En hover o activo, el texto se vuelve color ámbar brillante en negrita */
 .js-plotly-plot .updatemenu-button:hover text,
 .js-plotly-plot .updatemenu-item:hover text,
 .js-plotly-plot .updatemenu-button rect[style*="240"] ~ text,
@@ -1086,7 +1087,7 @@ main {
   font-weight: 700 !important;
 }
 
-/* Para el botón activo, cambiamos ese fondo claro a un ámbar oscuro translúcido con borde dorado */
+/* Para el botón activo, mantenemos el fondo oscuro y resaltamos únicamente el borde dorado */
 .js-plotly-plot .updatemenu-button rect[style*="240"],
 .js-plotly-plot .updatemenu-button rect[style*="236"],
 .js-plotly-plot .updatemenu-button rect[style*="f0ece0"],
@@ -1099,7 +1100,7 @@ main {
 .js-plotly-plot .updatemenu-button rect[fill*="F0ECE0"],
 .js-plotly-plot .updatemenu-button rect[fill*="fff"],
 .js-plotly-plot .updatemenu-button rect[fill*="244"] {
-  fill: rgba(232, 164, 48, 0.3) !important;
+  fill: rgba(8, 10, 18, 0.9) !important;
   stroke: #e8a430 !important;
   stroke-width: 1.5px !important;
 }
