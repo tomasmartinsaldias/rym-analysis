@@ -6,7 +6,7 @@ from app import db
 from sqlalchemy import func
 from app.models import Album
 from app.services.recommender.engine import get_data
-from app.services.recommender.constants import MEGA_CLUSTER_COLORS, CLUSTER_NAMES
+from app.services.recommender.constants import MEGA_CLUSTER_COLORS, CLUSTER_NAMES, MICRO_CLUSTER_COLORS
 from app.visualizations.common import (
     COLOR_AMBAR, COLOR_CIAN, get_dark_layout, LAYOUT_SCATTER, fig_to_html
 )
@@ -164,19 +164,69 @@ def make_radar_chart(album_id):
     fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 1], showticklabels=False, gridcolor='rgba(255,255,255,0.06)'), bgcolor='rgba(0,0,0,0)'), showlegend=False, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', margin=dict(l=30, r=30, t=30, b=30), height=240)
     return fig_to_html(fig)
 
+def add_cluster_toggle_buttons(fig):
+    macro_colors_list = []
+    micro_colors_list = []
+    
+    for t in fig.data:
+        if t.name in MEGA_CLUSTER_COLORS:
+            base_color = t.marker.color
+            if isinstance(t.customdata, (list, np.ndarray)) and len(t.customdata) > 0 and len(t.customdata[0]) >= 6:
+                macro_colors_list.append([base_color] * len(t.customdata))
+                micro_colors_list.append([MICRO_CLUSTER_COLORS.get(int(float(row[5])), '#535c68') for row in t.customdata])
+            else:
+                macro_colors_list.append(base_color)
+                micro_colors_list.append(base_color)
+        else:
+            macro_colors_list.append(t.marker.color)
+            micro_colors_list.append(t.marker.color)
+
+    fig.update_layout(
+        updatemenus=[
+            dict(
+                type="buttons",
+                direction="right",
+                x=0.5,
+                y=1.0,
+                xanchor="center",
+                yanchor="bottom",
+                showactive=True,
+                active=0,
+                buttons=[
+                    dict(
+                        label="🌌 Galaxias (Macro)",
+                        method="restyle",
+                        args=[{"marker.color": macro_colors_list}]
+                    ),
+                    dict(
+                        label="🛰️ Subgéneros (Micro)",
+                        method="restyle",
+                        args=[{"marker.color": micro_colors_list}]
+                    )
+                ],
+                font=dict(color="#f0ece0", size=11, family="DM Mono, monospace"),
+                bgcolor="rgba(8, 10, 18, 0.9)",
+                bordercolor="rgba(255, 255, 255, 0.15)",
+                borderwidth=1,
+                pad=dict(r=10, t=10, b=10, l=10)
+            )
+        ],
+        margin=dict(t=50, b=10, l=10, r=10)
+    )
+
 def get_scatter_html(seed_id=None, recommended_ids=None, highlighted_id=None, show_legend=True):
     data = get_data()
     if data is None: return ""
     coords, clusters, info, album_ids, mega_cl = data['tsne_coords'], data['cluster_labels'], data['album_info'], data['album_ids'], data['mega_clusters']
     id_to_idx = {aid: i for i, aid in enumerate(album_ids)}
-    df = pd.DataFrame({'x': coords[:, 0], 'y': coords[:, 1], 'galaxy': mega_cl, 'title': info['title'], 'artist': info['artist'], 'genres': info['genres'], 'role': 'Otros', 'cluster': [f"C{c}: {CLUSTER_NAMES.get(int(c), 'Otros')}" if c != -1 else "Otros" for c in clusters]})
+    df = pd.DataFrame({'x': coords[:, 0], 'y': coords[:, 1], 'galaxy': mega_cl, 'title': info['title'], 'artist': info['artist'], 'genres': info['genres'], 'role': 'Otros', 'cluster_id': [int(c) for c in clusters], 'cluster': [f"C{c}: {CLUSTER_NAMES.get(int(c), 'Otros')}" if c != -1 else "Otros" for c in clusters]})
     if seed_id and seed_id in id_to_idx: df.loc[id_to_idx[seed_id], 'role'] = 'Semilla'
     if recommended_ids:
         for rid in recommended_ids:
             if rid in id_to_idx and df.loc[id_to_idx[rid], 'role'] != 'Semilla': df.loc[id_to_idx[rid], 'role'] = 'Recomendado'
     if highlighted_id and highlighted_id in id_to_idx: df.loc[id_to_idx[highlighted_id], 'role'] = 'Buscado'
     has_h = bool(seed_id or recommended_ids or highlighted_id)
-    fig = px.scatter(df[df['role'] == 'Otros'] if has_h else df, x='x', y='y', color='galaxy', color_discrete_map=MEGA_CLUSTER_COLORS, custom_data=['title', 'artist', 'genres', 'cluster', 'galaxy'], opacity=0.35 if has_h else 0.75, render_mode='webgl', labels={'galaxy': ''})
+    fig = px.scatter(df[df['role'] == 'Otros'] if has_h else df, x='x', y='y', color='galaxy', color_discrete_map=MEGA_CLUSTER_COLORS, custom_data=['title', 'artist', 'genres', 'cluster', 'galaxy', 'cluster_id'], opacity=0.35 if has_h else 0.75, render_mode='webgl', labels={'galaxy': ''})
     fig.update_traces(hovertemplate='<b>%{customdata[0]}</b><br>%{customdata[1]}<br><span style="color:#e8a430">%{customdata[4]}</span> > %{customdata[3]}<extra></extra>')
     if recommended_ids:
         recs = df[df['role'] == 'Recomendado']
@@ -189,8 +239,9 @@ def get_scatter_html(seed_id=None, recommended_ids=None, highlighted_id=None, sh
         fig.add_trace(go.Scattergl(x=h['x'], y=h['y'], mode='markers', marker=dict(size=12, color='white', symbol='circle', line=dict(width=3, color='#4dc9e6')), name='Buscado', customdata=h[['artist', 'cluster', 'title']].values, hovertemplate='<b>%{customdata[2]}</b><br>%{customdata[0]}<br><span style="color:#4dc9e6;">Buscado</span><extra></extra>'))
     
     fig.update_layout(**LAYOUT_SCATTER)
+    add_cluster_toggle_buttons(fig)
     if not show_legend:
-        fig.update_layout(showlegend=False, margin=dict(t=10, b=10, l=10, r=10))
+        fig.update_layout(showlegend=False, margin=dict(t=50, b=10, l=10, r=10))
     return fig_to_html(fig)
 
 def get_filtered_scatter_html(filtered_ids):
@@ -199,10 +250,11 @@ def get_filtered_scatter_html(filtered_ids):
     coords, clusters, info, album_ids, mega_cl = data['tsne_coords'], data['cluster_labels'], data['album_info'], data['album_ids'], data['mega_clusters']
     mask = np.array([aid in filtered_ids for aid in album_ids])
     if mask.sum() == 0: return ""
-    df = pd.DataFrame({'x': coords[mask, 0], 'y': coords[mask, 1], 'galaxy': [mega_cl[i] for i, v in enumerate(mask) if v], 'title': info[mask]['title'].values, 'artist': info[mask]['artist'].values, 'genres': info[mask]['genres'].values, 'cluster': [f"C{c}: {CLUSTER_NAMES.get(int(c), 'Otros')}" if c != -1 else "Otros" for c in clusters[mask]]}).sort_values(by='galaxy')
-    fig = px.scatter(df, x='x', y='y', color='galaxy', color_discrete_map=MEGA_CLUSTER_COLORS, custom_data=['title', 'artist', 'genres', 'cluster', 'galaxy'], opacity=0.85, labels={'galaxy': ''})
+    df = pd.DataFrame({'x': coords[mask, 0], 'y': coords[mask, 1], 'galaxy': [mega_cl[i] for i, v in enumerate(mask) if v], 'title': info[mask]['title'].values, 'artist': info[mask]['artist'].values, 'genres': info[mask]['genres'].values, 'cluster_id': [int(c) for c in clusters[mask]], 'cluster': [f"C{c}: {CLUSTER_NAMES.get(int(c), 'Otros')}" if c != -1 else "Otros" for c in clusters[mask]]}).sort_values(by='galaxy')
+    fig = px.scatter(df, x='x', y='y', color='galaxy', color_discrete_map=MEGA_CLUSTER_COLORS, custom_data=['title', 'artist', 'genres', 'cluster', 'galaxy', 'cluster_id'], opacity=0.85, labels={'galaxy': ''})
     fig.update_traces(hovertemplate='<b>%{customdata[0]}</b><br>%{customdata[1]}<br><span style="color:#e8a430">%{customdata[4]}</span> > %{customdata[3]}<extra></extra>')
     fig.update_layout(**LAYOUT_SCATTER)
+    add_cluster_toggle_buttons(fig)
     return fig_to_html(fig)
 
 def get_user_collection_map_html(album_counts):
@@ -214,9 +266,10 @@ def get_user_collection_map_html(album_counts):
     mask = np.array([aid in u_ids for aid in ids_arr])
     if mask.sum() == 0: return ""
     matched = ids_arr[mask]
-    df = pd.DataFrame({'x': coords[mask, 0], 'y': coords[mask, 1], 'galaxy': [mega_cl[i] for i, v in enumerate(mask) if v], 'title': info[mask]['title'].values, 'artist': info[mask]['artist'].values, 'count': [album_counts.get(int(aid), 1) for aid in matched], 'cluster': [f"C{c}: {CLUSTER_NAMES.get(int(c), 'Otros')}" if c != -1 else "Otros" for c in clusters[mask]]}).sort_values(by='galaxy')
+    df = pd.DataFrame({'x': coords[mask, 0], 'y': coords[mask, 1], 'galaxy': [mega_cl[i] for i, v in enumerate(mask) if v], 'title': info[mask]['title'].values, 'artist': info[mask]['artist'].values, 'count': [album_counts.get(int(aid), 1) for aid in matched], 'cluster_id': [int(c) for c in clusters[mask]], 'cluster': [f"C{c}: {CLUSTER_NAMES.get(int(c), 'Otros')}" if c != -1 else "Otros" for c in clusters[mask]]}).sort_values(by='galaxy')
     df['size'] = np.log1p(df['count']) * 8 + 4
-    fig = px.scatter(df, x='x', y='y', color='galaxy', color_discrete_map=MEGA_CLUSTER_COLORS, size='size', custom_data=['title', 'artist', 'count', 'cluster', 'galaxy'], render_mode='webgl', opacity=0.9, labels={'galaxy': ''})
+    fig = px.scatter(df, x='x', y='y', color='galaxy', color_discrete_map=MEGA_CLUSTER_COLORS, size='size', custom_data=['title', 'artist', 'count', 'cluster', 'galaxy', 'cluster_id'], render_mode='webgl', opacity=0.9, labels={'galaxy': ''})
     fig.update_traces(hovertemplate='<b>%{customdata[0]}</b><br>%{customdata[1]}<br>Canciones: %{customdata[2]}<br><span style="color:#e8a430">%{customdata[4]}</span> > %{customdata[3]}<extra></extra>')
     fig.update_layout(**LAYOUT_SCATTER)
+    add_cluster_toggle_buttons(fig)
     return fig_to_html(fig)

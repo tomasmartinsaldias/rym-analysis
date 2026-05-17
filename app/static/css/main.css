@@ -1053,6 +1053,59 @@ main {
 
 
 /* ---------------------------------------------------------
+   PLOTLY UPDATEMENUS CUSTOM STYLING (Observatory Theme)
+   --------------------------------------------------------- */
+.js-plotly-plot .updatemenu-button rect,
+.js-plotly-plot .updatemenu-item rect {
+  transition: fill 0.2s ease, stroke 0.2s ease !important;
+}
+
+/* Evitar fondo blanco cegador en hover; usar ámbar semitransparente con borde ámbar */
+.js-plotly-plot .updatemenu-button:hover rect,
+.js-plotly-plot .updatemenu-item:hover rect {
+  fill: rgba(232, 164, 48, 0.2) !important;
+  stroke: #e8a430 !important;
+}
+
+/* En hover o activo (que Plotly rellena con font.color rgb(240, 236, 224) o #f0ece0), el texto se vuelve color ámbar brillante para un contraste perfecto */
+.js-plotly-plot .updatemenu-button:hover text,
+.js-plotly-plot .updatemenu-item:hover text,
+.js-plotly-plot .updatemenu-button rect[style*="240"] ~ text,
+.js-plotly-plot .updatemenu-button rect[style*="236"] ~ text,
+.js-plotly-plot .updatemenu-button rect[style*="f0ece0"] ~ text,
+.js-plotly-plot .updatemenu-button rect[style*="F0ECE0"] ~ text,
+.js-plotly-plot .updatemenu-button rect[style*="fff"] ~ text,
+.js-plotly-plot .updatemenu-button rect[style*="244"] ~ text,
+.js-plotly-plot .updatemenu-button rect[fill*="240"] ~ text,
+.js-plotly-plot .updatemenu-button rect[fill*="236"] ~ text,
+.js-plotly-plot .updatemenu-button rect[fill*="f0ece0"] ~ text,
+.js-plotly-plot .updatemenu-button rect[fill*="F0ECE0"] ~ text,
+.js-plotly-plot .updatemenu-button rect[fill*="fff"] ~ text,
+.js-plotly-plot .updatemenu-button rect[fill*="244"] ~ text {
+  fill: #e8a430 !important;
+  font-weight: 700 !important;
+}
+
+/* Para el botón activo, cambiamos ese fondo claro a un ámbar oscuro translúcido con borde dorado */
+.js-plotly-plot .updatemenu-button rect[style*="240"],
+.js-plotly-plot .updatemenu-button rect[style*="236"],
+.js-plotly-plot .updatemenu-button rect[style*="f0ece0"],
+.js-plotly-plot .updatemenu-button rect[style*="F0ECE0"],
+.js-plotly-plot .updatemenu-button rect[style*="fff"],
+.js-plotly-plot .updatemenu-button rect[style*="244"],
+.js-plotly-plot .updatemenu-button rect[fill*="240"],
+.js-plotly-plot .updatemenu-button rect[fill*="236"],
+.js-plotly-plot .updatemenu-button rect[fill*="f0ece0"],
+.js-plotly-plot .updatemenu-button rect[fill*="F0ECE0"],
+.js-plotly-plot .updatemenu-button rect[fill*="fff"],
+.js-plotly-plot .updatemenu-button rect[fill*="244"] {
+  fill: rgba(232, 164, 48, 0.3) !important;
+  stroke: #e8a430 !important;
+  stroke-width: 1.5px !important;
+}
+
+
+/* ---------------------------------------------------------
    17. SCROLLBAR
    --------------------------------------------------------- */
 ::-webkit-scrollbar {
