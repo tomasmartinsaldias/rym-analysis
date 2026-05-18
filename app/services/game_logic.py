@@ -15,7 +15,7 @@ ATMOSPHERIC_PAIRS = [
 ]
 
 class GameSession:
-    def __init__(self, level=1):
+    def __init__(self, level=1, previous_score=0):
         data = get_data()
         if not data:
             self.error = "Recommender data not available."
@@ -28,7 +28,7 @@ class GameSession:
         self.target_id = int(random.choice(popular_df['id'].tolist()))
         self.phase = 'calibration' 
         self.step = 1
-        self.score = 0
+        self.score = previous_score
         self.round_score = 0
         self.filters = []
         self.last_feedback = None
@@ -459,13 +459,14 @@ def process_answer(gs, target, ans, q_type):
         is_correct = (ans == 'correct')
         if not is_correct:
             gs.score -= 100
+            gs.round_score -= 100
             gs.last_feedback = "INTERFERENCIA CRÍTICA: Rastro perdido (-100)"
             return
     elif q_type == 'identity':
         target_label = f"{target.artist} — {target.title}".lower()
         ans_clean = ans.strip().lower()
         
-        if ans_clean == target_label or ans_clean == target.title.lower():
+        if ans_clean == target_label or (ans_clean == target.title.lower() and target.title.lower() != target.artist.lower()):
             is_correct = True
             bonus = 500
             gs.last_feedback = "¡ÁLBUM IDENTIFICADO! (+500)"

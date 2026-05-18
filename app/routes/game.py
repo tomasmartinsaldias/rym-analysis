@@ -28,7 +28,10 @@ def index():
 @game_bp.route('/start')
 def start():
     level = session.get('current_level', 1)
-    gs = GameSession(level=level)
+    if level == 1:
+        session.pop('previous_score', None)
+    previous_score = session.get('previous_score', 0)
+    gs = GameSession(level=level, previous_score=previous_score)
     
     # Si ya estamos en nivel de investigación, saltamos la calibración
     if level >= LEVEL_START_INVESTIGATION:
@@ -44,7 +47,9 @@ def next_level():
     state_dict = session.get('game_state')
     if state_dict:
         gs = GameSession.from_dict(state_dict)
-        session['current_level'] = gs.level
+        if getattr(gs, 'level_completed', False):
+            session['previous_score'] = gs.score
+            session['current_level'] = gs.level
     
     session.pop('game_state', None)
     return redirect(url_for('game.start'))
@@ -52,6 +57,7 @@ def next_level():
 @game_bp.route('/reset')
 def reset():
     session['current_level'] = 1
+    session.pop('previous_score', None)
     session.pop('game_state', None)
     return redirect(url_for('game.start'))
 

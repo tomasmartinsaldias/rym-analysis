@@ -15,9 +15,9 @@
         </div>
         <div class="step-indicator">
             {% if gs.level_completed %}
-                Nivel {{ gs.level - 1 }} Superado — Puntuación Final: {{ gs.score }}
+                Nivel {{ gs.level - 1 }} Superado — Ronda: {{ gs.round_score }} pts | Global: {{ gs.score }} pts
             {% else %}
-                Nivel {{ gs.level }} No Superado — Necesitas 1200 pts en la ronda
+                Nivel {{ gs.level }} No Superado (Ronda: {{ gs.round_score }} / 800 pts) | Global: {{ gs.score }} pts
             {% endif %}
         </div>
 
@@ -37,7 +37,8 @@
                     <h2>{{ target.title }}</h2>
                 </a>
                 <div class="artist">{{ target.artist }}</div>
-                <div class="score-display">{{ gs.score }} pts</div>
+                <div class="score-display">{{ gs.round_score }} pts</div>
+                <div class="u-text-cyan u-text-small u-margin-top-10">Puntaje Global Acumulado: {{ gs.score }} pts</div>
                 
                 {% if gs.level_completed %}
                     <p class="u-text-cyan u-text-bold">¡Nivel de dificultad superado! Avanzas al nivel {{ gs.level }}.</p>
@@ -71,7 +72,7 @@
             {% endif %}
         </div>
         <div class="step-indicator">
-            Nivel {{ gs.level }} — Paso {{ gs.step }} — Puntuación: {{ gs.score }}
+            Nivel {{ gs.level }} — Paso {{ gs.step }} — Ronda: {{ gs.round_score }} pts | Global: {{ gs.score }} pts
             {% if gs.cluster_revealed %}
                 <span class="sector-revealed">
                     SECTOR REVELADO: {{ cluster_name }}
