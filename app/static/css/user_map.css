@@ -22,7 +22,7 @@
   }
 
   .user-map-header p {
-      font-size: 12px;
+      font-size: 14px;
       color: var(--text-muted);
       letter-spacing: 0.04em;
   }
@@ -47,7 +47,7 @@
   }
 
   .upload-box p {
-      font-size: 12px;
+      font-size: 14px;
       color: var(--text-muted);
       margin-bottom: 16px;
   }

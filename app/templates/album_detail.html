@@ -14,23 +14,21 @@
   {# ── Back link ──────────────────────────────────────── #}
   <a href="{{ url_for('main.index') }}" class="album-back">
     <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
-      <line x1="12" y1="8" x2="4" y2="8"/>
-      <polyline points="8,4 4,8 8,12"/>
+      <line x1="12" y1="8" x2="4" y2="8" />
+      <polyline points="8,4 4,8 8,12" />
     </svg>
     Volver al mapa
   </a>
 
   {# ═══════════════════════════════════════════════════════
-     HERO: Cover + Info
+  HERO: Cover + Info
   ════════════════════════════════════════════════════════ #}
   <div class="album-hero">
 
     {# Cover #}
     <div class="album-hero__cover">
       {% if cover_url %}
-      <img src="{{ cover_url }}" 
-           alt="Portada de {{ album.title }}" 
-           class="album-hero__cover-img">
+      <img src="{{ cover_url }}" alt="Portada de {{ album.title }}" class="album-hero__cover-img">
       {% else %}
       <div class="album-hero__cover-fallback">
         {{ album.title[:2] }}
@@ -59,22 +57,23 @@
       <div class="album-stats">
         <div>
           <div class="album-stat__num">{{ '{:,}'.format(album.rating_count) }}</div>
-          <div class="album-stat__label">Ratings</div>
+          <div class="album-stat__label has-tooltip" data-tooltip="Votos individuales en Rate Your Music">Ratings</div>
         </div>
         <div>
           <div class="album-stat__num">{{ '{:,}'.format(album.review_count) }}</div>
-          <div class="album-stat__label">Reseñas</div>
+          <div class="album-stat__label has-tooltip" data-tooltip="Críticas escritas por usuarios en RYM">Reseñas</div>
         </div>
         {% if album.lastfm_listeners %}
         <div>
           <div class="album-stat__num">{{ '{:,}'.format(album.lastfm_listeners) }}</div>
-          <div class="album-stat__label">Oyentes</div>
+          <div class="album-stat__label has-tooltip" data-tooltip="Usuarios únicos en Last.fm">Oyentes</div>
         </div>
         {% endif %}
         {% if album.lastfm_playcount %}
         <div>
           <div class="album-stat__num">{{ '{:,}'.format(album.lastfm_playcount) }}</div>
-          <div class="album-stat__label">Plays</div>
+          <div class="album-stat__label has-tooltip" data-tooltip="Reproducciones totales (scrobbles) en Last.fm">Plays
+          </div>
         </div>
         {% endif %}
       </div>
@@ -84,13 +83,15 @@
         {% if mega_cluster %}
         <div class="cluster-group cluster-group--galaxy">
           <span class="nd-label-xs">Galaxia</span>
-          <a href="{{ url_for('main.data', mega=mega_cluster) }}" class="cluster-badge galaxy-badge">{{ mega_cluster }}</a>
+          <a href="{{ url_for('main.data', mega=mega_cluster) }}" class="cluster-badge galaxy-badge">{{ mega_cluster
+            }}</a>
         </div>
         {% endif %}
         {% if cluster_name and cluster_id is not none %}
         <div class="cluster-group">
           <span class="nd-label-xs">Vibe</span>
-          <a href="{{ url_for('main.data', cluster=cluster_id) }}" class="cluster-badge micro-badge">{{ cluster_name }}</a>
+          <a href="{{ url_for('main.data', cluster=cluster_id) }}" class="cluster-badge micro-badge">{{ cluster_name
+            }}</a>
         </div>
         {% endif %}
       </div>
@@ -118,17 +119,20 @@
 
 
   {# ═══════════════════════════════════════════════════════
-     DETAILS GRID: Radar + Descriptors
+  DETAILS GRID: Radar + Descriptors
   ════════════════════════════════════════════════════════ #}
   <div class="album-details-grid">
 
     {# Radar Chart — rendered from Python/Plotly #}
     {% if radar_chart_html %}
     <div class="album-card album-section">
-      <div class="album-section__label">Perfil de métricas (percentil)</div>
+      <div class="album-section__label has-tooltip"
+        data-tooltip="Percentil: Qué % del total supera este álbum en cada métrica.">Perfil de métricas (percentil)
+      </div>
       <div class="album-radar">
         {{ radar_chart_html | safe }}
       </div>
+      <p class="radar-legend">Ejes: Rating RYM • Votos RYM • Oyentes Last.fm • Plays (Reproducciones) Last.fm</p>
     </div>
     {% endif %}
 
@@ -164,7 +168,7 @@
   <div class="album-actions">
     <a href="{{ url_for('main.recommend_page', album_id=album.id) }}" class="nd-btn nd-btn--primary">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
-        <polygon points="8,1.5 9.8,6.2 14.8,6.2 10.8,9.2 12.2,14 8,11 3.8,14 5.2,9.2 1.2,6.2 6.2,6.2"/>
+        <polygon points="8,1.5 9.8,6.2 14.8,6.2 10.8,9.2 12.2,14 8,11 3.8,14 5.2,9.2 1.2,6.2 6.2,6.2" />
       </svg>
       Buscar similares
     </a>

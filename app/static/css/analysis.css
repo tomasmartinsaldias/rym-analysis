@@ -36,7 +36,7 @@
     font-family: var(--font-mono);
     color: var(--text-muted);
     letter-spacing: 0.08em;
-    font-size: 12px;
+    font-size: 14px;
 }
 
 
@@ -61,7 +61,7 @@
     padding: 12px 20px;
     font-family: var(--font-mono);
     text-transform: uppercase;
-    font-size: 10px;
+    font-size: 12px;
     letter-spacing: 0.15em;
     color: var(--text-muted);
     cursor: pointer;
@@ -81,11 +81,11 @@
     transition: width var(--t-normal);
 }
 
-.nd-tabs__input:checked + .nd-tabs__label {
+.nd-tabs__input:checked+.nd-tabs__label {
     color: var(--amber);
 }
 
-.nd-tabs__input:checked + .nd-tabs__label:after {
+.nd-tabs__input:checked+.nd-tabs__label:after {
     width: 100%;
 }
 
@@ -101,13 +101,13 @@
 }
 
 /* Mostrar panel correspondiente al radio seleccionado */
-#tab-genres:checked   ~ .tab-content-container #genres,
-#tab-labels:checked   ~ .tab-content-container #labels,
-#tab-artists:checked  ~ .tab-content-container #artists,
-#tab-clusters:checked ~ .tab-content-container #clusters,
-#tab-temporal:checked ~ .tab-content-container #temporal,
-#tab-correlations:checked ~ .tab-content-container #correlations,
-#tab-hall:checked ~ .tab-content-container #hall {
+#tab-genres:checked~.tab-content-container #genres,
+#tab-labels:checked~.tab-content-container #labels,
+#tab-artists:checked~.tab-content-container #artists,
+#tab-clusters:checked~.tab-content-container #clusters,
+#tab-temporal:checked~.tab-content-container #temporal,
+#tab-correlations:checked~.tab-content-container #correlations,
+#tab-hall:checked~.tab-content-container #hall {
     display: block;
 }
 
@@ -116,8 +116,15 @@
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(6px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 
@@ -325,5 +332,10 @@
     white-space: nowrap;
 }
 
-.text-amber { color: var(--amber); }
-.text-cyan { color: var(--cyan); }
+.text-amber {
+    color: var(--amber);
+}
+
+.text-cyan {
+    color: var(--cyan);
+}
