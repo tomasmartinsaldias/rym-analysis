@@ -28,8 +28,8 @@
 
   /* Text */
   --text-primary: #f0ece0;
-  --text-secondary: rgba(240, 236, 224, 0.55);
-  --text-muted: rgba(240, 236, 224, 0.25);
+  --text-secondary: rgba(240, 236, 224, 0.60);
+  --text-muted: rgba(240, 236, 224, 0.55);
   --text-amber: #e8a430;
   --text-cyan: #4dc9e6;
 
@@ -1071,18 +1071,18 @@ main {
 /* En hover o activo, el texto se vuelve color ámbar brillante en negrita */
 .js-plotly-plot .updatemenu-button:hover text,
 .js-plotly-plot .updatemenu-item:hover text,
-.js-plotly-plot .updatemenu-button rect[style*="240"] ~ text,
-.js-plotly-plot .updatemenu-button rect[style*="236"] ~ text,
-.js-plotly-plot .updatemenu-button rect[style*="f0ece0"] ~ text,
-.js-plotly-plot .updatemenu-button rect[style*="F0ECE0"] ~ text,
-.js-plotly-plot .updatemenu-button rect[style*="fff"] ~ text,
-.js-plotly-plot .updatemenu-button rect[style*="244"] ~ text,
-.js-plotly-plot .updatemenu-button rect[fill*="240"] ~ text,
-.js-plotly-plot .updatemenu-button rect[fill*="236"] ~ text,
-.js-plotly-plot .updatemenu-button rect[fill*="f0ece0"] ~ text,
-.js-plotly-plot .updatemenu-button rect[fill*="F0ECE0"] ~ text,
-.js-plotly-plot .updatemenu-button rect[fill*="fff"] ~ text,
-.js-plotly-plot .updatemenu-button rect[fill*="244"] ~ text {
+.js-plotly-plot .updatemenu-button rect[style*="240"]~text,
+.js-plotly-plot .updatemenu-button rect[style*="236"]~text,
+.js-plotly-plot .updatemenu-button rect[style*="f0ece0"]~text,
+.js-plotly-plot .updatemenu-button rect[style*="F0ECE0"]~text,
+.js-plotly-plot .updatemenu-button rect[style*="fff"]~text,
+.js-plotly-plot .updatemenu-button rect[style*="244"]~text,
+.js-plotly-plot .updatemenu-button rect[fill*="240"]~text,
+.js-plotly-plot .updatemenu-button rect[fill*="236"]~text,
+.js-plotly-plot .updatemenu-button rect[fill*="f0ece0"]~text,
+.js-plotly-plot .updatemenu-button rect[fill*="F0ECE0"]~text,
+.js-plotly-plot .updatemenu-button rect[fill*="fff"]~text,
+.js-plotly-plot .updatemenu-button rect[fill*="244"]~text {
   fill: #e8a430 !important;
   font-weight: 700 !important;
 }
