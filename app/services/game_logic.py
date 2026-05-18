@@ -74,7 +74,7 @@ class GameSession:
             elif f_type == 'genre':
                 selection = df['genres'].astype(str).str.contains(val, case=False, na=False)
             elif f_type == 'genre_list':
-                genres = val.split(',')
+                genres = val.split('|')
                 if genre_logic == 'AND':
                     selection = df['genres'].apply(lambda x: all(g.lower() in str(x).lower() for g in genres))
                 else:
@@ -98,7 +98,7 @@ class GameSession:
             elif f_type == 'descriptors':
                 selection = df['descriptors'].astype(str).str.contains(val, case=False, na=False)
             elif f_type == 'descriptor_list':
-                descs = val.split(',')
+                descs = val.split('|')
                 if desc_logic == 'AND':
                     selection = df['descriptors'].apply(lambda x: all(d.lower() in str(x).lower() for d in descs))
                 else:
@@ -106,7 +106,7 @@ class GameSession:
             elif f_type == 'cluster':
                 selection = df['cluster'] == int(val)
             elif f_type == 'cluster_list':
-                parts = val.split(',')
+                parts = val.split('|')
                 try:
                     # Intentar como IDs numéricos (micro-clusters)
                     clusters_int = [int(c) for c in parts if c.isdigit()]
@@ -201,7 +201,7 @@ class GameSession:
                     match = low <= (target_row['lastfm_listeners'] or 0) <= high
                 except: match = True
             elif f_type == 'genre_list':
-                genres = val.split(',')
+                genres = val.split('|')
                 target_genres = [g.name.lower() for g in target.genres]
                 if genre_logic == 'AND':
                     if not all(g.lower() in target_genres for g in genres): return True
@@ -209,7 +209,7 @@ class GameSession:
                     if not any(g.lower() in target_genres for g in genres): return True
                 match = True
             elif f_type == 'descriptor_list':
-                descs = val.split(',')
+                descs = val.split('|')
                 target_descs = [d.name.lower() for d in target.descriptors]
                 if desc_logic == 'AND':
                     if not all(d.lower() in target_descs for d in descs): return True
@@ -217,7 +217,7 @@ class GameSession:
                     if not any(d.lower() in target_descs for d in descs): return True
                 match = True
             elif f_type == 'cluster_list':
-                parts = val.split(',')
+                parts = val.split('|')
                 try:
                     # Caso 1: Micro Clusters numéricos
                     clusters_int = [int(c) for c in parts if c.isdigit()]
@@ -260,24 +260,11 @@ def generate_question(gs, target):
             return {'text': "¿Cuál es el género principal de esta señal?", 'type': 'genre', 
                     'options': [{'val': g, 'label': g} for g in opts]}
         else:
-            target_descs = [d.name.lower() for d in target.descriptors]
-            found_pair = None
-            for p1, p2 in ATMOSPHERIC_PAIRS:
-                if p1.lower() in target_descs or p2.lower() in target_descs:
-                    found_pair = (p1, p2)
-                    break
-            
-            if not found_pair:
-                found_pair = random.choice(ATMOSPHERIC_PAIRS)
-            
-            return {
-                'text': f"¿Cómo clasificarías la frecuencia dominante?",
-                'type': 'atmospheric',
-                'options': [
-                    {'val': found_pair[0], 'label': found_pair[0]},
-                    {'val': found_pair[1], 'label': found_pair[1]}
-                ]
-            }
+            q = generate_descriptors_question(target)
+            if q: return q
+            return {'text': "¿Cómo clasificarías la frecuencia dominante?", 'type': 'descriptors', 
+                    'options': [{'val': 'Atmospheric', 'label': 'Atmospheric'}, {'val': 'Melodic', 'label': 'Melodic'}]}
+
     
     elif gs.phase == 'reduction':
         data = get_data()

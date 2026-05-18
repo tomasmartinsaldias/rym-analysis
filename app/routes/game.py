@@ -110,7 +110,7 @@ def play():
                     current_filters[f'{key_base}_min'] = parts[0]
                     current_filters[f'{key_base}_max'] = parts[1]
             elif f_type in ['genre_list', 'descriptor_list', 'cluster_list']:
-                current_filters[f_type] = val.split(',')
+                current_filters[f_type] = val.split('|')
             elif f_type in ['genre_logic', 'desc_logic', 'cluster_logic']:
                 current_filters[f_type] = val
 
@@ -179,13 +179,13 @@ def investigate():
     if l_min and l_max: new_filters.append(('listeners_range', f"{l_min}:{l_max}"))
     
     genres = request.form.getlist('genres')
-    if genres: new_filters.append(('genre_list', ",".join(genres)))
+    if genres: new_filters.append(('genre_list', "|".join(genres)))
     
     descs = request.form.getlist('descriptors')
-    if descs: new_filters.append(('descriptor_list', ",".join(descs)))
+    if descs: new_filters.append(('descriptor_list', "|".join(descs)))
     
     clusters = request.form.getlist('clusters')
-    if clusters: new_filters.append(('cluster_list', ",".join(clusters)))
+    if clusters: new_filters.append(('cluster_list', "|".join(clusters)))
 
     # Capturar lógicas granulares
     new_filters.append(('genre_logic', request.form.get('genre_logic', 'AND')))
