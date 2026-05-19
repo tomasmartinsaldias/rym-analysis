@@ -55,6 +55,19 @@ class Album(db.Model):
                 
         return primary, secondary
 
+    @property
+    def rym_url(self):
+        import re
+        def slugify(text):
+            text = text.lower()
+            text = re.sub(r'[^\w\s-]', '', text)
+            text = re.sub(r'[\s_-]+', '-', text)
+            return text.strip('-')
+        
+        artist_slug = slugify(self.artist)
+        title_slug = slugify(self.title)
+        return f"https://rateyourmusic.com/release/album/{artist_slug}/{title_slug}/"
+
 # --- Catálogos ---
 class Genre(db.Model):
     id = db.Column(db.Integer, primary_key=True)

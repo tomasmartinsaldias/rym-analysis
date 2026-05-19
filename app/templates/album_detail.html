@@ -27,13 +27,15 @@
 
     {# Cover #}
     <div class="album-hero__cover">
-      {% if cover_url %}
-      <img src="{{ cover_url }}" alt="Portada de {{ album.title }}" class="album-hero__cover-img">
-      {% else %}
-      <div class="album-hero__cover-fallback">
-        {{ album.title[:2] }}
-      </div>
-      {% endif %}
+      <a href="{{ album.rym_url }}" target="_blank" rel="noopener noreferrer" class="album-cover-link">
+        {% if cover_url %}
+        <img src="{{ cover_url }}" alt="Portada de {{ album.title }}" class="album-hero__cover-img">
+        {% else %}
+        <div class="album-hero__cover-fallback">
+          {{ album.title[:2] }}
+        </div>
+        {% endif %}
+      </a>
     </div>
 
     {# Info column #}
@@ -41,7 +43,11 @@
       <div class="album-hero__eyebrow">
         #{{ album.position }} en RYM
       </div>
-      <h1 class="album-hero__title">{{ album.title }}</h1>
+      <h1 class="album-hero__title">
+        <a href="{{ album.rym_url }}" target="_blank" rel="noopener noreferrer" class="album-title-link">
+          {{ album.title }}
+        </a>
+      </h1>
       <div class="album-hero__artist">{{ album.artist }}</div>
       {% if album.release_date %}
       <div class="album-hero__year">{{ album.release_date.strftime('%d/%m/%Y') }}</div>
