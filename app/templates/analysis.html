@@ -338,5 +338,15 @@
 {% endblock %}
 
 {% block extra_scripts %}
-<!-- No JS required for tabs -->
+<script>
+  // Fix for Plotly charts inside CSS-only tabs:
+  // Since Plotly charts are rendered while their container is hidden (display: none),
+  // they incorrectly calculate their layout bounds (appear "zoomed out").
+  // Triggering a window resize event when a tab is selected forces Plotly to recalculate and fix the sizes.
+  document.querySelectorAll('.nd-tabs__input').forEach(function(radio) {
+    radio.addEventListener('change', function() {
+      window.dispatchEvent(new Event('resize'));
+    });
+  });
+</script>
 {% endblock %}
